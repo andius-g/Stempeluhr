@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Arbeitszeit-Rechner</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M 36 28 C 36 24, 39 22, 43 22 L 57 22 C 61 22, 64 24, 64 28 L 64 36 L 36 36 Z' fill='%230083B8'/%3E%3Cpath d='M 46 25 L 54 25 L 54 29 L 57 29 L 50 34 L 43 29 L 46 29 Z' fill='%23FFFFFF'/%3E%3Crect x='20' y='33' width='60' height='58' rx='12' ry='12' fill='%230083B8'/%3E%3Ccircle cx='50' cy='62' r='21' fill='%23FFFFFF'/%3E%3Ccircle cx='50' cy='45' r='2' fill='%230083B8'/%3E%3Ccircle cx='67' cy='62' r='2' fill='%230083B8'/%3E%3Ccircle cx='50' cy='79' r='2' fill='%230083B8'/%3E%3Ccircle cx='33' cy='62' r='2' fill='%230083B8'/%3E%3Cpath d='M 50 62 L 50 71 M 50 62 L 60 62' stroke='%230083B8' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E" type="image/svg+xml" />
+    <style>
+        :root {
+            /* Basis-Farbwert (wird per JS überschrieben) */
+            --hue: 195;
+            
+            /* Farbe 2: Mittel (Buttons, Akzente) */
+            --primary-color: hsl(var(--hue), 60%, 50%);
+            
+            /* Farbe 3: Sehr Hell (Hintergrund + 30 Grad) */
+            --bg-color: hsl(calc(var(--hue) + 30), 50%, 95%);
+            --card-bg: hsl(calc(var(--hue) + 30), 40%, 90%);
+            
+            /* Farbe 1: Dunkel (Text, Ränder - 30 Grad) */
+            --text-color: hsl(calc(var(--hue) - 30), 70%, 20%);
+            --border-color: hsl(calc(var(--hue) - 30), 30%, 70%);
+            
+            --white: #ffffff;
+            --input-field-margin: 15px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .header-bar {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .settings-btn {
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        
+        .settings-btn:active {
+            transform: scale(0.9);
+        }
+
+        .container {
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .feature-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s;
+        }
+
+        h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .btn-now {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .time-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .time-input-pair {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .time-input-pair label {
+            width: 70px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 0.95em;
+            color: var(--text-color);
+        }
+
+        input[type="number"] {
+            width: 55px;
+            padding: 10px 5px;
+            font-size: 1.1em;
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            background: var(--white);
+            color: var(--text-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .output-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .output, .output-decimal {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .output h3, .output-decimal h3 {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+
+        .output div, .output-decimal div {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .output-decimal-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .output-decimal-container .output-decimal {
+            flex: 1;
+        }
+
+        /* --- Modal Settings --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: var(--white);
+            width: 90%;
+            max-width: 350px;
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: none; border: none;
+            font-size: 1.5em; color: var(--text-color);
+            cursor: pointer;
+        }
+        
+        .settings-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .settings-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        /* Color Wheel */
+        .color-wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: crosshair;
+            touch-action: none; /* Verhindert Scrollen beim Wischen auf Smartphones */
+        }
+        .color-preview {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .color-dot {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+        }
+        .dot-1 { background: var(--text-color); }
+        .dot-2 { background: var(--primary-color); }
+        .dot-3 { background: var(--bg-color); }
+
+        .settings-save {
+            width: 100%;
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <button class="settings-btn" id="btn-settings">⚙️</button>
+    </div>
+
+    <div class="container">
+        <!-- Abschnitt 1: Kommen & Pausen -->
+        <div class="feature-section">
+            <div class="top-row">
+                <h2>Kommen & Pausen</h2>
+                <button class="btn-now" id="btn-now">🕒 Jetzt</button>
+            </div>
+            
+            <div class="time-picker">
+                <div class="time-input-pair">
+                    <label>Kommen</label>
+                    <input type="number" id="hours" min="0" max="23" value="" maxlength="2" inputmode="numeric" placeholder="hh">
+                    <input type="number" id="minutes" min="0" max="59" value="" maxlength="2" inputmode="numeric" placeholder="mm">
+                    <input type="number" id="seconds" min="0" max="59" value="" maxlength="2" inputmode="numeric" placeholder="ss">
+                </div>
+            </div>
+            
+            <div class="output-container">
+                <div class="output">
+                    <h3>Keine Pause (gehen um):</h3>
+                    <div id="output-no-pause">-</div>
+                </div>
+                <div class="output">
+                    <h3>30 min Pause (von - bis):</h3>
+                    <div id="output-30min-pause-range">-</div>
+                </div>
+                <div class="output">
+                    <h3>45 min Pause (ab):</h3>
+                    <div id="output-45min-pause">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Abschnitt 2: Arbeitszeit-Rechner -->
+        <div class="feature-section">
+            <h2>Arbeitszeit & Überstunden</h2>
+            <div class="time-picker">
+                <div class="time-input-pair">
+                    <label>Kommen</label>
+                    <input type="number" id="startHours" min="0" max="23" value="" maxlength="2" inputmode="numeric">
+                    <input type="number" id="startMinutes" min="0" max="59" value="" maxlength="2" inputmode="numeric">
+                    <input type="number" id="startSeconds" min="0" max="59" value="" maxlength="2" inputmode="numeric">
+                </div>
+                <div class="time-input-pair">
+                    <label>Gehen</label>
+                    <input type="number" id="endHours" min="0" max="23" value="" maxlength="2" inputmode="numeric">
+                    <input type="number" id="endMinutes" min="0" max="59" value="" maxlength="2" inputmode="numeric">
+                    <input type="number" id="endSeconds" min="0" max="59" value="" maxlength="2" inputmode="numeric">
+                </div>
+            </div>
+            
+            <div class="output-decimal-container">
+                <div class="output-decimal">
+                    <h3>Dezimal (h)</h3>
+                    <div id="output-decimal-time">-</div>
+                </div>
+                <div class="output-decimal">
+                    <h3>+/-</h3>
+                    <div id="output-overtime">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal für Einstellungen -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="btn-close-settings">&times;</button>
+            <h2>Einstellungen</h2>
+            
+            <div class="settings-group">
+                <label>Sollarbeitszeit (Std : Min)</label>
+                <div class="time-input-pair" style="justify-content: flex-start;">
+                    <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
+                    <span style="font-weight:bold; color:var(--text-color);">:</span>
+                    <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="settings-group color-wheel-container">
+                <label>Farbharmonie (3 analoge Farben)</label>
+                <canvas id="colorWheel" width="200" height="200"></canvas>
+                <div class="color-preview">
+                    <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
+                    <div class="color-dot dot-2" title="Primär (Buttons)"></div>
+                    <div class="color-dot dot-3" title="Hintergrund (hell)"></div>
+                </div>
+                <p style="font-size: 0.8em; margin-top:10px; color:var(--text-color); text-align:center;">
+                    Tippe auf das Farbrad, um die App-Farben (30° Abstand) live anzupassen.
+                </p>
+            </div>
+
+            <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // --- 1. State & Storage laden ---
+            let appHue = localStorage.getItem("appHue") || 195;
+            let sollHours = parseInt(localStorage.getItem("sollHours"));
+            if(isNaN(sollHours)) sollHours = 8;
+            let sollMinutes = parseInt(localStorage.getItem("sollMinutes"));
+            if(isNaN(sollMinutes)) sollMinutes = 0;
+            
+            document.documentElement.style.setProperty('--hue', appHue);
+            document.getElementById("sollHours").value = sollHours;
+            document.getElementById("sollMinutes").value = sollMinutes;
+
+            // --- 2. Color Wheel Logik (Cleanroom Nachbildung) ---
+            const canvas = document.getElementById("colorWheel");
+            const ctx = canvas.getContext("2d");
+            const radius = canvas.width / 2;
+
+            function drawColorWheel() {
+                for (let angle = 0; angle < 360; angle++) {
+                    ctx.beginPath();
+                    ctx.moveTo(radius, radius);
+                    ctx.arc(radius, radius, radius, (angle - 0.5) * Math.PI / 180, (angle + 1.5) * Math.PI / 180);
+                    ctx.closePath();
+                    ctx.fillStyle = `hsl(${angle}, 100%, 50%)`;
+                    ctx.fill();
+                }
+                // Marker für die aktuelle Farbe
+                const rad = appHue * Math.PI / 180;
+                const dotX = radius + Math.cos(rad) * (radius * 0.7);
+                const dotY = radius + Math.sin(rad) * (radius * 0.7);
+                
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, 7, 0, 2 * Math.PI);
+                ctx.fillStyle = "white";
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(0,0,0,0.5)";
+                ctx.stroke();
+            }
+
+            function handleColorPick(e) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                const x = clientX - rect.left - radius;
+                const y = clientY - rect.top - radius;
+                
+                let angle = Math.atan2(y, x) * 180 / Math.PI;
+                if (angle < 0) angle += 360;
+                
+                appHue = Math.round(angle);
+                document.documentElement.style.setProperty('--hue', appHue);
+                drawColorWheel();
+            }
+
+            canvas.addEventListener("mousedown", (e) => {
+                handleColorPick(e);
+                canvas.addEventListener("mousemove", handleColorPick);
+            });
+            window.addEventListener("mouseup", () => {
+                canvas.removeEventListener("mousemove", handleColorPick);
+            });
+
+            canvas.addEventListener("touchstart", (e) => {
+                handleColorPick(e);
+                canvas.addEventListener("touchmove", handleColorPick, {passive: false});
+            });
+            window.addEventListener("touchend", () => {
+                canvas.removeEventListener("touchmove", handleColorPick);
+            });
+
+            // --- 3. Einstellungen Modal Logik ---
+            const modal = document.getElementById("settings-modal");
+            document.getElementById("btn-settings").addEventListener("click", () => {
+                modal.classList.add("active");
+                drawColorWheel(); // Zeichnen, wenn sichtbar
+            });
+
+            function closeSettings() {
+                modal.classList.remove("active");
+                sollHours = parseInt(document.getElementById("sollHours").value) || 0;
+                sollMinutes = parseInt(document.getElementById("sollMinutes").value) || 0;
+                localStorage.setItem("sollHours", sollHours);
+                localStorage.setItem("sollMinutes", sollMinutes);
+                localStorage.setItem("appHue", appHue);
+                calculateWorkingTime();
+            }
+
+            document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
+            document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
+
+
+            // --- 4. Rechner Logik ---
+            const hoursInput = document.getElementById("hours");
+            const minutesInput = document.getElementById("minutes");
+            const secondsInput = document.getElementById("seconds");
+
+            const startHoursInput = document.getElementById("startHours");
+            const startMinutesInput = document.getElementById("startMinutes");
+            const startSecondsInput = document.getElementById("startSeconds");
+            const endHoursInput = document.getElementById("endHours");
+            const endMinutesInput = document.getElementById("endMinutes");
+            const endSecondsInput = document.getElementById("endSeconds");
+
+            const format2 = (val) => String(val).padStart(2, '0');
+
+            function setupInput(currentInput, nextInput) {
+                currentInput.addEventListener("focus", () => { currentInput.value = ''; });
+                currentInput.addEventListener("input", () => {
+                    if (currentInput.value.length > currentInput.maxLength) {
+                        currentInput.value = currentInput.value.slice(0, currentInput.maxLength);
+                    }
+                    if (currentInput.value.length === currentInput.maxLength && nextInput) {
+                        nextInput.focus();
+                    }
+                    calculateAllTimes();
+                });
+                currentInput.addEventListener("change", () => {
+                    if(currentInput.value.length === 1) currentInput.value = "0" + currentInput.value;
+                    calculateAllTimes();
+                });
+            }
+
+            setupInput(hoursInput, minutesInput);
+            setupInput(minutesInput, secondsInput);
+            setupInput(secondsInput, null);
+
+            setupInput(startHoursInput, startMinutesInput);
+            setupInput(startMinutesInput, startSecondsInput);
+            setupInput(startSecondsInput, endHoursInput);
+            setupInput(endHoursInput, endMinutesInput);
+            setupInput(endMinutesInput, endSecondsInput);
+            setupInput(endSecondsInput, null);
+
+            function copyStartTime() {
+                startHoursInput.value = hoursInput.value;
+                startMinutesInput.value = minutesInput.value;
+                startSecondsInput.value = secondsInput.value;
+                calculateWorkingTime();
+            }
+
+            hoursInput.addEventListener("input", copyStartTime);
+            minutesInput.addEventListener("input", copyStartTime);
+            secondsInput.addEventListener("input", copyStartTime);
+
+            // "Jetzt" Button Logik
+            document.getElementById("btn-now").addEventListener("click", () => {
+                const now = new Date();
+                hoursInput.value = format2(now.getHours());
+                minutesInput.value = format2(now.getMinutes());
+                secondsInput.value = format2(now.getSeconds());
+                copyStartTime();
+                calculateAllTimes();
+            });
+
+            function calculateAllTimes() {
+                calculateEndTimes();
+                calculateWorkingTime();
+            }
+
+            function calculateEndTimes() {
+                const hours = parseInt(hoursInput.value);
+                const minutes = parseInt(minutesInput.value);
+                const seconds = parseInt(secondsInput.value);
+                
+                if (isNaN(hours)) return;
+
+                const startTime = new Date();
+                startTime.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+
+                const noPauseSecs = (6 * 3600) + (29 * 60) + 59;
+                const endNoPause = new Date(startTime.getTime() + noPauseSecs * 1000);
+
+                const p30StartSecs = (6 * 3600) + (30 * 60);
+                const end30Start = new Date(startTime.getTime() + p30StartSecs * 1000);
+
+                const p30EndSecs = (9 * 3600) + (44 * 60) + 59;
+                const end30End = new Date(startTime.getTime() + p30EndSecs * 1000);
+
+                const p45Secs = (9 * 3600) + (45 * 60);
+                const end45 = new Date(startTime.getTime() + p45Secs * 1000);
+
+                const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
+
+                document.getElementById("output-no-pause").textContent = formatT(endNoPause);
+                document.getElementById("output-30min-pause-range").textContent = `${formatT(end30Start)} bis ${formatT(end30End)}`;
+                document.getElementById("output-45min-pause").textContent = formatT(end45);
+            }
+
+            function calculateWorkingTime() {
+                const stH = parseInt(startHoursInput.value);
+                const stM = parseInt(startMinutesInput.value) || 0;
+                const stS = parseInt(startSecondsInput.value) || 0;
+                const enH = parseInt(endHoursInput.value);
+                const enM = parseInt(endMinutesInput.value) || 0;
+                const enS = parseInt(endSecondsInput.value) || 0;
+
+                if (isNaN(stH) || isNaN(enH)) return;
+
+                const startSecs = (stH * 3600) + (stM * 60) + stS;
+                const endSecs = (enH * 3600) + (enM * 60) + enS;
+
+                if (endSecs <= startSecs) {
+                    document.getElementById("output-decimal-time").textContent = "Ungültig";
+                    document.getElementById("output-overtime").textContent = "";
+                    return;
+                }
+
+                const totalPresSecs = endSecs - startSecs;
+                const presHours = totalPresSecs / 3600;
+                let pauseSecs = 0;
+
+                if (presHours >= 6.5) pauseSecs = 30 * 60;
+                if (presHours >= 9.75) pauseSecs = 45 * 60;
+
+                const workSecs = totalPresSecs - pauseSecs;
+                const workDec = workSecs / 3600;
+                
+                const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
+                const overSecs = workSecs - sollSecs;
+
+                const formatOvertime = (secs) => {
+                    const sign = secs < 0 ? "-" : "+";
+                    const aSecs = Math.abs(secs);
+                    const h = Math.floor(aSecs / 3600);
+                    const m = Math.floor((aSecs % 3600) / 60);
+                    const s = aSecs % 60;
+                    return `${sign}${format2(h)}:${format2(m)}:${format2(s)}`;
+                };
+
+                document.getElementById("output-decimal-time").textContent = workDec.toFixed(2);
+                document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
+            }
+        });
+    </script>
+</body>
+</html>
