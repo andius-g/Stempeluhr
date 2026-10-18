@@ -1,7 +1,7 @@
 {
   "name": "Stempeluhr",
   "short_name": "Stempeluhr",
-  "start_url": "./arbeitszeit_rechner.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0083B8",
