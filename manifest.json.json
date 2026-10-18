@@ -1,0 +1,20 @@
+{
+  "name": "Stempeluhr",
+  "short_name": "Stempeluhr",
+  "start_url": "./arbeitszeit_rechner.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0083B8",
+  "icons": [
+    {
+      "src": "stempeluhr_2.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "stempeluhr_2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
