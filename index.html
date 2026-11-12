@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Stempeluhr</title>
+    <title>Stempeluhr & Wochenübersicht</title>
     
     <!-- PWA Meta-Tags -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -47,30 +47,42 @@
             position: absolute;
             top: 15px;
             right: 15px;
+            display: flex;
+            gap: 10px;
         }
 
-        .settings-btn {
+        .settings-btn, .tab-btn {
             background: var(--primary-color);
             color: var(--white);
             border: none;
             border-radius: 50%;
             width: 40px;
             height: 40px;
-            font-size: 1.2em;
+            font-size: 1.1em;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .settings-btn:active {
+        .settings-btn:active, .tab-btn:active {
             transform: scale(0.9);
         }
 
         .container {
-            max-width: 380px;
+            max-width: 390px;
             width: 100%;
             text-align: center;
             margin-top: 40px;
+        }
+
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
         }
 
         .feature-section {
@@ -82,57 +94,61 @@
             transition: background-color 0.3s;
         }
 
-        h2 {
-            font-size: 1.3em;
-            margin-bottom: 15px;
-            color: var(--primary-color);
+        .time-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
-        .top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 15px;
+        .time-input-pair {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
         }
 
         .btn-now {
             background-color: var(--primary-color);
             color: var(--white);
             border: none;
-            padding: 8px 12px;
+            padding: 11px 10px;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.9em;
-            margin-bottom: 5px;
+            font-size: 0.92em;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            width: 100%;
+            text-align: center;
         }
 
-        .time-picker {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 20px;
+        .btn-now:active {
+            transform: scale(0.96);
         }
 
-        .time-input-pair {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .time-input-pair label {
-            width: 70px;
-            text-align: left;
+        .row-tag {
+            font-size: 0.9em;
             font-weight: bold;
-            font-size: 0.95em;
             color: var(--text-color);
+            opacity: 0.75;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .inputs-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: flex-end;
         }
 
         input[type="number"] {
-            width: 55px;
-            padding: 10px 5px;
+            width: 50px;
+            padding: 10px 2px;
             font-size: 1.1em;
             border-radius: 6px;
             border: 2px solid var(--border-color);
@@ -187,11 +203,33 @@
         .output-decimal-container {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
         }
         
         .output-decimal-container .output-decimal {
             flex: 1;
+        }
+
+        /* Wochenübersicht Styles */
+        .week-summary-card {
+            background: var(--white);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        .week-summary-card h4 {
+            font-size: 0.95em;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .week-summary-card select, .week-summary-card input {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9em;
         }
 
         .modal-overlay {
@@ -223,6 +261,7 @@
             margin-top: 0;
             color: var(--text-color);
             margin-bottom: 20px;
+            font-size: 1.2em;
         }
         .close-btn {
             position: absolute;
@@ -241,6 +280,11 @@
             font-weight: bold;
             margin-bottom: 10px;
             color: var(--text-color);
+        }
+        .soll-pair {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .color-wheel-container {
@@ -284,68 +328,97 @@
 <body>
 
     <div class="header-bar">
-        <button class="settings-btn" id="btn-settings">⚙️</button>
+        <button class="tab-btn" id="btn-toggle-view" title="Ansicht wechseln">📊</button>
+        <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙️</button>
     </div>
 
     <div class="container">
-        <!-- Abschnitt 1: Kommen & Pausen -->
-        <div class="feature-section">
-            <div class="top-row">
-                <h2>Kommen & Pausen</h2>
-                <button class="btn-now" id="btn-now">🕒 Jetzt</button>
-            </div>
-            
-            <div class="time-picker">
-                <div class="time-input-pair">
-                    <label>Kommen</label>
-                    <input type="number" id="hours" min="0" max="23" value="" maxlength="2" inputmode="numeric" placeholder="hh">
-                    <input type="number" id="minutes" min="0" max="59" value="" maxlength="2" inputmode="numeric" placeholder="mm">
-                    <input type="number" id="seconds" min="0" max="59" value="" maxlength="2" inputmode="numeric" placeholder="ss">
+        <!-- ANSICHT 1: STEMPELUHR -->
+        <div id="view-clock" class="view-section active">
+            <!-- Abschnitt 1: Kommen & Pausen -->
+            <div class="feature-section">
+                <div class="time-picker">
+                    <div class="time-input-pair">
+                        <button class="btn-now" id="btn-now-start">🕒 Jetzt Kommen</button>
+                        <div class="inputs-group">
+                            <input type="number" id="hours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+                            <input type="number" id="minutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                            <input type="number" id="seconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="output-container">
+                    <div class="output">
+                        <h3>Keine Pause (gehen um):</h3>
+                        <div id="output-no-pause">-</div>
+                    </div>
+                    <div class="output">
+                        <h3>30 min Pause (von - bis):</h3>
+                        <div id="output-30min-pause-range">-</div>
+                    </div>
+                    <div class="output">
+                        <h3>45 min Pause (ab):</h3>
+                        <div id="output-45min-pause">-</div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="output-container">
-                <div class="output">
-                    <h3>Keine Pause (gehen um):</h3>
-                    <div id="output-no-pause">-</div>
+
+            <!-- Abschnitt 2: Arbeitszeit-Rechner -->
+            <div class="feature-section">
+                <div class="time-picker">
+                    <div class="time-input-pair">
+                        <span class="row-tag">Startzeit</span>
+                        <div class="inputs-group">
+                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                            <input type="number" id="startSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+                        </div>
+                    </div>
+                    <div class="time-input-pair">
+                        <button class="btn-now" id="btn-now-end">🕒 Jetzt Gehen</button>
+                        <div class="inputs-group">
+                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                            <input type="number" id="endSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+                        </div>
+                    </div>
                 </div>
-                <div class="output">
-                    <h3>30 min Pause (von - bis):</h3>
-                    <div id="output-30min-pause-range">-</div>
-                </div>
-                <div class="output">
-                    <h3>45 min Pause (ab):</h3>
-                    <div id="output-45min-pause">-</div>
+                
+                <div class="output-decimal-container">
+                    <div class="output-decimal">
+                        <h3>Dezimal (h)</h3>
+                        <div id="output-decimal-time">-</div>
+                    </div>
+                    <div class="output-decimal">
+                        <h3>+/-</h3>
+                        <div id="output-overtime">-</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Abschnitt 2: Arbeitszeit-Rechner -->
-        <div class="feature-section">
-            <h2>Arbeitszeit & Überstunden</h2>
-            <div class="time-picker">
-                <div class="time-input-pair">
-                    <label>Kommen</label>
-                    <input type="number" id="startHours" min="0" max="23" value="" maxlength="2" inputmode="numeric">
-                    <input type="number" id="startMinutes" min="0" max="59" value="" maxlength="2" inputmode="numeric">
-                    <input type="number" id="startSeconds" min="0" max="59" value="" maxlength="2" inputmode="numeric">
+        <!-- ANSICHT 2: WOCHENÜBERSICHT (Mo-Fr) -->
+        <div id="view-week" class="view-section">
+            <div class="feature-section">
+                <h2 style="font-size: 1.1em; margin-bottom: 12px; color: var(--primary-color); text-align: left;">Wochenbilanz (Mo – Fr)</h2>
+                
+                <div class="week-summary-card">
+                    <h4>Start-Guthaben (Wochenanfang)</h4>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="number" id="weekStartOvertimeH" value="0" style="width: 70px;" placeholder="Std">
+                        <span style="font-weight: bold; align-self: center;">:</span>
+                        <input type="number" id="weekStartOvertimeM" value="0" style="width: 70px;" placeholder="Min">
+                    </div>
                 </div>
-                <div class="time-input-pair">
-                    <label>Gehen</label>
-                    <input type="number" id="endHours" min="0" max="23" value="" maxlength="2" inputmode="numeric">
-                    <input type="number" id="endMinutes" min="0" max="59" value="" maxlength="2" inputmode="numeric">
-                    <input type="number" id="endSeconds" min="0" max="59" value="" maxlength="2" inputmode="numeric">
+
+                <div id="week-days-container">
+                    <!-- Wird dynamisch per JS generiert (Mo-Fr) -->
                 </div>
-            </div>
-            
-            <div class="output-decimal-container">
-                <div class="output-decimal">
-                    <h3>Dezimal (h)</h3>
-                    <div id="output-decimal-time">-</div>
-                </div>
-                <div class="output-decimal">
-                    <h3>+/-</h3>
-                    <div id="output-overtime">-</div>
+
+                <div class="output" style="margin-top: 15px;">
+                    <h3>Wochen-Gesamtsaldo:</h3>
+                    <div id="output-week-total">-</div>
                 </div>
             </div>
         </div>
@@ -359,7 +432,7 @@
             
             <div class="settings-group">
                 <label>Sollarbeitszeit (Std : Min)</label>
-                <div class="time-input-pair" style="justify-content: flex-start;">
+                <div class="soll-pair">
                     <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
                     <span style="font-weight:bold; color:var(--text-color);">:</span>
                     <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
@@ -385,15 +458,58 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            const format2 = (val) => String(val).padStart(2, '0');
+            const getTodayStr = () => new Date().toISOString().split('T')[0];
+
+            // --- Feiertags-Logik Niedersachsen (2026-2028) ---
+            const holidaysNds = {
+                "2026-01-01": "Neujahr", "2026-04-03": "Karfreitag", "2026-04-06": "Ostermontag",
+                "2026-05-01": "Tag der Arbeit", "2026-05-14": "Christi Himmelfahrt", "2026-05-25": "Pfingstmontag",
+                "2026-10-03": "Tag d. Dt. Einheit", "2026-10-31": "Reformationstag", "2026-12-25": "1. Weihnachtstag", "2026-12-26": "2. Weihnachtstag",
+                
+                "2027-01-01": "Neujahr", "2027-03-26": "Karfreitag", "2027-03-29": "Ostermontag",
+                "2027-05-01": "Tag der Arbeit", "2027-05-06": "Christi Himmelfahrt", "2027-05-17": "Pfingstmontag",
+                "2027-10-03": "Tag d. Dt. Einheit", "2027-10-31": "Reformationstag", "2027-12-25": "1. Weihnachtstag", "2027-12-26": "2. Weihnachtstag",
+                
+                "2028-01-01": "Neujahr", "2028-04-14": "Karfreitag", "2028-04-17": "Ostermontag",
+                "2028-05-01": "Tag der Arbeit", "2028-05-25": "Christi Himmelfahrt", "2028-06-05": "Pfingstmontag",
+                "2028-10-03": "Tag d. Dt. Einheit", "2028-10-31": "Reformationstag", "2028-12-25": "1. Weihnachtstag", "2028-12-26": "2. Weihnachtstag"
+            };
+
+            function getHolidayName(dateStr) {
+                return holidaysNds[dateStr] || null;
+            }
+
+            // --- Ansichten Umschalter ---
+            const viewClock = document.getElementById("view-clock");
+            const viewWeek = document.getElementById("view-week");
+            const toggleViewBtn = document.getElementById("btn-toggle-view");
+
+            toggleViewBtn.addEventListener("click", () => {
+                if (viewClock.classList.contains("active")) {
+                    viewClock.classList.remove("active");
+                    viewWeek.classList.add("active");
+                    toggleViewBtn.textContent = "⏱️";
+                    buildWeekView();
+                } else {
+                    viewWeek.classList.remove("active");
+                    viewClock.classList.add("active");
+                    toggleViewBtn.textContent = "📊";
+                }
+            });
+
+            // --- Einstellungen & Farben ---
             let appHue = localStorage.getItem("appHue") || 195;
             let sollHours = parseInt(localStorage.getItem("sollHours"));
-            if(isNaN(sollHours)) sollHours = 8;
+            if (isNaN(sollHours)) sollHours = 8;
             let sollMinutes = parseInt(localStorage.getItem("sollMinutes"));
-            if(isNaN(sollMinutes)) sollMinutes = 0;
+            if (isNaN(sollMinutes)) sollMinutes = 0;
             
             document.documentElement.style.setProperty('--hue', appHue);
-            document.getElementById("sollHours").value = sollHours;
-            document.getElementById("sollMinutes").value = sollMinutes;
+            const sollHoursInput = document.getElementById("sollHours");
+            const sollMinutesInput = document.getElementById("sollMinutes");
+            sollHoursInput.value = sollHours;
+            sollMinutesInput.value = sollMinutes;
 
             const canvas = document.getElementById("colorWheel");
             const ctx = canvas.getContext("2d");
@@ -422,6 +538,7 @@
             }
 
             function handleColorPick(e) {
+                if (e.cancelable) e.preventDefault();
                 const rect = canvas.getBoundingClientRect();
                 let clientX, clientY;
                 if (e.touches && e.touches.length > 0) {
@@ -449,8 +566,8 @@
             });
             canvas.addEventListener("touchstart", (e) => {
                 handleColorPick(e);
-                canvas.addEventListener("touchmove", handleColorPick, {passive: false});
-            });
+                canvas.addEventListener("touchmove", handleColorPick, { passive: false });
+            }, { passive: false });
             window.addEventListener("touchend", () => {
                 canvas.removeEventListener("touchmove", handleColorPick);
             });
@@ -463,8 +580,11 @@
 
             function closeSettings() {
                 modal.classList.remove("active");
-                sollHours = parseInt(document.getElementById("sollHours").value) || 0;
-                sollMinutes = parseInt(document.getElementById("sollMinutes").value) || 0;
+                sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value) || 0));
+                sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value) || 0));
+                sollHoursInput.value = sollHours;
+                sollMinutesInput.value = sollMinutes;
+                
                 localStorage.setItem("sollHours", sollHours);
                 localStorage.setItem("sollMinutes", sollMinutes);
                 localStorage.setItem("appHue", appHue);
@@ -474,6 +594,7 @@
             document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
             document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
 
+            // --- Zeit-Inputs Logik ---
             const hoursInput = document.getElementById("hours");
             const minutesInput = document.getElementById("minutes");
             const secondsInput = document.getElementById("seconds");
@@ -485,28 +606,63 @@
             const endMinutesInput = document.getElementById("endMinutes");
             const endSecondsInput = document.getElementById("endSeconds");
 
-            const format2 = (val) => String(val).padStart(2, '0');
+            function syncAndSaveStartTime() {
+                startHoursInput.value = hoursInput.value;
+                startMinutesInput.value = minutesInput.value;
+                startSecondsInput.value = secondsInput.value;
 
-            function setupInput(currentInput, nextInput) {
-                currentInput.addEventListener("focus", () => { currentInput.value = ''; });
+                const todayStr = getTodayStr();
+                if (hoursInput.value !== "") {
+                    localStorage.setItem("savedStartTime", JSON.stringify({
+                        date: todayStr,
+                        h: hoursInput.value,
+                        m: minutesInput.value,
+                        s: secondsInput.value
+                    }));
+                    let currentDay = getDayData(todayStr) || { status: 'work' };
+                    currentDay.startH = hoursInput.value;
+                    currentDay.startM = minutesInput.value;
+                    currentDay.endH = endHoursInput.value;
+                    currentDay.endM = endMinutesInput.value;
+                    saveDayData(todayStr, currentDay);
+                } else {
+                    localStorage.removeItem("savedStartTime");
+                }
+            }
+
+            function clampInput(input) {
+                if (input.value === "") return;
+                let val = parseInt(input.value, 10);
+                const min = parseInt(input.min, 10);
+                const max = parseInt(input.max, 10);
+
+                if (isNaN(val)) {
+                    input.value = "";
+                    return;
+                }
+                if (!isNaN(min) && val < min) val = min;
+                if (!isNaN(max) && val > max) val = max;
+                input.value = format2(val);
+            }
+
+            function setupInput(currentInput, nextInput, onUpdate) {
+                currentInput.addEventListener("focus", () => { currentInput.select(); });
                 currentInput.addEventListener("input", () => {
-                    if (currentInput.value.length > currentInput.maxLength) {
-                        currentInput.value = currentInput.value.slice(0, currentInput.maxLength);
-                    }
-                    if (currentInput.value.length === currentInput.maxLength && nextInput) {
-                        nextInput.focus();
-                    }
+                    if (currentInput.value.length > 2) currentInput.value = currentInput.value.slice(0, 2);
+                    if (currentInput.value.length === 2 && nextInput) nextInput.focus();
+                    if (onUpdate) onUpdate();
                     calculateAllTimes();
                 });
-                currentInput.addEventListener("change", () => {
-                    if(currentInput.value.length === 1) currentInput.value = "0" + currentInput.value;
+                currentInput.addEventListener("blur", () => {
+                    clampInput(currentInput);
+                    if (onUpdate) onUpdate();
                     calculateAllTimes();
                 });
             }
 
-            setupInput(hoursInput, minutesInput);
-            setupInput(minutesInput, secondsInput);
-            setupInput(secondsInput, null);
+            setupInput(hoursInput, minutesInput, syncAndSaveStartTime);
+            setupInput(minutesInput, secondsInput, syncAndSaveStartTime);
+            setupInput(secondsInput, null, syncAndSaveStartTime);
 
             setupInput(startHoursInput, startMinutesInput);
             setupInput(startMinutesInput, startSecondsInput);
@@ -515,24 +671,29 @@
             setupInput(endMinutesInput, endSecondsInput);
             setupInput(endSecondsInput, null);
 
-            function copyStartTime() {
-                startHoursInput.value = hoursInput.value;
-                startMinutesInput.value = minutesInput.value;
-                startSecondsInput.value = secondsInput.value;
-                calculateWorkingTime();
-            }
-
-            hoursInput.addEventListener("input", copyStartTime);
-            minutesInput.addEventListener("input", copyStartTime);
-            secondsInput.addEventListener("input", copyStartTime);
-
-            document.getElementById("btn-now").addEventListener("click", () => {
+            document.getElementById("btn-now-start").addEventListener("click", () => {
                 const now = new Date();
                 hoursInput.value = format2(now.getHours());
                 minutesInput.value = format2(now.getMinutes());
                 secondsInput.value = format2(now.getSeconds());
-                copyStartTime();
+                syncAndSaveStartTime();
                 calculateAllTimes();
+            });
+
+            document.getElementById("btn-now-end").addEventListener("click", () => {
+                const now = new Date();
+                endHoursInput.value = format2(now.getHours());
+                endMinutesInput.value = format2(now.getMinutes());
+                endSecondsInput.value = format2(now.getSeconds());
+                calculateWorkingTime();
+                
+                const todayStr = getTodayStr();
+                let currentDay = getDayData(todayStr) || { status: 'work' };
+                currentDay.startH = startHoursInput.value;
+                currentDay.startM = startMinutesInput.value;
+                currentDay.endH = endHoursInput.value;
+                currentDay.endM = endMinutesInput.value;
+                saveDayData(todayStr, currentDay);
             });
 
             function calculateAllTimes() {
@@ -541,13 +702,19 @@
             }
 
             function calculateEndTimes() {
-                const hours = parseInt(hoursInput.value);
-                const minutes = parseInt(minutesInput.value);
-                const seconds = parseInt(secondsInput.value);
-                if (isNaN(hours)) return;
+                const hours = parseInt(hoursInput.value, 10);
+                const minutes = parseInt(minutesInput.value, 10) || 0;
+                const seconds = parseInt(secondsInput.value, 10) || 0;
+                
+                if (isNaN(hours)) {
+                    document.getElementById("output-no-pause").textContent = "-";
+                    document.getElementById("output-30min-pause-range").textContent = "-";
+                    document.getElementById("output-45min-pause").textContent = "-";
+                    return;
+                }
 
                 const startTime = new Date();
-                startTime.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+                startTime.setHours(hours, minutes, seconds, 0);
 
                 const noPauseSecs = (6 * 3600) + (29 * 60) + 59;
                 const endNoPause = new Date(startTime.getTime() + noPauseSecs * 1000);
@@ -569,21 +736,25 @@
             }
 
             function calculateWorkingTime() {
-                const stH = parseInt(startHoursInput.value);
-                const stM = parseInt(startMinutesInput.value) || 0;
-                const stS = parseInt(startSecondsInput.value) || 0;
-                const enH = parseInt(endHoursInput.value);
-                const enM = parseInt(endMinutesInput.value) || 0;
-                const enS = parseInt(endSecondsInput.value) || 0;
+                const stH = parseInt(startHoursInput.value, 10);
+                const stM = parseInt(startMinutesInput.value, 10) || 0;
+                const stS = parseInt(startSecondsInput.value, 10) || 0;
+                const enH = parseInt(endHoursInput.value, 10);
+                const enM = parseInt(endMinutesInput.value, 10) || 0;
+                const enS = parseInt(endSecondsInput.value, 10) || 0;
 
-                if (isNaN(stH) || isNaN(enH)) return;
+                if (isNaN(stH) || isNaN(enH)) {
+                    document.getElementById("output-decimal-time").textContent = "-";
+                    document.getElementById("output-overtime").textContent = "-";
+                    return;
+                }
 
                 const startSecs = (stH * 3600) + (stM * 60) + stS;
                 const endSecs = (enH * 3600) + (enM * 60) + enS;
 
                 if (endSecs <= startSecs) {
                     document.getElementById("output-decimal-time").textContent = "Ungültig";
-                    document.getElementById("output-overtime").textContent = "";
+                    document.getElementById("output-overtime").textContent = "-";
                     return;
                 }
 
@@ -611,6 +782,188 @@
 
                 document.getElementById("output-decimal-time").textContent = workDec.toFixed(2);
                 document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
+            }
+
+            // --- Wochenübersicht Speicher & Generator (Mo-Fr) ---
+            function getDayData(dateStr) {
+                try {
+                    return JSON.parse(localStorage.getItem("day_" + dateStr)) || null;
+                } catch(e) { return null; }
+            }
+
+            function saveDayData(dateStr, data) {
+                localStorage.setItem("day_" + dateStr, JSON.stringify(data));
+            }
+
+            function getMonday(d) {
+                d = new Date(d);
+                let day = d.getDay(),
+                    diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(d.setDate(diff));
+            }
+
+            function buildWeekView() {
+                const container = document.getElementById("week-days-container");
+                container.innerHTML = "";
+
+                let monday = getMonday(new Date());
+                let totalWeekSecsDiff = 0;
+                const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
+
+                const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+
+                // Nur Montag bis Freitag (i von 0 bis 4)
+                for (let i = 0; i < 5; i++) {
+                    let currDate = new Date(monday);
+                    currDate.setDate(monday.getDate() + i);
+                    let dateStr = currDate.toISOString().split('T')[0];
+                    let holidayName = getHolidayName(dateStr);
+
+                    let saved = getDayData(dateStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
+
+                    // Wenn Feiertag und noch kein Status gewählt wurde, automatisch auf Feiertag setzen
+                    if (holidayName && !localStorage.getItem("day_" + dateStr)) {
+                        saved.status = 'holiday';
+                    }
+
+                    let card = document.createElement("div");
+                    card.className = "week-summary-card";
+                    
+                    let holidayBadge = holidayName ? ` <span style="color:red; font-size:0.8em;">(🎉 ${holidayName})</span>` : "";
+                    
+                    card.innerHTML = `
+                        <h4>${dayNames[i]} (${dateStr.split('-').reverse().join('.')})${holidayBadge}</h4>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                            <select class="day-status" data-date="${dateStr}" style="flex: 1;">
+                                <option value="work" ${saved.status === 'work' ? 'selected' : ''}>Arbeitstag</option>
+                                <option value="vacation" ${saved.status === 'vacation' ? 'selected' : ''}>Urlaub</option>
+                                <option value="sick" ${saved.status === 'sick' ? 'selected' : ''}>Krank</option>
+                                <option value="holiday" ${saved.status === 'holiday' ? 'selected' : ''}>Feiertag</option>
+                                <option value="free" ${saved.status === 'free' ? 'selected' : ''}>Frei / Gleitzeit</option>
+                            </select>
+                        </div>
+                        <div class="day-inputs-wrapper" style="display: ${saved.status === 'work' ? 'flex' : 'none'}; gap: 5px; align-items: center;">
+                            <input type="text" placeholder="hh:mm" class="day-start" data-date="${dateStr}" value="${saved.startH && saved.startM !== undefined ? saved.startH+':'+saved.startM : ''}" style="width: 90px;">
+                            <span>bis</span>
+                            <input type="text" placeholder="hh:mm" class="day-end" data-date="${dateStr}" value="${saved.endH && saved.endM !== undefined ? saved.endH+':'+saved.endM : ''}" style="width: 90px;">
+                        </div>
+                    `;
+
+                    container.appendChild(card);
+
+                    // Auswertung pro Tag für die Wochenbilanz
+                    if (saved.status === 'work') {
+                        // Soll-Stunden abziehen
+                        totalWeekSecsDiff -= sollSecsPerDay;
+                        if (saved.startH && saved.endH) {
+                            let [sh, sm] = saved.startH.split(':').map(Number);
+                            let [eh, em] = saved.endH.split(':').map(Number);
+                            if (!isNaN(sh) && !isNaN(eh)) {
+                                let sSecs = sh * 3600 + (sm || 0) * 60;
+                                let eSecs = eh * 3600 + (em || 0) * 60;
+                                if (eSecs > sSecs) {
+                                    let pres = eSecs - sSecs;
+                                    let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
+                                    let worked = pres - pause;
+                                    totalWeekSecsDiff += worked;
+                                }
+                            }
+                        }
+                    } else if (saved.status === 'vacation' || saved.status === 'sick' || saved.status === 'holiday') {
+                        // Urlaub, Krank & Feiertag: Soll entfällt (neutral, 0 Netto-Abzug/Aufbau)
+                        // Wenn an einem Feiertag gearbeitet wurde, können Zeiten ganz normal eingetragen werden
+                        if (saved.status === 'holiday' && saved.startH && saved.endH) {
+                            let [sh, sm] = saved.startH.split(':').map(Number);
+                            let [eh, em] = saved.endH.split(':').map(Number);
+                            if (!isNaN(sh) && !isNaN(eh)) {
+                                let sSecs = sh * 3600 + (sm || 0) * 60;
+                                let eSecs = eh * 3600 + (em || 0) * 60;
+                                if (eSecs > sSecs) {
+                                    let pres = eSecs - sSecs;
+                                    let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
+                                    let worked = pres - pause;
+                                    totalWeekSecsDiff += worked; // Feiertagsarbeit zählt voll als Überstunden/Plus
+                                }
+                            }
+                        }
+                    } else if (saved.status === 'free') {
+                        // Unbezahlt frei: Volle Soll-Stunden als Minusstunden werten
+                        totalWeekSecsDiff -= sollSecsPerDay;
+                    }
+                }
+
+                // Event-Listener für Status-Änderungen in der Wochenansicht
+                container.querySelectorAll('.day-status').forEach(sel => {
+                    sel.addEventListener('change', (e) => {
+                        let dStr = e.target.getAttribute('data-date');
+                        let current = getDayData(dStr) || { startH:'', startM:'', endH:'', endM:'' };
+                        current.status = e.target.value;
+                        saveDayData(dStr, current);
+                        buildWeekView();
+                    });
+                });
+
+                container.querySelectorAll('.day-start, .day-end').forEach(inp => {
+                    inp.addEventListener('blur', (e) => {
+                        let dStr = e.target.getAttribute('data-date');
+                        let cardEl = e.target.closest('.week-summary-card');
+                        let startVal = cardEl.querySelector('.day-start').value;
+                        let endVal = cardEl.querySelector('.day-end').value;
+                        
+                        let current = getDayData(dStr) || { status: 'work' };
+                        if(startVal.includes(':')) {
+                            let parts = startVal.split(':');
+                            current.startH = parts[0]; current.startM = parts[1];
+                        } else {
+                            current.startH = ''; current.startM = '';
+                        }
+                        if(endVal.includes(':')) {
+                            let parts = endVal.split(':');
+                            current.endH = parts[0]; current.endM = parts[1];
+                        } else {
+                            current.endH = ''; current.endM = '';
+                        }
+                        saveDayData(dStr, current);
+                        buildWeekView();
+                    });
+                });
+
+                // Wochen-Startguthaben einrechnen
+                let startH = parseInt(document.getElementById("weekStartOvertimeH").value) || 0;
+                let startM = parseInt(document.getElementById("weekStartOvertimeM").value) || 0;
+                let startSecs = (Math.abs(startH) * 3600 + startM * 60) * (startH < 0 ? -1 : 1);
+                
+                let finalWeekSecs = totalWeekSecsDiff + startSecs;
+                let sign = finalWeekSecs < 0 ? "-" : "+";
+                let aSecs = Math.abs(finalWeekSecs);
+                let wh = Math.floor(aSecs / 3600);
+                let wm = Math.floor((aSecs % 3600) / 60);
+
+                document.getElementById("output-week-total").textContent = `${sign}${format2(wh)}:${format2(wm)} h`;
+            }
+
+            document.getElementById("weekStartOvertimeH").addEventListener("input", buildWeekView);
+            document.getElementById("weekStartOvertimeM").addEventListener("input", buildWeekView);
+
+            // Startup Check für Heute
+            try {
+                const savedRaw = localStorage.getItem("savedStartTime");
+                if (savedRaw) {
+                    const saved = JSON.parse(savedRaw);
+                    if (saved.date === getTodayStr() && saved.h !== "") {
+                        hoursInput.value = saved.h;
+                        minutesInput.value = saved.m || "";
+                        secondsInput.value = saved.s || "";
+                        startHoursInput.value = saved.h;
+                        startMinutesInput.value = saved.m || "";
+                        startSecondsInput.value = saved.s || "";
+                        calculateAllTimes();
+                    } else if (saved.date !== getTodayStr()) {
+                        localStorage.removeItem("savedStartTime");
+                    }
+                }
+            } catch (e) {
+                localStorage.removeItem("savedStartTime");
             }
         });
     </script>
