@@ -146,7 +146,7 @@
             justify-content: flex-end;
         }
 
-        input[type="number"] {
+        input[type="text"], input[type="number"] {
             width: 50px;
             padding: 10px 2px;
             font-size: 1.1em;
@@ -158,7 +158,7 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus {
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 8px rgba(0,0,0,0.1);
@@ -226,10 +226,12 @@
             justify-content: space-between;
         }
         .week-summary-card select, .week-summary-card input {
-            padding: 5px;
+            padding: 6px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
-            font-size: 0.9em;
+            font-size: 0.95em;
+            color: var(--text-color);
+            background: var(--white);
         }
 
         .modal-overlay {
@@ -784,6 +786,23 @@
                 document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
             }
 
+            // --- Hilfsfunktion zum Parsen von "0725" oder "7:25" oder "725" zu "07:25" ---
+            function parseTimeString(str) {
+                if (!str) return { h: '', m: '' };
+                let clean = str.replace(/[^0-9]/g, ''); // Nur Ziffern behalten
+                if (clean.length === 3) {
+                    clean = '0' + clean; // z.B. "725" -> "0725"
+                }
+                if (clean.length === 4) {
+                    let h = parseInt(clean.substring(0, 2), 10);
+                    let m = parseInt(clean.substring(2, 4), 10);
+                    if (h <= 23 && m <= 59) {
+                        return { h: format2(h), m: format2(m) };
+                    }
+                }
+                return { h: '', m: '' };
+            }
+
             // --- Wochenübersicht Speicher & Generator (Mo-Fr) ---
             function getDayData(dateStr) {
                 try {
@@ -812,7 +831,6 @@
 
                 const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 
-                // Nur Montag bis Freitag (i von 0 bis 4)
                 for (let i = 0; i < 5; i++) {
                     let currDate = new Date(monday);
                     currDate.setDate(monday.getDate() + i);
@@ -821,7 +839,6 @@
 
                     let saved = getDayData(dateStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
 
-                    // Wenn Feiertag und noch kein Status gewählt wurde, automatisch auf Feiertag setzen
                     if (holidayName && !localStorage.getItem("day_" + dateStr)) {
                         saved.status = 'holiday';
                     }
@@ -830,6 +847,8 @@
                     card.className = "week-summary-card";
                     
                     let holidayBadge = holidayName ? ` <span style="color:red; font-size:0.8em;">(🎉 ${holidayName})</span>` : "";
+                    let startValFormatted = saved.startH && saved.startM !== undefined && saved.startH !== '' ? `${saved.startH}:${saved.startM}` : '';
+                    let endValFormatted = saved.endH && saved.endM !== undefined && saved.endH !== '' ? `${saved.endH}:${saved.endM}` : '';
                     
                     card.innerHTML = `
                         <h4>${dayNames[i]} (${dateStr.split('-').reverse().join('.')})${holidayBadge}</h4>
@@ -842,10 +861,10 @@
                                 <option value="free" ${saved.status === 'free' ? 'selected' : ''}>Frei / Gleitzeit</option>
                             </select>
                         </div>
-                        <div class="day-inputs-wrapper" style="display: ${saved.status === 'work' ? 'flex' : 'none'}; gap: 5px; align-items: center;">
-                            <input type="text" placeholder="hh:mm" class="day-start" data-date="${dateStr}" value="${saved.startH && saved.startM !== undefined ? saved.startH+':'+saved.startM : ''}" style="width: 90px;">
+                        <div class="day-inputs-wrapper" style="display: ${saved.status === 'work' || saved.status === 'holiday' ? 'flex' : 'none'}; gap: 5px; align-items: center;">
+                            <input type="text" inputmode="numeric" placeholder="hh:mm" class="day-start" data-date="${dateStr}" value="${startValFormatted}" style="width: 90px;">
                             <span>bis</span>
-                            <input type="text" placeholder="hh:mm" class="day-end" data-date="${dateStr}" value="${saved.endH && saved.endM !== undefined ? saved.endH+':'+saved.endM : ''}" style="width: 90px;">
+                            <input type="text" inputmode="numeric" placeholder="hh:mm" class="day-end" data-date="${dateStr}" value="${endValFormatted}" style="width: 90px;">
                         </div>
                     `;
 
@@ -853,14 +872,15 @@
 
                     // Auswertung pro Tag für die Wochenbilanz
                     if (saved.status === 'work') {
-                        // Soll-Stunden abziehen
                         totalWeekSecsDiff -= sollSecsPerDay;
                         if (saved.startH && saved.endH) {
-                            let [sh, sm] = saved.startH.split(':').map(Number);
-                            let [eh, em] = saved.endH.split(':').map(Number);
+                            let sh = parseInt(saved.startH, 10);
+                            let sm = parseInt(saved.startM, 10) || 0;
+                            let eh = parseInt(saved.endH, 10);
+                            let em = parseInt(saved.endM, 10) || 0;
                             if (!isNaN(sh) && !isNaN(eh)) {
-                                let sSecs = sh * 3600 + (sm || 0) * 60;
-                                let eSecs = eh * 3600 + (em || 0) * 60;
+                                let sSecs = sh * 3600 + sm * 60;
+                                let eSecs = eh * 3600 + em * 60;
                                 if (eSecs > sSecs) {
                                     let pres = eSecs - sSecs;
                                     let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
@@ -869,30 +889,27 @@
                                 }
                             }
                         }
-                    } else if (saved.status === 'vacation' || saved.status === 'sick' || saved.status === 'holiday') {
-                        // Urlaub, Krank & Feiertag: Soll entfällt (neutral, 0 Netto-Abzug/Aufbau)
-                        // Wenn an einem Feiertag gearbeitet wurde, können Zeiten ganz normal eingetragen werden
-                        if (saved.status === 'holiday' && saved.startH && saved.endH) {
-                            let [sh, sm] = saved.startH.split(':').map(Number);
-                            let [eh, em] = saved.endH.split(':').map(Number);
-                            if (!isNaN(sh) && !isNaN(eh)) {
-                                let sSecs = sh * 3600 + (sm || 0) * 60;
-                                let eSecs = eh * 3600 + (em || 0) * 60;
-                                if (eSecs > sSecs) {
-                                    let pres = eSecs - sSecs;
-                                    let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
-                                    let worked = pres - pause;
-                                    totalWeekSecsDiff += worked; // Feiertagsarbeit zählt voll als Überstunden/Plus
-                                }
+                    } else if (saved.status === 'holiday' && saved.startH && saved.endH) {
+                        let sh = parseInt(saved.startH, 10);
+                        let sm = parseInt(saved.startM, 10) || 0;
+                        let eh = parseInt(saved.endH, 10);
+                        let em = parseInt(saved.endM, 10) || 0;
+                        if (!isNaN(sh) && !isNaN(eh)) {
+                            let sSecs = sh * 3600 + sm * 60;
+                            let eSecs = eh * 3600 + em * 60;
+                            if (eSecs > sSecs) {
+                                let pres = eSecs - sSecs;
+                                let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
+                                let worked = pres - pause;
+                                totalWeekSecsDiff += worked; // Feiertagsarbeit zählt voll als Plus
                             }
                         }
                     } else if (saved.status === 'free') {
-                        // Unbezahlt frei: Volle Soll-Stunden als Minusstunden werten
                         totalWeekSecsDiff -= sollSecsPerDay;
                     }
                 }
 
-                // Event-Listener für Status-Änderungen in der Wochenansicht
+                // Event-Listener für Status-Änderungen
                 container.querySelectorAll('.day-status').forEach(sel => {
                     sel.addEventListener('change', (e) => {
                         let dStr = e.target.getAttribute('data-date');
@@ -903,26 +920,33 @@
                     });
                 });
 
+                // Event-Listener für Start- und End-Eingaben mit automatischer "0725" -> "07:25" Erkennung
                 container.querySelectorAll('.day-start, .day-end').forEach(inp => {
+                    inp.addEventListener('focus', () => { inp.select(); });
                     inp.addEventListener('blur', (e) => {
                         let dStr = e.target.getAttribute('data-date');
                         let cardEl = e.target.closest('.week-summary-card');
-                        let startVal = cardEl.querySelector('.day-start').value;
-                        let endVal = cardEl.querySelector('.day-end').value;
+                        let startValRaw = cardEl.querySelector('.day-start').value;
+                        let endValRaw = cardEl.querySelector('.day-end').value;
                         
                         let current = getDayData(dStr) || { status: 'work' };
-                        if(startVal.includes(':')) {
-                            let parts = startVal.split(':');
-                            current.startH = parts[0]; current.startM = parts[1];
-                        } else {
+
+                        let parsedStart = parseTimeString(startValRaw);
+                        if (parsedStart.h !== '') {
+                            current.startH = parsedStart.h;
+                            current.startM = parsedStart.m;
+                        } else if (!startValRaw) {
                             current.startH = ''; current.startM = '';
                         }
-                        if(endVal.includes(':')) {
-                            let parts = endVal.split(':');
-                            current.endH = parts[0]; current.endM = parts[1];
-                        } else {
+
+                        let parsedEnd = parseTimeString(endValRaw);
+                        if (parsedEnd.h !== '') {
+                            current.endH = parsedEnd.h;
+                            current.endM = parsedEnd.m;
+                        } else if (!endValRaw) {
                             current.endH = ''; current.endM = '';
                         }
+
                         saveDayData(dStr, current);
                         buildWeekView();
                     });
