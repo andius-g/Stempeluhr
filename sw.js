@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stempeluhr-v2';
+const CACHE_NAME = 'stempeluhr-v3';
 const ASSETS = [
   './',
   './index.html',
