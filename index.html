@@ -17,11 +17,13 @@
     <style>
         :root {
             --hue: 195;
-            --primary-color: hsl(var(--hue), 60%, 50%);
-            --bg-color: hsl(calc(var(--hue) + 30), 50%, 95%);
-            --card-bg: hsl(calc(var(--hue) + 30), 40%, 90%);
-            --text-color: hsl(calc(var(--hue) - 30), 70%, 20%);
-            --border-color: hsl(calc(var(--hue) - 30), 30%, 70%);
+            --lightness: 50%;
+            --spread: 120;
+            --primary-color: hsl(var(--hue), 60%, var(--lightness));
+            --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
+            --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
+            --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
+            --border-color: hsl(calc(var(--hue) - var(--spread)), 30%, 70%);
             --white: #ffffff;
         }
 
@@ -88,8 +90,8 @@
         .feature-section {
             background-color: var(--card-bg);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
+            padding: 18px;
+            margin-bottom: 22px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             transition: background-color 0.3s;
         }
@@ -144,6 +146,40 @@
             gap: 6px;
             align-items: center;
             justify-content: flex-end;
+        }
+
+        /* Raucherpause-Zähler exakt auf Breite der 3 Zeitfelder (3*50 + 2*6 = 162px) */
+        .smoke-counter-box {
+            width: 162px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px 0 10px;
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-size: 0.88em;
+            font-weight: bold;
+        }
+        .btn-smoke-minus {
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 1.1em;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-smoke-minus:active {
+            transform: scale(0.9);
         }
 
         input[type="text"], input[type="number"] {
@@ -202,38 +238,177 @@
 
         .output-decimal-container {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
         
         .output-decimal-container .output-decimal {
             flex: 1;
         }
 
-        /* Wochenübersicht Styles */
-        .week-summary-card {
-            background: var(--white);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            text-align: left;
-            border: 1px solid var(--border-color);
-        }
-        .week-summary-card h4 {
-            font-size: 0.95em;
-            color: var(--primary-color);
-            margin-bottom: 8px;
+        /* --- CLEAN WOCHENBILANZ (1-Zeilen-Design + History) --- */
+        .week-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
-        .week-summary-card select, .week-summary-card input {
-            padding: 6px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            font-size: 0.95em;
+        .week-header h2 {
+            font-size: 1.05em;
             color: var(--text-color);
+        }
+        .kw-nav {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .kw-nav-btn {
             background: var(--white);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .kw-nav-btn:active {
+            transform: scale(0.9);
+        }
+        .kw-badge {
+            font-size: 0.78em;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            user-select: none;
         }
 
+        .week-list-card {
+            background: var(--white);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .week-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+            transition: background-color 0.2s;
+        }
+        .week-row:last-child {
+            border-bottom: none;
+        }
+        .week-row.is-today {
+            background-color: var(--bg-color);
+            box-shadow: inset 3px 0 0 var(--primary-color);
+        }
+
+        .day-label {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 62px;
+            text-align: left;
+            line-height: 1.2;
+        }
+        .day-label strong {
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+        .day-label span {
+            font-size: 0.71em;
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
+        .day-times {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            justify-content: center;
+        }
+        .day-times input.day-start,
+        .day-times input.day-end {
+            width: 54px;
+            padding: 6px 2px;
+            font-size: 0.86em;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-weight: bold;
+        }
+        .day-times input.day-start:focus,
+        .day-times input.day-end:focus {
+            background: var(--white);
+            border-color: var(--primary-color);
+        }
+        .day-times .dash {
+            font-size: 0.8em;
+            opacity: 0.5;
+        }
+
+        .day-status-note {
+            flex: 1;
+            font-size: 0.8em;
+            opacity: 0.7;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-pill {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 5px 8px;
+            font-size: 0.76em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            min-width: 72px;
+            max-width: 76px;
+        }
+        .status-pill:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .status-pill[data-status="vacation"],
+        .status-pill[data-status="holiday"] {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+        .status-pill[data-status="free"] {
+            opacity: 0.75;
+        }
+
+        .balance-sub {
+            font-size: 0.72em !important;
+            font-weight: normal !important;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+
+        /* --- MODAL --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -245,6 +420,7 @@
             pointer-events: none;
             transition: opacity 0.3s;
             z-index: 1000;
+            padding: 15px;
         }
         .modal-overlay.active {
             opacity: 1;
@@ -252,17 +428,19 @@
         }
         .modal-content {
             background: var(--white);
-            width: 90%;
+            width: 95%;
             max-width: 350px;
+            max-height: 92vh;
+            overflow-y: auto;
             border-radius: 12px;
-            padding: 25px;
+            padding: 22px;
             position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         .modal-content h2 {
             margin-top: 0;
             color: var(--text-color);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             font-size: 1.2em;
         }
         .close-btn {
@@ -274,19 +452,56 @@
         }
         
         .settings-group {
-            margin-bottom: 25px;
+            margin-bottom: 18px;
             text-align: left;
         }
         .settings-group label {
             display: block;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: var(--text-color);
         }
         .soll-pair {
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .smoker-setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: var(--bg-color);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .smoker-toggle-label {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0 !important;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        .smoker-toggle-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+        .smoker-mins-wrap {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .smoker-mins-wrap input {
+            width: 48px;
+            padding: 6px 2px;
+            font-size: 0.95em;
         }
         
         .color-wheel-container {
@@ -303,7 +518,7 @@
         .color-preview {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 12px;
         }
         .color-dot {
             width: 30px; height: 30px;
@@ -313,6 +528,33 @@
         .dot-1 { background: var(--text-color); }
         .dot-2 { background: var(--primary-color); }
         .dot-3 { background: var(--bg-color); }
+
+        .slider-control {
+            width: 100%;
+            margin-top: 14px;
+            text-align: left;
+        }
+        .slider-control label {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .slider-control input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+        .harmony-select {
+            width: 100%;
+            padding: 7px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-size: 0.9em;
+            margin-top: 4px;
+        }
 
         .settings-save {
             width: 100%;
@@ -346,6 +588,15 @@
                             <input type="number" id="hours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
                             <input type="number" id="minutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
                             <input type="number" id="seconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+                        </div>
+                    </div>
+
+                    <!-- Optionaler Raucherpausen-Zähler (nur sichtbar wenn in Einstellungen aktiv) -->
+                    <div class="time-input-pair" id="smoke-bar" style="display: none;">
+                        <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
+                        <div class="smoke-counter-box">
+                            <span id="smoke-count-display">0× (-0m)</span>
+                            <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
                         </div>
                     </div>
                 </div>
@@ -400,27 +651,33 @@
             </div>
         </div>
 
-        <!-- ANSICHT 2: WOCHENÜBERSICHT (Mo-Fr) -->
+        <!-- ANSICHT 2: WOCHENBILANZ (Kompakt & Clean + History) -->
         <div id="view-week" class="view-section">
             <div class="feature-section">
-                <h2 style="font-size: 1.1em; margin-bottom: 12px; color: var(--primary-color); text-align: left;">Wochenbilanz (Mo – Fr)</h2>
-                
-                <div class="week-summary-card">
-                    <h4>Start-Guthaben (Wochenanfang)</h4>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="number" id="weekStartOvertimeH" value="0" style="width: 70px;" placeholder="Std">
-                        <span style="font-weight: bold; align-self: center;">:</span>
-                        <input type="number" id="weekStartOvertimeM" value="0" style="width: 70px;" placeholder="Min">
+                <div class="week-header">
+                    <h2>Wochenbilanz</h2>
+                    <div class="kw-nav">
+                        <button type="button" class="kw-nav-btn" id="btn-prev-week" title="Vorherige Woche">‹</button>
+                        <span class="kw-badge" id="week-kw-badge" title="Zur aktuellen Woche">KW -</span>
+                        <button type="button" class="kw-nav-btn" id="btn-next-week" title="Nächste Woche">›</button>
                     </div>
                 </div>
 
-                <div id="week-days-container">
-                    <!-- Wird dynamisch per JS generiert (Mo-Fr) -->
+                <div class="week-list-card" id="week-days-container">
+                    <!-- 5 kompakte Ein-Zeilen-Einträge (Mo-Fr) -->
                 </div>
 
-                <div class="output" style="margin-top: 15px;">
-                    <h3>Wochen-Gesamtsaldo:</h3>
-                    <div id="output-week-total">-</div>
+                <div class="output-decimal-container">
+                    <div class="output-decimal">
+                        <h3>Geleistet (Ist)</h3>
+                        <div id="output-week-worked">-</div>
+                        <div class="balance-sub" id="output-week-soll">von 40:00 h Soll</div>
+                    </div>
+                    <div class="output-decimal">
+                        <h3>Wochen-Saldo</h3>
+                        <div id="output-week-total">-</div>
+                        <div class="balance-sub" id="output-week-decimal">0,00 h</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -441,17 +698,45 @@
                 </div>
             </div>
 
+            <div class="settings-group">
+                <div class="smoker-setting-row">
+                    <label class="smoker-toggle-label" for="isSmokerCheck">
+                        <input type="checkbox" id="isSmokerCheck">
+                        <span>🚬 Raucher-Modus</span>
+                    </label>
+                    <div class="smoker-mins-wrap" id="smokerMinsWrap">
+                        <input type="number" id="smokeMinutesInput" min="1" max="60" value="5" inputmode="numeric">
+                        <span>Min/Gang</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="settings-group color-wheel-container">
-                <label>Farbharmonie (3 analoge Farben)</label>
-                <canvas id="colorWheel" width="200" height="200"></canvas>
+                <label>Farbharmonie</label>
+                <canvas id="colorWheel" width="180" height="180"></canvas>
                 <div class="color-preview">
                     <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
                     <div class="color-dot dot-2" title="Primär (Buttons)"></div>
                     <div class="color-dot dot-3" title="Hintergrund (hell)"></div>
                 </div>
-                <p style="font-size: 0.8em; margin-top:10px; color:var(--text-color); text-align:center;">
-                    Tippe auf das Farbrad, um die App-Farben (30° Abstand) live anzupassen.
-                </p>
+
+                <div class="slider-control">
+                    <label for="spreadSelect">Farbabstand auf dem Rad:</label>
+                    <select id="spreadSelect" class="harmony-select">
+                        <option value="30">30° – Analog (sanft)</option>
+                        <option value="60">60° – Erweitert</option>
+                        <option value="120" selected>120° – Triadisch (deutlich)</option>
+                        <option value="150">150° – Split-Komplementär (stark)</option>
+                    </select>
+                </div>
+
+                <div class="slider-control">
+                    <label for="lightnessSlider">
+                        <span>Helligkeit Primärfarbe:</span>
+                        <span><span id="lightnessVal">50</span>%</span>
+                    </label>
+                    <input type="range" id="lightnessSlider" min="25" max="70" value="50">
+                </div>
             </div>
 
             <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
@@ -461,7 +746,18 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const format2 = (val) => String(val).padStart(2, '0');
-            const getTodayStr = () => new Date().toISOString().split('T')[0];
+            const getTodayStr = () => {
+                const now = new Date();
+                return `${now.getFullYear()}-${format2(now.getMonth() + 1)}-${format2(now.getDate())}`;
+            };
+
+            function getCalendarWeek(date) {
+                const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                const dayNum = d.getUTCDay() || 7;
+                d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+                const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            }
 
             // --- Feiertags-Logik Niedersachsen (2026-2028) ---
             const holidaysNds = {
@@ -482,16 +778,29 @@
                 return holidaysNds[dateStr] || null;
             }
 
-            // --- Ansichten Umschalter ---
+            // --- Speicher-Helfer für Tage ---
+            function getDayData(dateStr) {
+                try {
+                    return JSON.parse(localStorage.getItem("day_" + dateStr)) || null;
+                } catch(e) { return null; }
+            }
+
+            function saveDayData(dateStr, data) {
+                localStorage.setItem("day_" + dateStr, JSON.stringify(data));
+            }
+
+            // --- Ansichten Umschalter & Wochen-Offset (History) ---
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
             const toggleViewBtn = document.getElementById("btn-toggle-view");
+            let weekOffset = 0;
 
             toggleViewBtn.addEventListener("click", () => {
                 if (viewClock.classList.contains("active")) {
                     viewClock.classList.remove("active");
                     viewWeek.classList.add("active");
                     toggleViewBtn.textContent = "⏱️";
+                    weekOffset = 0;
                     buildWeekView();
                 } else {
                     viewWeek.classList.remove("active");
@@ -500,22 +809,140 @@
                 }
             });
 
-            // --- Einstellungen & Farben ---
-            let appHue = localStorage.getItem("appHue") || 195;
+            document.getElementById("btn-prev-week").addEventListener("click", () => {
+                weekOffset--;
+                buildWeekView();
+            });
+            document.getElementById("btn-next-week").addEventListener("click", () => {
+                weekOffset++;
+                buildWeekView();
+            });
+            document.getElementById("week-kw-badge").addEventListener("click", () => {
+                weekOffset = 0;
+                buildWeekView();
+            });
+
+            // --- Einstellungen, Farben & Raucher-Modus ---
+            let appHue = parseInt(localStorage.getItem("appHue"));
+            if (isNaN(appHue)) appHue = 195;
+
+            let appLightness = parseInt(localStorage.getItem("appLightness"));
+            if (isNaN(appLightness)) appLightness = 50;
+
+            let appSpread = parseInt(localStorage.getItem("appSpread"));
+            if (isNaN(appSpread)) appSpread = 120;
+
             let sollHours = parseInt(localStorage.getItem("sollHours"));
             if (isNaN(sollHours)) sollHours = 8;
             let sollMinutes = parseInt(localStorage.getItem("sollMinutes"));
             if (isNaN(sollMinutes)) sollMinutes = 0;
+
+            let isSmoker = localStorage.getItem("isSmoker") === "true";
+            let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"));
+            if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
+
+            // Heutiger Raucher-Zähler aus Tagesdaten laden
+            let todaySmokeCount = 0;
+            const initialTodayData = getDayData(getTodayStr());
+            if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
+                todaySmokeCount = initialTodayData.smokeCount;
+            }
             
             document.documentElement.style.setProperty('--hue', appHue);
+            document.documentElement.style.setProperty('--lightness', appLightness + '%');
+            document.documentElement.style.setProperty('--spread', appSpread);
+
             const sollHoursInput = document.getElementById("sollHours");
             const sollMinutesInput = document.getElementById("sollMinutes");
             sollHoursInput.value = sollHours;
             sollMinutesInput.value = sollMinutes;
 
+            const isSmokerCheck = document.getElementById("isSmokerCheck");
+            const smokeMinutesInput = document.getElementById("smokeMinutesInput");
+            const smokerMinsWrap = document.getElementById("smokerMinsWrap");
+            const smokeBar = document.getElementById("smoke-bar");
+            const smokeCountDisplay = document.getElementById("smoke-count-display");
+
+            isSmokerCheck.checked = isSmoker;
+            smokeMinutesInput.value = smokeMinutesPerBreak;
+
+            function updateSmokerUI() {
+                smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
+                smokeMinutesInput.disabled = !isSmokerCheck.checked;
+                smokeBar.style.display = isSmoker ? "grid" : "none";
+                const totalMins = todaySmokeCount * smokeMinutesPerBreak;
+                smokeCountDisplay.textContent = `${todaySmokeCount}× (-${totalMins}m)`;
+            }
+
+            isSmokerCheck.addEventListener("change", () => {
+                smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
+                smokeMinutesInput.disabled = !isSmokerCheck.checked;
+            });
+
+            function saveTodaySmokeData() {
+                const todayStr = getTodayStr();
+                const currentDay = getDayData(todayStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
+                currentDay.smokeCount = todaySmokeCount;
+                currentDay.smokeTotalMins = todaySmokeCount * smokeMinutesPerBreak;
+                saveDayData(todayStr, currentDay);
+            }
+
+            document.getElementById("btn-add-smoke").addEventListener("click", () => {
+                todaySmokeCount++;
+                updateSmokerUI();
+                saveTodaySmokeData();
+                calculateAllTimes();
+            });
+
+            document.getElementById("btn-sub-smoke").addEventListener("click", () => {
+                if (todaySmokeCount > 0) {
+                    todaySmokeCount--;
+                    updateSmokerUI();
+                    saveTodaySmokeData();
+                    calculateAllTimes();
+                }
+            });
+
+            updateSmokerUI();
+
+            const lightnessSlider = document.getElementById("lightnessSlider");
+            const lightnessVal = document.getElementById("lightnessVal");
+            lightnessSlider.value = appLightness;
+            lightnessVal.textContent = appLightness;
+
+            const spreadSelect = document.getElementById("spreadSelect");
+            spreadSelect.value = String(appSpread);
+
+            lightnessSlider.addEventListener("input", () => {
+                appLightness = parseInt(lightnessSlider.value, 10);
+                lightnessVal.textContent = appLightness;
+                document.documentElement.style.setProperty('--lightness', appLightness + '%');
+                drawColorWheel();
+            });
+
+            spreadSelect.addEventListener("change", () => {
+                appSpread = parseInt(spreadSelect.value, 10);
+                document.documentElement.style.setProperty('--spread', appSpread);
+                drawColorWheel();
+            });
+
             const canvas = document.getElementById("colorWheel");
             const ctx = canvas.getContext("2d");
             const radius = canvas.width / 2;
+
+            function drawWheelDot(hueAngle, dotRadius) {
+                const rad = hueAngle * Math.PI / 180;
+                const dotX = radius + Math.cos(rad) * (radius * 0.7);
+                const dotY = radius + Math.sin(rad) * (radius * 0.7);
+                
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = "white";
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(0,0,0,0.6)";
+                ctx.stroke();
+            }
 
             function drawColorWheel() {
                 for (let angle = 0; angle < 360; angle++) {
@@ -523,20 +950,12 @@
                     ctx.moveTo(radius, radius);
                     ctx.arc(radius, radius, radius, (angle - 0.5) * Math.PI / 180, (angle + 1.5) * Math.PI / 180);
                     ctx.closePath();
-                    ctx.fillStyle = `hsl(${angle}, 100%, 50%)`;
+                    ctx.fillStyle = `hsl(${angle}, 100%, ${appLightness}%)`;
                     ctx.fill();
                 }
-                const rad = appHue * Math.PI / 180;
-                const dotX = radius + Math.cos(rad) * (radius * 0.7);
-                const dotY = radius + Math.sin(rad) * (radius * 0.7);
-                
-                ctx.beginPath();
-                ctx.arc(dotX, dotY, 7, 0, 2 * Math.PI);
-                ctx.fillStyle = "white";
-                ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(0,0,0,0.5)";
-                ctx.stroke();
+                drawWheelDot(appHue - appSpread, 4.5);
+                drawWheelDot(appHue + appSpread, 4.5);
+                drawWheelDot(appHue, 7.5);
             }
 
             function handleColorPick(e) {
@@ -586,11 +1005,25 @@
                 sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value) || 0));
                 sollHoursInput.value = sollHours;
                 sollMinutesInput.value = sollMinutes;
+
+                isSmoker = isSmokerCheck.checked;
+                smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value) || 5));
+                smokeMinutesInput.value = smokeMinutesPerBreak;
                 
                 localStorage.setItem("sollHours", sollHours);
                 localStorage.setItem("sollMinutes", sollMinutes);
+                localStorage.setItem("isSmoker", isSmoker);
+                localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
                 localStorage.setItem("appHue", appHue);
-                calculateWorkingTime();
+                localStorage.setItem("appLightness", appLightness);
+                localStorage.setItem("appSpread", appSpread);
+
+                if (isSmoker && todaySmokeCount > 0) {
+                    saveTodaySmokeData();
+                }
+                updateSmokerUI();
+                calculateAllTimes();
+                if (viewWeek.classList.contains("active")) buildWeekView();
             }
 
             document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
@@ -698,6 +1131,11 @@
                 saveDayData(todayStr, currentDay);
             });
 
+            function getTodaySmokeSecs() {
+                if (!isSmoker) return 0;
+                return todaySmokeCount * smokeMinutesPerBreak * 60;
+            }
+
             function calculateAllTimes() {
                 calculateEndTimes();
                 calculateWorkingTime();
@@ -715,19 +1153,20 @@
                     return;
                 }
 
+                const smokeSecs = getTodaySmokeSecs();
                 const startTime = new Date();
                 startTime.setHours(hours, minutes, seconds, 0);
 
-                const noPauseSecs = (6 * 3600) + (29 * 60) + 59;
+                const noPauseSecs = (6 * 3600) + (29 * 60) + 59 + smokeSecs;
                 const endNoPause = new Date(startTime.getTime() + noPauseSecs * 1000);
 
-                const p30StartSecs = (6 * 3600) + (30 * 60);
+                const p30StartSecs = (6 * 3600) + (30 * 60) + smokeSecs;
                 const end30Start = new Date(startTime.getTime() + p30StartSecs * 1000);
 
-                const p30EndSecs = (9 * 3600) + (44 * 60) + 59;
+                const p30EndSecs = (9 * 3600) + (44 * 60) + 59 + smokeSecs;
                 const end30End = new Date(startTime.getTime() + p30EndSecs * 1000);
 
-                const p45Secs = (9 * 3600) + (45 * 60);
+                const p45Secs = (9 * 3600) + (45 * 60) + smokeSecs;
                 const end45 = new Date(startTime.getTime() + p45Secs * 1000);
 
                 const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
@@ -760,14 +1199,16 @@
                     return;
                 }
 
+                const smokeSecs = getTodaySmokeSecs();
                 const totalPresSecs = endSecs - startSecs;
-                const presHours = totalPresSecs / 3600;
+                const netPresSecs = Math.max(0, totalPresSecs - smokeSecs);
+                const presHours = netPresSecs / 3600;
                 let pauseSecs = 0;
 
                 if (presHours >= 6.5) pauseSecs = 30 * 60;
                 if (presHours >= 9.75) pauseSecs = 45 * 60;
 
-                const workSecs = totalPresSecs - pauseSecs;
+                const workSecs = Math.max(0, netPresSecs - pauseSecs);
                 const workDec = workSecs / 3600;
                 
                 const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
@@ -789,9 +1230,9 @@
             // --- Hilfsfunktion zum Parsen von "0725" oder "7:25" oder "725" zu "07:25" ---
             function parseTimeString(str) {
                 if (!str) return { h: '', m: '' };
-                let clean = str.replace(/[^0-9]/g, ''); // Nur Ziffern behalten
+                let clean = str.replace(/[^0-9]/g, '');
                 if (clean.length === 3) {
-                    clean = '0' + clean; // z.B. "725" -> "0725"
+                    clean = '0' + clean;
                 }
                 if (clean.length === 4) {
                     let h = parseInt(clean.substring(0, 2), 10);
@@ -803,17 +1244,7 @@
                 return { h: '', m: '' };
             }
 
-            // --- Wochenübersicht Speicher & Generator (Mo-Fr) ---
-            function getDayData(dateStr) {
-                try {
-                    return JSON.parse(localStorage.getItem("day_" + dateStr)) || null;
-                } catch(e) { return null; }
-            }
-
-            function saveDayData(dateStr, data) {
-                localStorage.setItem("day_" + dateStr, JSON.stringify(data));
-            }
-
+            // --- Wochenbilanz Speicher & Generator (1-Zeilen-Layout + History) ---
             function getMonday(d) {
                 d = new Date(d);
                 let day = d.getDay(),
@@ -821,117 +1252,125 @@
                 return new Date(d.setDate(diff));
             }
 
+            function calcWorkedSecsFromDay(saved) {
+                if (!saved || !saved.startH || !saved.endH) return 0;
+                const sh = parseInt(saved.startH, 10);
+                const sm = parseInt(saved.startM, 10) || 0;
+                const eh = parseInt(saved.endH, 10);
+                const em = parseInt(saved.endM, 10) || 0;
+                if (isNaN(sh) || isNaN(eh)) return 0;
+                const sSecs = sh * 3600 + sm * 60;
+                const eSecs = eh * 3600 + em * 60;
+                if (eSecs <= sSecs) return 0;
+
+                const smokeSecs = (saved.smokeTotalMins || 0) * 60;
+                const netPres = Math.max(0, (eSecs - sSecs) - smokeSecs);
+                const pause = netPres >= 35100 ? 2700 : (netPres >= 23400 ? 1800 : 0);
+                return Math.max(0, netPres - pause);
+            }
+
             function buildWeekView() {
                 const container = document.getElementById("week-days-container");
                 container.innerHTML = "";
 
-                let monday = getMonday(new Date());
-                let totalWeekSecsDiff = 0;
-                const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
+                const todayStr = getTodayStr();
+                const refDate = new Date();
+                refDate.setDate(refDate.getDate() + (weekOffset * 7));
 
-                const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+                const kwNum = getCalendarWeek(refDate);
+                const kwBadge = document.getElementById("week-kw-badge");
+                kwBadge.textContent = weekOffset === 0 ? `KW ${kwNum} · Aktuell` : `KW ${kwNum} (${refDate.getFullYear()})`;
+
+                const monday = getMonday(refDate);
+                const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
+                const totalSollSecs = sollSecsPerDay * 5;
+                let totalCreditedSecs = 0;
+
+                const dayShort = ["Mo", "Di", "Mi", "Do", "Fr"];
 
                 for (let i = 0; i < 5; i++) {
-                    let currDate = new Date(monday);
+                    const currDate = new Date(monday);
                     currDate.setDate(monday.getDate() + i);
-                    let dateStr = currDate.toISOString().split('T')[0];
-                    let holidayName = getHolidayName(dateStr);
+                    const dateStr = `${currDate.getFullYear()}-${format2(currDate.getMonth() + 1)}-${format2(currDate.getDate())}`;
+                    const dateShort = `${format2(currDate.getDate())}.${format2(currDate.getMonth() + 1)}.`;
+                    const holidayName = getHolidayName(dateStr);
 
                     let saved = getDayData(dateStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
-
                     if (holidayName && !localStorage.getItem("day_" + dateStr)) {
                         saved.status = 'holiday';
                     }
 
-                    let card = document.createElement("div");
-                    card.className = "week-summary-card";
-                    
-                    let holidayBadge = holidayName ? ` <span style="color:red; font-size:0.8em;">(🎉 ${holidayName})</span>` : "";
-                    let startValFormatted = saved.startH && saved.startM !== undefined && saved.startH !== '' ? `${saved.startH}:${saved.startM}` : '';
-                    let endValFormatted = saved.endH && saved.endM !== undefined && saved.endH !== '' ? `${saved.endH}:${saved.endM}` : '';
-                    
-                    card.innerHTML = `
-                        <h4>${dayNames[i]} (${dateStr.split('-').reverse().join('.')})${holidayBadge}</h4>
-                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-                            <select class="day-status" data-date="${dateStr}" style="flex: 1;">
-                                <option value="work" ${saved.status === 'work' ? 'selected' : ''}>Arbeitstag</option>
-                                <option value="vacation" ${saved.status === 'vacation' ? 'selected' : ''}>Urlaub</option>
-                                <option value="sick" ${saved.status === 'sick' ? 'selected' : ''}>Krank</option>
-                                <option value="holiday" ${saved.status === 'holiday' ? 'selected' : ''}>Feiertag</option>
-                                <option value="free" ${saved.status === 'free' ? 'selected' : ''}>Frei / Gleitzeit</option>
-                            </select>
+                    const row = document.createElement("div");
+                    row.className = "week-row" + (dateStr === todayStr ? " is-today" : "");
+
+                    const startFormatted = (saved.startH !== '' && saved.startM !== undefined) ? `${saved.startH}:${saved.startM}` : '';
+                    const endFormatted = (saved.endH !== '' && saved.endM !== undefined) ? `${saved.endH}:${saved.endM}` : '';
+                    const smokeSub = (saved.smokeCount && saved.smokeCount > 0) ? ` · 🚬${saved.smokeCount}` : '';
+
+                    let middleHtml = "";
+                    if (saved.status === 'work') {
+                        middleHtml = `
+                            <div class="day-times">
+                                <input type="text" inputmode="numeric" placeholder="07:30" class="day-start" data-date="${dateStr}" value="${startFormatted}">
+                                <span class="dash">–</span>
+                                <input type="text" inputmode="numeric" placeholder="16:00" class="day-end" data-date="${dateStr}" value="${endFormatted}">
+                            </div>
+                        `;
+                    } else if (saved.status === 'holiday') {
+                        middleHtml = `<div class="day-status-note">🎉 ${holidayName || 'Feiertag'}</div>`;
+                    } else if (saved.status === 'vacation' || saved.status === 'sick') {
+                        middleHtml = `<div class="day-status-note">Soll gutgeschrieben</div>`;
+                    } else {
+                        middleHtml = `<div class="day-status-note">Gleitzeitabbau</div>`;
+                    }
+
+                    row.innerHTML = `
+                        <div class="day-label">
+                            <strong>${dayShort[i]}</strong>
+                            <span>${dateShort}${smokeSub}</span>
                         </div>
-                        <div class="day-inputs-wrapper" style="display: ${saved.status === 'work' || saved.status === 'holiday' ? 'flex' : 'none'}; gap: 5px; align-items: center;">
-                            <input type="text" inputmode="numeric" placeholder="hh:mm" class="day-start" data-date="${dateStr}" value="${startValFormatted}" style="width: 90px;">
-                            <span>bis</span>
-                            <input type="text" inputmode="numeric" placeholder="hh:mm" class="day-end" data-date="${dateStr}" value="${endValFormatted}" style="width: 90px;">
-                        </div>
+                        ${middleHtml}
+                        <select class="status-pill" data-date="${dateStr}" data-status="${saved.status}" aria-label="Status">
+                            <option value="work" ${saved.status === 'work' ? 'selected' : ''}>Arbeit</option>
+                            <option value="vacation" ${saved.status === 'vacation' ? 'selected' : ''}>Urlaub</option>
+                            <option value="sick" ${saved.status === 'sick' ? 'selected' : ''}>Krank</option>
+                            <option value="holiday" ${saved.status === 'holiday' ? 'selected' : ''}>Feiertag</option>
+                            <option value="free" ${saved.status === 'free' ? 'selected' : ''}>Frei</option>
+                        </select>
                     `;
 
-                    container.appendChild(card);
+                    container.appendChild(row);
 
-                    // Auswertung pro Tag für die Wochenbilanz
                     if (saved.status === 'work') {
-                        totalWeekSecsDiff -= sollSecsPerDay;
-                        if (saved.startH && saved.endH) {
-                            let sh = parseInt(saved.startH, 10);
-                            let sm = parseInt(saved.startM, 10) || 0;
-                            let eh = parseInt(saved.endH, 10);
-                            let em = parseInt(saved.endM, 10) || 0;
-                            if (!isNaN(sh) && !isNaN(eh)) {
-                                let sSecs = sh * 3600 + sm * 60;
-                                let eSecs = eh * 3600 + em * 60;
-                                if (eSecs > sSecs) {
-                                    let pres = eSecs - sSecs;
-                                    let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
-                                    let worked = pres - pause;
-                                    totalWeekSecsDiff += worked;
-                                }
-                            }
-                        }
-                    } else if (saved.status === 'holiday' && saved.startH && saved.endH) {
-                        let sh = parseInt(saved.startH, 10);
-                        let sm = parseInt(saved.startM, 10) || 0;
-                        let eh = parseInt(saved.endH, 10);
-                        let em = parseInt(saved.endM, 10) || 0;
-                        if (!isNaN(sh) && !isNaN(eh)) {
-                            let sSecs = sh * 3600 + sm * 60;
-                            let eSecs = eh * 3600 + em * 60;
-                            if (eSecs > sSecs) {
-                                let pres = eSecs - sSecs;
-                                let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
-                                let worked = pres - pause;
-                                totalWeekSecsDiff += worked; // Feiertagsarbeit zählt voll als Plus
-                            }
-                        }
-                    } else if (saved.status === 'free') {
-                        totalWeekSecsDiff -= sollSecsPerDay;
+                        totalCreditedSecs += calcWorkedSecsFromDay(saved);
+                    } else if (saved.status === 'vacation' || saved.status === 'sick' || saved.status === 'holiday') {
+                        totalCreditedSecs += sollSecsPerDay;
                     }
                 }
 
-                // Event-Listener für Status-Änderungen
-                container.querySelectorAll('.day-status').forEach(sel => {
+                // Event-Listener für Status-Pill
+                container.querySelectorAll('.status-pill').forEach(sel => {
                     sel.addEventListener('change', (e) => {
-                        let dStr = e.target.getAttribute('data-date');
-                        let current = getDayData(dStr) || { startH:'', startM:'', endH:'', endM:'' };
+                        const dStr = e.target.getAttribute('data-date');
+                        const current = getDayData(dStr) || { startH: '', startM: '', endH: '', endM: '' };
                         current.status = e.target.value;
                         saveDayData(dStr, current);
                         buildWeekView();
                     });
                 });
 
-                // Event-Listener für Start- und End-Eingaben mit automatischer "0725" -> "07:25" Erkennung
+                // Event-Listener für Start- und End-Eingaben
                 container.querySelectorAll('.day-start, .day-end').forEach(inp => {
                     inp.addEventListener('focus', () => { inp.select(); });
                     inp.addEventListener('blur', (e) => {
-                        let dStr = e.target.getAttribute('data-date');
-                        let cardEl = e.target.closest('.week-summary-card');
-                        let startValRaw = cardEl.querySelector('.day-start').value;
-                        let endValRaw = cardEl.querySelector('.day-end').value;
+                        const dStr = e.target.getAttribute('data-date');
+                        const rowEl = e.target.closest('.week-row');
+                        const startValRaw = rowEl.querySelector('.day-start').value;
+                        const endValRaw = rowEl.querySelector('.day-end').value;
                         
-                        let current = getDayData(dStr) || { status: 'work' };
+                        const current = getDayData(dStr) || { status: 'work' };
 
-                        let parsedStart = parseTimeString(startValRaw);
+                        const parsedStart = parseTimeString(startValRaw);
                         if (parsedStart.h !== '') {
                             current.startH = parsedStart.h;
                             current.startM = parsedStart.m;
@@ -939,7 +1378,7 @@
                             current.startH = ''; current.startM = '';
                         }
 
-                        let parsedEnd = parseTimeString(endValRaw);
+                        const parsedEnd = parseTimeString(endValRaw);
                         if (parsedEnd.h !== '') {
                             current.endH = parsedEnd.h;
                             current.endM = parsedEnd.m;
@@ -952,22 +1391,23 @@
                     });
                 });
 
-                // Wochen-Startguthaben einrechnen
-                let startH = parseInt(document.getElementById("weekStartOvertimeH").value) || 0;
-                let startM = parseInt(document.getElementById("weekStartOvertimeM").value) || 0;
-                let startSecs = (Math.abs(startH) * 3600 + startM * 60) * (startH < 0 ? -1 : 1);
-                
-                let finalWeekSecs = totalWeekSecsDiff + startSecs;
-                let sign = finalWeekSecs < 0 ? "-" : "+";
-                let aSecs = Math.abs(finalWeekSecs);
-                let wh = Math.floor(aSecs / 3600);
-                let wm = Math.floor((aSecs % 3600) / 60);
+                // Ausgabe: Geleistet (Ist) vs. Soll & Wochen-Saldo
+                const fmtHM = (secs) => {
+                    const aSecs = Math.abs(secs);
+                    const h = Math.floor(aSecs / 3600);
+                    const m = Math.floor((aSecs % 3600) / 60);
+                    return `${format2(h)}:${format2(m)} h`;
+                };
 
-                document.getElementById("output-week-total").textContent = `${sign}${format2(wh)}:${format2(wm)} h`;
+                const diffSecs = totalCreditedSecs - totalSollSecs;
+                const sign = diffSecs < 0 ? "-" : "+";
+                const diffDec = (diffSecs / 3600).toFixed(2).replace('.', ',');
+
+                document.getElementById("output-week-worked").textContent = fmtHM(totalCreditedSecs);
+                document.getElementById("output-week-soll").textContent = `von ${fmtHM(totalSollSecs)} Soll`;
+                document.getElementById("output-week-total").textContent = `${sign}${fmtHM(diffSecs)}`;
+                document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
             }
-
-            document.getElementById("weekStartOvertimeH").addEventListener("input", buildWeekView);
-            document.getElementById("weekStartOvertimeM").addEventListener("input", buildWeekView);
 
             // Startup Check für Heute
             try {
