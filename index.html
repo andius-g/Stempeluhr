@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.07
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.09
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f5f5f5">
-    <title>Stempeluhr & Wochenübersicht (v1.07)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.09)</title>
 
     <script>
-        const APP_VERSION = "1.07";
-        // Farben sofort vor dem ersten Rendern aus localStorage laden (verhindert blauen Farbstich)
+        const APP_VERSION = "1.09";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -31,39 +30,120 @@
             const light = isNaN(l) ? 50 : l;
             const spread = isNaN(sp) ? 120 : sp;
             const bgHex = hslToHexInit(hue + spread, 50, 95);
+
+            let styleMode = localStorage.getItem("appStyleMode");
+            if (!styleMode || styleMode === "cut-edge") {
+                styleMode = "classic";
+            }
+            const rawIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
+            const intensity = isNaN(rawIntensity) ? 55 : Math.min(100, Math.max(0, rawIntensity));
+
+            document.documentElement.setAttribute("data-style", styleMode);
             document.documentElement.style.setProperty('--hue', hue);
             document.documentElement.style.setProperty('--lightness', light + '%');
             document.documentElement.style.setProperty('--spread', spread);
+            document.documentElement.style.setProperty('--asym-intensity', (intensity / 100).toFixed(3));
             document.documentElement.style.backgroundColor = bgHex;
             const meta = document.getElementById("meta-theme-color");
             if (meta) meta.setAttribute("content", bgHex);
         })();
     </script>
-    
-    <!-- PWA Meta-Tags -->
+
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <!-- Verknüpfungen -->
+
     <link rel="manifest" id="app-manifest-link" href="manifest.json">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
-    
-    <!-- jsPDF für direkten PDF-Download -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    
+
     <style>
         :root {
             --hue: 195;
             --lightness: 50%;
             --spread: 120;
+            --asym-intensity: 0.55;
             --primary-color: hsl(var(--hue), 60%, var(--lightness));
             --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
             --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
             --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
             --border-color: hsl(calc(var(--hue) - var(--spread)), 30%, 70%);
             --white: #ffffff;
+
+            --radius-card: 12px;
+            --radius-btn: 8px;
+            --radius-input: 8px;
+            --radius-badge: 8px;
+            --card-pad: 16px;
+            --stamp-grid: 1fr 1fr 50px;
+            --btn-come-radius: 8px;
+            --btn-go-radius: 8px;
+            --output-radius: 8px;
+            --output-margin-bottom: 10px;
+            --divider-height: 1px;
+            --week-card-radius: 10px;
+            --watermark-display: none;
+        }
+
+        html[data-style="asymmetric"] {
+            --k: var(--asym-intensity);
+
+            --radius-card:
+                calc(12px + var(--k) * 18px)
+                calc(12px - var(--k) * 4px)
+                calc(12px + var(--k) * 18px)
+                calc(12px - var(--k) * 4px);
+
+            --radius-btn:
+                calc(8px + var(--k) * 14px)
+                calc(8px - var(--k) * 2px)
+                calc(8px + var(--k) * 14px)
+                calc(8px - var(--k) * 2px);
+
+            --radius-input:
+                calc(8px + var(--k) * 10px)
+                calc(8px - var(--k) * 2px)
+                calc(8px + var(--k) * 10px)
+                calc(8px - var(--k) * 2px);
+
+            --radius-badge:
+                calc(8px + var(--k) * 6px)
+                calc(8px - var(--k) * 4px)
+                calc(8px + var(--k) * 6px)
+                calc(8px - var(--k) * 4px);
+
+            --card-pad: calc(16px + var(--k) * 2px) 16px;
+            --stamp-grid: calc(1fr + var(--k) * 0.35fr) calc(1fr - var(--k) * 0.05fr) 48px;
+
+            --btn-come-radius:
+                calc(8px + var(--k) * 18px)
+                calc(8px - var(--k) * 2px)
+                calc(8px + var(--k) * 18px)
+                calc(8px - var(--k) * 2px);
+
+            --btn-go-radius:
+                calc(8px - var(--k) * 2px)
+                calc(8px + var(--k) * 18px)
+                calc(8px - var(--k) * 2px)
+                calc(8px + var(--k) * 18px);
+
+            --output-radius:
+                calc(8px + var(--k) * 14px)
+                calc(8px - var(--k) * 2px)
+                calc(8px + var(--k) * 14px)
+                calc(8px - var(--k) * 2px);
+
+            --divider-height: calc(1px + var(--k) * 1px);
+
+            --week-card-radius:
+                calc(10px + var(--k) * 14px)
+                calc(10px - var(--k) * 4px)
+                calc(10px + var(--k) * 14px)
+                calc(10px - var(--k) * 4px);
+
+            --watermark-display: block;
         }
 
         * {
@@ -98,12 +178,12 @@
             max-width: 390px;
             width: 100%;
             text-align: center;
+            position: relative;
         }
 
-        /* Kopfbereich: Live-Uhr & Wochentag links, eckig-abgerundete Menü-Buttons rechts */
         .top-header-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
+            border-radius: var(--radius-card);
             padding: 12px 14px;
             margin-bottom: 14px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -111,7 +191,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, border-radius 0.2s;
         }
 
         .live-clock-box {
@@ -148,22 +228,21 @@
             background: var(--primary-color);
             color: var(--white);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             width: 42px;
             height: 42px;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.14);
-            transition: transform 0.15s, background-color 0.3s;
+            transition: transform 0.15s, background-color 0.3s, border-radius 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
+
         .settings-btn:active, .tab-btn:active {
             transform: scale(0.94);
         }
 
-        /* --- Swipe-Animations-Bühne --- */
         .views-stage {
             position: relative;
             width: 100%;
@@ -213,18 +292,40 @@
         }
 
         .feature-section {
+            position: relative;
             background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: var(--radius-card);
+            padding: var(--card-pad);
             margin-bottom: 14px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, border-radius 0.2s, padding 0.2s;
+            overflow: hidden;
         }
 
-        /* Zwei große Stempel-Buttons + schrittweiser Rückwärts-Button oben */
+        .bg-hour-watermark {
+            display: var(--watermark-display);
+            position: absolute;
+            right: 12px;
+            bottom: 6px;
+            font-size: 4.8em;
+            font-weight: 900;
+            line-height: 0.9;
+            color: var(--text-color);
+            opacity: calc(0.02 + var(--asym-intensity) * 0.055);
+            pointer-events: none;
+            user-select: none;
+            font-variant-numeric: tabular-nums;
+            z-index: 0;
+        }
+
+        .feature-section > *:not(.bg-hour-watermark) {
+            position: relative;
+            z-index: 1;
+        }
+
         .stamp-btn-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 50px;
+            grid-template-columns: var(--stamp-grid);
             gap: 8px;
             margin-bottom: 14px;
         }
@@ -234,12 +335,20 @@
             color: var(--white);
             border: none;
             padding: 14px 10px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             font-weight: bold;
             cursor: pointer;
             font-size: 1.05em;
             box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-            transition: transform 0.15s, opacity 0.2s;
+            transition: transform 0.15s, opacity 0.2s, border-radius 0.2s;
+        }
+
+        #btn-now-start {
+            border-radius: var(--btn-come-radius);
+        }
+
+        #btn-now-end {
+            border-radius: var(--btn-go-radius);
         }
 
         .btn-stamp:active {
@@ -250,7 +359,7 @@
             background-color: var(--white);
             color: var(--text-color);
             border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             font-weight: bold;
             font-size: 1.25em;
             cursor: pointer;
@@ -258,7 +367,7 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-            transition: transform 0.15s, opacity 0.2s;
+            transition: transform 0.15s, opacity 0.2s, border-radius 0.2s;
         }
 
         .btn-undo:active:not(:disabled) {
@@ -283,7 +392,7 @@
             color: var(--white);
             border: none;
             padding: 11px 10px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             font-weight: bold;
             cursor: pointer;
             font-size: 0.92em;
@@ -291,13 +400,13 @@
             white-space: nowrap;
             width: 100%;
             text-align: center;
+            transition: border-radius 0.2s, transform 0.15s;
         }
 
         .btn-now:active {
             transform: scale(0.96);
         }
 
-        /* Raucherpause-Zähler */
         .smoke-counter-box {
             width: 152px;
             height: 42px;
@@ -305,12 +414,13 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 6px 0 10px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             border: 2px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
             font-size: 0.86em;
             font-weight: bold;
+            transition: border-radius 0.2s;
         }
         .btn-smoke-minus {
             width: 28px;
@@ -334,17 +444,18 @@
         .output-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: var(--output-margin-bottom);
             margin-bottom: 14px;
         }
 
         .output, .output-decimal {
             background-color: var(--primary-color);
             color: var(--white);
-            padding: 11px 12px;
-            border-radius: 8px;
+            padding: 11px 16px;
+            border-radius: var(--output-radius);
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             text-align: center;
+            transition: border-radius 0.2s;
         }
 
         .output h3, .output-decimal h3 {
@@ -361,12 +472,12 @@
 
         .section-divider {
             border: none;
-            border-top: 1px solid var(--border-color);
-            opacity: 0.35;
+            background-color: var(--border-color);
+            height: var(--divider-height);
+            opacity: 0.45;
             margin: 14px 0;
         }
 
-        /* [ K ] [ hh ] [ mm ] & [ G ] [ hh ] [ mm ] */
         .dual-manual-times {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -384,7 +495,7 @@
 
         .kg-badge {
             height: 48px;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             border: 2px solid var(--border-color);
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -394,6 +505,7 @@
             align-items: center;
             justify-content: center;
             user-select: none;
+            transition: border-radius 0.2s;
         }
 
         .inputs-group-kg input[type="number"] {
@@ -402,25 +514,25 @@
             height: 48px;
             padding: 8px 1px;
             font-size: 1.15em;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             border: 2px solid var(--border-color);
             text-align: center;
             background: var(--white);
             color: var(--text-color);
             font-weight: bold;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s, border-radius 0.2s;
         }
 
         input[type="text"], input[type="number"], input[type="month"], input[type="date"] {
             width: 54px;
             padding: 10px 2px;
             font-size: 1.12em;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             border: 2px solid var(--border-color);
             text-align: center;
             background: var(--white);
             color: var(--text-color);
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s, border-radius 0.2s;
         }
 
         input[type="text"]:focus, input[type="number"]:focus, input[type="month"]:focus, input[type="date"]:focus {
@@ -442,16 +554,15 @@
             display: flex;
             gap: 10px;
         }
-        
+
         .output-decimal-container .output-decimal {
             flex: 1;
         }
 
-        /* Stempel-Blöcke */
         .sessions-box {
             background: var(--white);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             padding: 8px 10px;
             margin-bottom: 14px;
             text-align: left;
@@ -500,7 +611,6 @@
             justify-content: space-between;
         }
 
-        /* --- WOCHENBILANZ MIT KW-NAVIGATION, DATUM-SPRUNG & HEUTE-BUTTON --- */
         .week-header {
             display: flex;
             justify-content: space-between;
@@ -529,7 +639,7 @@
             background: var(--primary-color);
             color: var(--white);
             border: none;
-            border-radius: 7px;
+            border-radius: var(--radius-badge);
             padding: 5px 9px;
             font-size: 0.76em;
             font-weight: bold;
@@ -555,7 +665,7 @@
             background: var(--white);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -578,7 +688,7 @@
             align-items: center;
             background: var(--white);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             overflow: hidden;
             min-width: 92px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -614,11 +724,12 @@
 
         .week-list-card {
             background: var(--white);
-            border-radius: 10px;
+            border-radius: var(--week-card-radius);
             border: 1px solid var(--border-color);
             overflow: hidden;
             margin-bottom: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: border-radius 0.2s;
         }
 
         .week-row {
@@ -626,7 +737,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 10px 12px;
+            padding: 10px 14px;
             border-bottom: 1px solid rgba(0,0,0,0.07);
             cursor: pointer;
             transition: background-color 0.15s;
@@ -688,12 +799,13 @@
             background-color: var(--card-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-badge);
             padding: 5px 8px;
             font-size: 0.78em;
             font-weight: bold;
             text-align: center;
             min-width: 72px;
+            transition: border-radius 0.2s;
         }
         .status-badge-pill[data-status="vacation"],
         .status-badge-pill[data-status="holiday"] {
@@ -709,7 +821,7 @@
             width: 100%;
             margin-bottom: 14px;
             padding: 10px 12px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             border: 1.5px dashed var(--primary-color);
             background: var(--white);
             color: var(--text-color);
@@ -720,7 +832,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: transform 0.15s, background-color 0.15s;
+            transition: transform 0.15s, background-color 0.15s, border-radius 0.2s;
         }
         .btn-add-day-entry:active {
             transform: scale(0.98);
@@ -738,7 +850,7 @@
             width: 100%;
             margin-top: 12px;
             padding: 11px 12px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             border: 1.5px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
@@ -750,13 +862,12 @@
             justify-content: center;
             gap: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: transform 0.15s;
+            transition: transform 0.15s, border-radius 0.2s;
         }
         .btn-open-pdf-export:active {
             transform: scale(0.97);
         }
 
-        /* --- MODALS (Einstellungen, PDF-Export, Tag nachtragen & Großer Tages-Editor) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -780,7 +891,7 @@
             max-width: 365px;
             max-height: 92dvh;
             overflow-y: auto;
-            border-radius: 14px;
+            border-radius: var(--radius-card);
             padding: 20px;
             position: relative;
             box-shadow: 0 12px 32px rgba(0,0,0,0.24);
@@ -802,7 +913,6 @@
             line-height: 1;
         }
 
-        /* Quick-Wochenend-Buttons im Nachtragen-Dialog */
         .weekend-quick-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -813,7 +923,7 @@
             background: var(--bg-color);
             color: var(--text-color);
             border: 1.5px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             padding: 10px 8px;
             font-weight: bold;
             font-size: 0.88em;
@@ -827,7 +937,6 @@
             border-color: var(--primary-color);
         }
 
-        /* Großer Tages-Editor Styles */
         .day-status-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -836,7 +945,7 @@
         }
         .day-status-chip {
             padding: 9px 2px;
-            border-radius: 8px;
+            border-radius: var(--radius-badge);
             border: 1.5px solid var(--border-color);
             background: var(--bg-color);
             color: var(--text-color);
@@ -855,7 +964,7 @@
         .editor-block-card {
             background: var(--bg-color);
             border: 1.5px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: var(--radius-input);
             padding: 12px;
             margin-bottom: 12px;
         }
@@ -905,7 +1014,7 @@
             height: 50px;
             font-size: 1.25em;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             border: 2px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
@@ -940,7 +1049,7 @@
         .btn-add-block-full {
             width: 100%;
             padding: 11px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             border: 1.5px dashed var(--primary-color);
             background: var(--white);
             color: var(--text-color);
@@ -956,7 +1065,7 @@
             justify-content: space-between;
             background: var(--bg-color);
             border: 1.5px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: var(--radius-input);
             padding: 10px 12px;
             margin-bottom: 14px;
         }
@@ -968,7 +1077,7 @@
         .big-step-btn {
             width: 38px;
             height: 38px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             border: 1.5px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
@@ -987,7 +1096,7 @@
         .btn-reset-day {
             width: 100%;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             border: 1.5px solid #d9534f;
             background: #fff6f6;
             color: #b52b27;
@@ -1001,7 +1110,6 @@
             color: #ffffff;
         }
 
-        /* Einstellungen Styles */
         .settings-group {
             margin-bottom: 13px;
             text-align: left;
@@ -1032,7 +1140,7 @@
             gap: 8px;
             background: var(--bg-color);
             padding: 10px 11px;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             border: 1px solid var(--border-color);
         }
         .toggle-label-nowrap {
@@ -1064,7 +1172,7 @@
             padding: 5px 2px;
             font-size: 0.95em;
         }
-        
+
         .color-wheel-container {
             display: flex;
             flex-direction: column;
@@ -1074,7 +1182,7 @@
             border-radius: 50%;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             cursor: crosshair;
-            touch-action: none; 
+            touch-action: none;
         }
         .color-preview {
             display: flex;
@@ -1109,7 +1217,7 @@
         .harmony-select {
             width: 100%;
             padding: 8px;
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             border: 1px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
@@ -1124,7 +1232,7 @@
             gap: 8px;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-input);
             padding: 8px 11px;
             margin-bottom: 12px;
             font-size: 0.84em;
@@ -1150,7 +1258,7 @@
             color: var(--white);
             border: none;
             padding: 13px;
-            border-radius: 8px;
+            border-radius: var(--radius-btn);
             font-size: 1.05em;
             font-weight: bold;
             cursor: pointer;
@@ -1161,7 +1269,6 @@
 <body>
 
     <div class="container" id="app-container">
-        <!-- Kopfbereich: Große laufende Uhr + Wochentag links, Menü-Buttons im einheitlichen Design rechts -->
         <header class="top-header-card">
             <div class="live-clock-box">
                 <div class="live-time" id="live-clock-time">--:--:--</div>
@@ -1169,20 +1276,17 @@
             </div>
             <div class="header-actions">
                 <button class="tab-btn" id="btn-toggle-view" title="Wochenbilanz" aria-label="Wochenbilanz">
-                    <!-- Balkendiagramm SVG -->
                     <svg id="icon-view-week" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10"></line>
                         <line x1="12" y1="20" x2="12" y2="4"></line>
                         <line x1="6" y1="20" x2="6" y2="14"></line>
                     </svg>
-                    <!-- Uhr SVG (wenn in Wochenbilanz) -->
                     <svg id="icon-view-clock" style="display:none;" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="9"></circle>
                         <polyline points="12 7 12 12 15 14"></polyline>
                     </svg>
                 </button>
                 <button class="settings-btn" id="btn-settings" title="Einstellungen" aria-label="Einstellungen">
-                    <!-- Drei Striche Burger-Menü SVG -->
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                         <line x1="4" y1="6" x2="20" y2="6"></line>
                         <line x1="4" y1="12" x2="20" y2="12"></line>
@@ -1193,17 +1297,16 @@
         </header>
 
         <div class="views-stage" id="views-stage">
-            <!-- ANSICHT 1: STEMPELUHR -->
             <div id="view-clock" class="view-section active">
                 <div class="feature-section">
-                    <!-- 1. Kommen, Gehen & Schritt-zurück (Undo) -->
+                    <div class="bg-hour-watermark" id="bg-hour-watermark">--</div>
+
                     <div class="stamp-btn-row">
                         <button class="btn-stamp" id="btn-now-start">Kommen</button>
                         <button class="btn-stamp" id="btn-now-end">Gehen</button>
                         <button class="btn-undo" id="btn-undo" title="Letzte Eingabe rückgängig" aria-label="Rückgängig" disabled>↶</button>
                     </div>
 
-                    <!-- Optionaler Raucherpausen-Zähler (nur sichtbar wenn in Einstellungen aktiv) -->
                     <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 14px;">
                         <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
                         <div class="smoke-counter-box">
@@ -1211,8 +1314,7 @@
                             <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
                         </div>
                     </div>
-                    
-                    <!-- 2. Feierabend-Vorschau -->
+
                     <div class="output-container">
                         <div class="output">
                             <h3>Keine Pause (gehen um):</h3>
@@ -1230,7 +1332,6 @@
 
                     <hr class="section-divider">
 
-                    <!-- 3. [ K ] [ hh ] [ mm ] (links) & [ G ] [ hh ] [ mm ] (rechts) -->
                     <div class="dual-manual-times">
                         <div class="inputs-group-kg">
                             <div class="kg-badge" title="Kommen">K</div>
@@ -1244,7 +1345,6 @@
                         </div>
                     </div>
 
-                    <!-- 4. Stempel-Blöcke -->
                     <div class="sessions-box" id="sessions-box" style="display: none;">
                         <div class="sessions-header">
                             <span>Stempel-Blöcke heute</span>
@@ -1256,8 +1356,7 @@
                             <strong id="sessions-gap-sum">0 min</strong>
                         </div>
                     </div>
-                    
-                    <!-- 5. Dezimal & +/- -->
+
                     <div class="output-decimal-container">
                         <div class="output-decimal">
                             <h3>Dezimal (h)</h3>
@@ -1271,7 +1370,6 @@
                 </div>
             </div>
 
-            <!-- ANSICHT 2: WOCHENBILANZ -->
             <div id="view-week" class="view-section">
                 <div class="feature-section">
                     <div class="week-header">
@@ -1299,11 +1397,8 @@
                         </div>
                     </div>
 
-                    <div class="week-list-card" id="week-days-container">
-                        <!-- Mo-Fr immer sichtbar; Sa & So erscheinen automatisch sobald Zeiten gebucht wurden -->
-                    </div>
+                    <div class="week-list-card" id="week-days-container"></div>
 
-                    <!-- Button zum direkten Nachtragen eines beliebigen Tages (inkl. Sa / So) -->
                     <button type="button" class="btn-add-day-entry" id="btn-open-backfill-modal">
                         <span>+ Tag / Wochenende nachtragen</span>
                     </button>
@@ -1335,12 +1430,10 @@
         </div>
     </div>
 
-    <!-- Modal: Tag / Wochenende nachtragen -->
     <div class="modal-overlay" id="backfill-modal">
         <div class="modal-content">
             <button class="close-btn" id="btn-close-backfill-modal">&times;</button>
             <h2>Tag nachtragen</h2>
-
             <div class="settings-group">
                 <label>Wochenende der angezeigten KW:</label>
                 <div class="weekend-quick-grid">
@@ -1348,47 +1441,38 @@
                     <button type="button" class="btn-weekend-quick" id="btn-quick-sun">Sonntag<br><span id="quick-sun-date" style="font-weight:normal; font-size:0.86em;">--.--.</span></button>
                 </div>
             </div>
-
             <div class="settings-group">
                 <label for="backfillDateInput">Oder beliebiges Datum wählen:</label>
                 <input type="date" id="backfillDateInput" class="text-input-full">
             </div>
-
             <button class="settings-save" id="btn-confirm-backfill">Zeiten für diesen Tag eintragen</button>
         </div>
     </div>
 
-    <!-- Modal: Monats-PDF Export -->
     <div class="modal-overlay" id="pdf-export-modal">
         <div class="modal-content">
             <button class="close-btn" id="btn-close-pdf-modal">&times;</button>
             <h2>Monats-PDF Export</h2>
-
             <div class="settings-group">
                 <label for="pdfMonthSelect">Monat auswählen</label>
                 <input type="month" id="pdfMonthSelect" class="text-input-full">
             </div>
-
             <div class="settings-group">
                 <label for="pdfUserNamePreview">Name auf dem Stundenzettel</label>
                 <input type="text" id="pdfUserNamePreview" class="text-input-full" placeholder="Vor- und Nachname">
             </div>
-
             <div style="background:var(--bg-color); padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.84em; margin-bottom:14px; line-height:1.4;">
                 Erstellt eine druckfertige DIN-A4-PDF-Datei mit allen Tagen des Monats, Kommen/Gehen-Zeiten, Pausen, Status (Urlaub/Krank/Feiertag), Gesamtsaldo sowie Unterschriftszeile.
             </div>
-
             <button class="settings-save" id="btn-download-month-pdf">PDF jetzt herunterladen</button>
         </div>
     </div>
 
-    <!-- Modal: Großer Tages-Editor für Wochenbilanz -->
     <div class="modal-overlay" id="day-editor-modal">
         <div class="modal-content">
             <button class="close-btn" id="btn-close-day-editor">&times;</button>
             <h2 id="day-editor-title">Tag bearbeiten</h2>
 
-            <!-- Status-Auswahl als große Chips -->
             <div class="day-status-grid" id="day-status-chips">
                 <button type="button" class="day-status-chip" data-status="work">Arbeit</button>
                 <button type="button" class="day-status-chip" data-status="vacation">Urlaub</button>
@@ -1397,12 +1481,10 @@
                 <button type="button" class="day-status-chip" data-status="free">Frei</button>
             </div>
 
-            <!-- Stempel-Blöcke Editor (nur bei Status "Arbeit") -->
             <div id="day-editor-work-area">
                 <div id="day-editor-blocks-list"></div>
                 <button type="button" class="btn-add-block-full" id="btn-editor-add-block">+ Weiteren Zeitblock hinzufügen</button>
 
-                <!-- Raucherpausen für diesen Tag -->
                 <div class="editor-smoke-bar" id="editor-smoke-bar">
                     <span style="font-weight:bold; font-size:0.92em;">🚬 Raucherpausen</span>
                     <div class="editor-smoke-btns">
@@ -1422,7 +1504,6 @@
         </div>
     </div>
 
-    <!-- Modal für Einstellungen -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
@@ -1432,13 +1513,28 @@
                 <label for="userNameInput">Name (für PDF-Stundenzettel)</label>
                 <input type="text" id="userNameInput" class="text-input-full" placeholder="z. B. Max Mustermann">
             </div>
-            
+
             <div class="settings-group">
                 <label>Sollarbeitszeit (Std : Min)</label>
                 <div class="soll-pair">
                     <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
                     <span style="font-weight:bold; color:var(--text-color);">:</span>
                     <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label for="styleModeSelect">Form-Design</label>
+                <select id="styleModeSelect" class="harmony-select">
+                    <option value="classic" selected>Klassisch (gleichmäßige Ecken)</option>
+                    <option value="asymmetric">Asymmetrisch & Organisch</option>
+                </select>
+                <div class="slider-control" id="asymSliderWrap" style="display: none; margin-top: 8px;">
+                    <label for="asymIntensitySlider">
+                        <span>Stärke der Asymmetrie:</span>
+                        <span><span id="asymIntensityVal">55</span>%</span>
+                    </label>
+                    <input type="range" id="asymIntensitySlider" min="0" max="100" value="55">
                 </div>
             </div>
 
@@ -1493,7 +1589,7 @@
             </div>
 
             <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.07</span>
+                <span id="app-version-label" style="font-weight:bold;">Version 1.09</span>
                 <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
             </div>
 
@@ -1511,14 +1607,16 @@
 
             document.getElementById("app-version-label").textContent = `Version ${APP_VERSION}`;
 
-            // --- Live-Uhr & Wochentag im Kopfbereich ---
             const liveTimeEl = document.getElementById("live-clock-time");
             const liveDayEl = document.getElementById("live-clock-day");
+            const bgHourWatermark = document.getElementById("bg-hour-watermark");
             const weekdaysFull = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
 
             function updateLiveClock() {
                 const now = new Date();
-                liveTimeEl.textContent = `${format2(now.getHours())}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                const hh = format2(now.getHours());
+                liveTimeEl.textContent = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                if (bgHourWatermark) bgHourWatermark.textContent = hh;
                 const dayName = weekdaysFull[now.getDay()];
                 const dateFormatted = `${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
                 liveDayEl.textContent = `${dayName}, ${dateFormatted}`;
@@ -1534,7 +1632,6 @@
                 return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
-            // --- HSL zu HEX & dynamisches Manifest/Theme-Color für obere & untere Android-Leiste ---
             function hslToHex(h, s, l) {
                 h = ((h % 360) + 360) % 360;
                 s /= 100;
@@ -1588,16 +1685,19 @@
                 updateDynamicManifest(bgHex);
             }
 
-            // --- Feiertags-Logik Niedersachsen (2026-2028) ---
+            function applyAsymIntensity(val) {
+                const clamped = Math.min(100, Math.max(0, parseInt(val, 10) || 0));
+                document.documentElement.style.setProperty('--asym-intensity', (clamped / 100).toFixed(3));
+                return clamped;
+            }
+
             const holidaysNds = {
                 "2026-01-01": "Neujahr", "2026-04-03": "Karfreitag", "2026-04-06": "Ostermontag",
                 "2026-05-01": "Tag der Arbeit", "2026-05-14": "Christi Himmelfahrt", "2026-05-25": "Pfingstmontag",
                 "2026-10-03": "Tag d. Dt. Einheit", "2026-10-31": "Reformationstag", "2026-12-25": "1. Weihnachtstag", "2026-12-26": "2. Weihnachtstag",
-                
                 "2027-01-01": "Neujahr", "2027-03-26": "Karfreitag", "2027-03-29": "Ostermontag",
                 "2027-05-01": "Tag der Arbeit", "2027-05-06": "Christi Himmelfahrt", "2027-05-17": "Pfingstmontag",
                 "2027-10-03": "Tag d. Dt. Einheit", "2027-10-31": "Reformationstag", "2027-12-25": "1. Weihnachtstag", "2027-12-26": "2. Weihnachtstag",
-                
                 "2028-01-01": "Neujahr", "2028-04-14": "Karfreitag", "2028-04-17": "Ostermontag",
                 "2028-05-01": "Tag der Arbeit", "2028-05-25": "Christi Himmelfahrt", "2028-06-05": "Pfingstmontag",
                 "2028-10-03": "Tag d. Dt. Einheit", "2028-10-31": "Reformationstag", "2028-12-25": "1. Weihnachtstag", "2028-12-26": "2. Weihnachtstag"
@@ -1607,7 +1707,6 @@
                 return holidaysNds[dateStr] || null;
             }
 
-            // --- Speicher-Helfer für Tage ---
             function getDayData(dateStr) {
                 try {
                     return JSON.parse(localStorage.getItem("day_" + dateStr)) || null;
@@ -1618,7 +1717,6 @@
                 localStorage.setItem("day_" + dateStr, JSON.stringify(data));
             }
 
-            // Prüft, ob für einen Tag (z. B. Samstag/Sonntag) tatsächlich Zeiten/Buchungen vorliegen
             function hasWeekendBooking(saved) {
                 if (!saved) return false;
                 const hasTimes = (saved.startH !== '' && saved.startH !== undefined)
@@ -1629,7 +1727,6 @@
                 return hasTimes || hasSmoke || hasNonFreeStatus;
             }
 
-            // --- Ansichten Umschalter & Animationen ---
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
             const toggleViewBtn = document.getElementById("btn-toggle-view");
@@ -1713,24 +1810,29 @@
                 jumpToDateStr(weekDatePicker.value);
             });
 
-            // --- Einstellungen, Name, Farben, Raucher-Modus & Gesten-Schalter ---
             let userName = localStorage.getItem("userName") || "";
-            let appHue = parseInt(localStorage.getItem("appHue"));
+            let savedStyleMode = localStorage.getItem("appStyleMode");
+            let appStyleMode = (!savedStyleMode || savedStyleMode === "cut-edge") ? "classic" : savedStyleMode;
+
+            let appAsymIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
+            if (isNaN(appAsymIntensity)) appAsymIntensity = 55;
+
+            let appHue = parseInt(localStorage.getItem("appHue"), 10);
             if (isNaN(appHue)) appHue = 195;
 
-            let appLightness = parseInt(localStorage.getItem("appLightness"));
+            let appLightness = parseInt(localStorage.getItem("appLightness"), 10);
             if (isNaN(appLightness)) appLightness = 50;
 
-            let appSpread = parseInt(localStorage.getItem("appSpread"));
+            let appSpread = parseInt(localStorage.getItem("appSpread"), 10);
             if (isNaN(appSpread)) appSpread = 120;
 
-            let sollHours = parseInt(localStorage.getItem("sollHours"));
+            let sollHours = parseInt(localStorage.getItem("sollHours"), 10);
             if (isNaN(sollHours)) sollHours = 8;
-            let sollMinutes = parseInt(localStorage.getItem("sollMinutes"));
+            let sollMinutes = parseInt(localStorage.getItem("sollMinutes"), 10);
             if (isNaN(sollMinutes)) sollMinutes = 0;
 
             let isSmoker = localStorage.getItem("isSmoker") === "true";
-            let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"));
+            let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"), 10);
             if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
 
             let gesturesEnabled = localStorage.getItem("gesturesEnabled") !== "false";
@@ -1740,15 +1842,41 @@
             if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
                 todaySmokeCount = initialTodayData.smokeCount;
             }
-            
+
+            document.documentElement.setAttribute("data-style", appStyleMode);
+            applyAsymIntensity(appAsymIntensity);
             applyThemeColors(appHue, appLightness, appSpread);
 
             const userNameInput = document.getElementById("userNameInput");
             const sollHoursInput = document.getElementById("sollHours");
             const sollMinutesInput = document.getElementById("sollMinutes");
+            const styleModeSelect = document.getElementById("styleModeSelect");
+            const asymSliderWrap = document.getElementById("asymSliderWrap");
+            const asymIntensitySlider = document.getElementById("asymIntensitySlider");
+            const asymIntensityVal = document.getElementById("asymIntensityVal");
+
             userNameInput.value = userName;
             sollHoursInput.value = sollHours;
             sollMinutesInput.value = sollMinutes;
+            styleModeSelect.value = appStyleMode;
+            asymIntensitySlider.value = appAsymIntensity;
+            asymIntensityVal.textContent = appAsymIntensity;
+
+            function syncStyleControlsUI() {
+                asymSliderWrap.style.display = styleModeSelect.value === "asymmetric" ? "block" : "none";
+            }
+            syncStyleControlsUI();
+
+            styleModeSelect.addEventListener("change", () => {
+                appStyleMode = styleModeSelect.value;
+                document.documentElement.setAttribute("data-style", appStyleMode);
+                syncStyleControlsUI();
+            });
+
+            asymIntensitySlider.addEventListener("input", () => {
+                appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
+                asymIntensityVal.textContent = appAsymIntensity;
+            });
 
             const isSmokerCheck = document.getElementById("isSmokerCheck");
             const smokeMinutesInput = document.getElementById("smokeMinutesInput");
@@ -1831,7 +1959,6 @@
                 const rad = hueAngle * Math.PI / 180;
                 const dotX = radius + Math.cos(rad) * (radius * 0.7);
                 const dotY = radius + Math.sin(rad) * (radius * 0.7);
-                
                 ctx.beginPath();
                 ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI);
                 ctx.fillStyle = "white";
@@ -1893,6 +2020,10 @@
             const settingsModal = document.getElementById("settings-modal");
             function openSettings() {
                 userNameInput.value = userName;
+                styleModeSelect.value = appStyleMode;
+                asymIntensitySlider.value = appAsymIntensity;
+                asymIntensityVal.textContent = appAsymIntensity;
+                syncStyleControlsUI();
                 settingsModal.classList.add("active");
                 drawColorWheel();
             }
@@ -1907,13 +2038,19 @@
                 sollHoursInput.value = sollHours;
                 sollMinutesInput.value = sollMinutes;
 
+                appStyleMode = styleModeSelect.value;
+                appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
+                document.documentElement.setAttribute("data-style", appStyleMode);
+
                 isSmoker = isSmokerCheck.checked;
                 smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value) || 5));
                 smokeMinutesInput.value = smokeMinutesPerBreak;
 
                 gesturesEnabled = gesturesEnabledCheck.checked;
-                
+
                 localStorage.setItem("userName", userName);
+                localStorage.setItem("appStyleMode", appStyleMode);
+                localStorage.setItem("appAsymIntensity", appAsymIntensity);
                 localStorage.setItem("sollHours", sollHours);
                 localStorage.setItem("sollMinutes", sollMinutes);
                 localStorage.setItem("isSmoker", isSmoker);
@@ -1934,12 +2071,10 @@
             document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
             document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
 
-            // --- Update erzwingen (Service Worker & Cache leeren, localStorage behalten) ---
             document.getElementById("btn-force-update").addEventListener("click", async () => {
                 const btn = document.getElementById("btn-force-update");
                 btn.textContent = "Suche...";
                 btn.disabled = true;
-
                 try {
                     if ('serviceWorker' in navigator) {
                         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -1954,12 +2089,10 @@
                 } catch (err) {
                     console.warn("Update-Check Hinweis:", err);
                 }
-
                 const baseUrl = window.location.href.split('?')[0];
                 window.location.replace(`${baseUrl}?v=${Date.now()}`);
             });
 
-            // --- Zeit-Inputs ([K][hh][mm] & [G][hh][mm]), Sekundengenauigkeit & Undo-Stapel ---
             const startHoursInput = document.getElementById("startHours");
             const startMinutesInput = document.getElementById("startMinutes");
             const endHoursInput = document.getElementById("endHours");
@@ -2015,7 +2148,6 @@
             function getSessionMetricsFromList(sessionsArr) {
                 let totalPresSecs = 0;
                 let totalGapSecs = 0;
-
                 for (let i = 0; i < sessionsArr.length; i++) {
                     const sSecs = timeObjToSecs(sessionsArr[i].start);
                     const eSecs = timeObjToSecs(sessionsArr[i].end);
@@ -2186,7 +2318,6 @@
                 let val = parseInt(input.value, 10);
                 const min = parseInt(input.min, 10);
                 const max = parseInt(input.max, 10);
-
                 if (isNaN(val)) {
                     input.value = "";
                     return;
@@ -2231,7 +2362,6 @@
                     m: format2(now.getMinutes()),
                     s: format2(now.getSeconds())
                 };
-
                 if (todaySessions.length === 0) {
                     todaySessions.push({ start: tObj, end: null });
                 } else {
@@ -2242,7 +2372,6 @@
                         last.start = tObj;
                     }
                 }
-
                 syncInputsFromSessions();
                 saveSessionsAndDay();
                 calculateAllTimes();
@@ -2256,13 +2385,11 @@
                     m: format2(now.getMinutes()),
                     s: format2(now.getSeconds())
                 };
-
                 if (todaySessions.length === 0) {
                     todaySessions.push({ start: { h: "00", m: "00", s: "00" }, end: tObj });
                 } else {
                     todaySessions[todaySessions.length - 1].end = tObj;
                 }
-
                 syncInputsFromSessions();
                 saveSessionsAndDay();
                 calculateAllTimes();
@@ -2300,7 +2427,7 @@
                 const seconds = (todaySessions.length > 0 && todaySessions[0].start)
                     ? (parseInt(todaySessions[0].start.s, 10) || 0)
                     : 0;
-                
+
                 if (isNaN(hours)) {
                     document.getElementById("output-no-pause").textContent = "-";
                     document.getElementById("output-30min-pause-range").textContent = "-";
@@ -2309,7 +2436,6 @@
                 }
 
                 const { totalGapSecs } = getSessionMetrics();
-
                 const startTime = new Date();
                 startTime.setHours(hours, minutes, seconds, 0);
 
@@ -2372,7 +2498,7 @@
                 const smokeSecs = getTodaySmokeSecs();
                 const workSecs = calcNetWorkSecs(totalPresSecs, smokeSecs);
                 const workDec = workSecs / 3600;
-                
+
                 const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
                 const overSecs = workSecs - sollSecs;
 
@@ -2389,7 +2515,6 @@
                 document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
             }
 
-            // --- Wochenbilanz & Großer Tages-Editor Modal ---
             function getMonday(d) {
                 d = new Date(d);
                 let day = d.getDay(),
@@ -2436,19 +2561,16 @@
 
             const dayFullNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 
-            // Hilfsfunktion: Öffnet direkt den Editor für ein beliebiges Datum (YYYY-MM-DD)
             function openEditorForAnyDate(dateStr) {
                 if (!dateStr) return;
                 jumpToDateStr(dateStr);
                 const parts = dateStr.split("-").map(Number);
                 const dt = new Date(parts[0], parts[1] - 1, parts[2]);
-                const dowIdx = (dt.getDay() + 6) % 7; // 0=Mo ... 6=So
+                const dowIdx = (dt.getDay() + 6) % 7;
                 const dateShort = `${format2(dt.getDate())}.${format2(dt.getMonth() + 1)}.`;
-                // Beim Nachtragen eines ungebuchten Tages direkt "work" (Arbeit) anbieten
                 openDayEditor(dateStr, `${dayFullNames[dowIdx]}, ${dateShort}${dt.getFullYear()}`, "work");
             }
 
-            // --- Modal: Tag / Wochenende nachtragen ---
             const backfillModal = document.getElementById("backfill-modal");
             const backfillDateInput = document.getElementById("backfillDateInput");
             const quickSatDateSpan = document.getElementById("quick-sat-date");
@@ -2496,7 +2618,6 @@
                 openEditorForAnyDate(chosen);
             });
 
-            // Tages-Editor State
             const dayEditorModal = document.getElementById("day-editor-modal");
             const dayEditorTitle = document.getElementById("day-editor-title");
             const dayEditorWorkArea = document.getElementById("day-editor-work-area");
@@ -2514,7 +2635,6 @@
                 const existing = getDayData(dateStr);
                 if (existing) {
                     editingDraft = JSON.parse(JSON.stringify(existing));
-                    // Falls ein Wochenendtag bisher nur als "free" ohne Zeiten angelegt war, beim Öffnen auf "work" schalten
                     if (editingDraft.status === "free" && !hasWeekendBooking(editingDraft)) {
                         editingDraft.status = "work";
                     }
@@ -2736,7 +2856,6 @@
                 editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
             });
 
-            // Tag komplett zurücksetzen / löschen
             document.getElementById("btn-reset-day-editor").addEventListener("click", () => {
                 if (!editingDateStr) return;
                 const targetDate = editingDateStr;
@@ -2866,7 +2985,6 @@
                         saved.status = 'holiday';
                     }
 
-                    // Samstag (i=5) & Sonntag (i=6) nur anzeigen, wenn Zeiten/Buchungen gespeichert wurden
                     if (isWeekend && !hasWeekendBooking(saved)) {
                         continue;
                     }
@@ -2935,7 +3053,6 @@
                 document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
             }
 
-            // --- Monats-PDF Export (Direkter Download via jsPDF) ---
             const pdfExportModal = document.getElementById("pdf-export-modal");
             const pdfMonthSelect = document.getElementById("pdfMonthSelect");
             const pdfUserNamePreview = document.getElementById("pdfUserNamePreview");
@@ -2979,7 +3096,6 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-                // Kopfbereich
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(16);
                 doc.text(`Arbeitszeitnachweis – ${monthNames[monthNum - 1]} ${yearNum}`, 14, 17);
@@ -2994,7 +3110,6 @@
                 doc.setLineWidth(0.3);
                 doc.line(14, 27, 196, 27);
 
-                // Tabellenkopf
                 let y = 33;
                 const rowH = 6.2;
                 const cols = [
@@ -3037,7 +3152,7 @@
 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dt = new Date(yearNum, monthNum - 1, d);
-                    const dow = dt.getDay(); // 0=So, 6=Sa
+                    const dow = dt.getDay();
                     const isWeekend = (dow === 0 || dow === 6);
                     const dateStr = `${yearNum}-${format2(monthNum)}-${format2(d)}`;
                     const dateDe = `${format2(d)}.${format2(monthNum)}.${yearNum}`;
@@ -3110,7 +3225,6 @@
                     y += rowH;
                 }
 
-                // Summenzeile
                 y += 2;
                 const monthSaldoSecs = monthCreditedSecs - monthSollSecs;
                 const monthDec = (monthCreditedSecs / 3600).toFixed(2).replace(".", ",");
@@ -3122,7 +3236,6 @@
                 doc.setFontSize(9.5);
                 doc.text(`Monatssumme:   Soll: ${fmtHM(monthSollSecs)} h   |   Ist: ${fmtHM(monthCreditedSecs)} h (${monthDec} dez.)   |   Saldo: ${fmtSignedHM(monthSaldoSecs)} h (${saldoDec})`, 16, y + 0.5);
 
-                // Unterschriftszeile
                 y += 16;
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(9);
@@ -3138,7 +3251,6 @@
                 pdfExportModal.classList.remove("active");
             });
 
-            // --- Interaktive Finger-Folge-Animation beim Wischen ---
             let touchStartX = 0;
             let touchStartY = 0;
             let touchBlocked = false;
@@ -3253,7 +3365,6 @@
 
             document.addEventListener("touchcancel", resetDragVisuals, { passive: true });
 
-            // Startup Check für Heute
             try {
                 const todayStr = getTodayStr();
                 const savedSessionsRaw = localStorage.getItem("savedTodaySessions");
