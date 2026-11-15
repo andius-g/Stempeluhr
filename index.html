@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" id="meta-theme-color" content="#edf7fa">
     <title>Stempeluhr & Wochenübersicht</title>
     
     <!-- PWA Meta-Tags -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
     <!-- Verknüpfungen -->
     <link rel="manifest" href="manifest.json">
@@ -33,9 +35,13 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            overscroll-behavior-y: none;
+            background-color: var(--bg-color);
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             align-items: flex-start;
@@ -102,7 +108,6 @@
             border-radius: 8px;
             width: 42px;
             height: 42px;
-            font-size: 1.15em;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.14);
             transition: transform 0.15s, background-color 0.3s;
@@ -120,6 +125,12 @@
         }
         .view-section.active {
             display: block;
+            animation: viewFadeSlide 0.22s ease-out;
+        }
+
+        @keyframes viewFadeSlide {
+            from { opacity: 0.65; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .feature-section {
@@ -131,11 +142,11 @@
             transition: background-color 0.3s;
         }
 
-        /* Zwei große Stempel-Buttons oben nebeneinander */
+        /* Zwei große Stempel-Buttons + schrittweiser Rückwärts-Button oben */
         .stamp-btn-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1fr 48px;
+            gap: 8px;
             margin-bottom: 14px;
         }
 
@@ -154,6 +165,30 @@
 
         .btn-stamp:active {
             transform: scale(0.96);
+        }
+
+        .btn-undo {
+            background-color: var(--white);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.25em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        .btn-undo:active:not(:disabled) {
+            transform: scale(0.93);
+        }
+
+        .btn-undo:disabled {
+            opacity: 0.38;
+            cursor: default;
         }
 
         .time-input-pair {
@@ -183,7 +218,7 @@
             transform: scale(0.96);
         }
 
-        /* Raucherpause-Zähler exakt auf Breite der 3 Zeitfelder */
+        /* Raucherpause-Zähler */
         .smoke-counter-box {
             width: 152px;
             height: 42px;
@@ -253,7 +288,7 @@
             margin: 14px 0;
         }
 
-        /* Nebeneinanderliegende manuelle Zeitfelder (links Kommen, rechts Gehen) */
+        /* [ K ] [ hh ] [ mm ] & [ G ] [ hh ] [ mm ] nebeneinander */
         .dual-manual-times {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -261,24 +296,33 @@
             margin-bottom: 14px;
         }
 
-        .manual-time-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .inputs-group-compact {
-            display: flex;
+        .inputs-group-kg {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 4px;
             align-items: center;
-            justify-content: center;
             width: 100%;
         }
 
-        .inputs-group-compact input[type="number"] {
+        .kg-badge {
+            height: 41px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 1.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .inputs-group-kg input[type="number"] {
             width: 100%;
             min-width: 0;
-            padding: 9px 1px;
+            height: 41px;
+            padding: 8px 1px;
             font-size: 1.02em;
             border-radius: 8px;
             border: 2px solid var(--border-color);
@@ -361,7 +405,7 @@
             color: var(--text-color);
             opacity: 0.6;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1.15em;
             cursor: pointer;
             padding: 0 4px;
         }
@@ -378,7 +422,7 @@
             justify-content: space-between;
         }
 
-        /* --- CLEAN WOCHENBILANZ --- */
+        /* --- CLEAN WOCHENBILANZ MIT VERTIKALER KW-NAVIGATION --- */
         .week-header {
             display: flex;
             justify-content: space-between;
@@ -386,41 +430,48 @@
             margin-bottom: 12px;
         }
         .week-header h2 {
-            font-size: 1.05em;
+            font-size: 1.08em;
             color: var(--text-color);
         }
-        .kw-nav {
+
+        .kw-vertical-nav {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 5px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 82px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .kw-nav-btn {
+
+        .kw-v-btn {
+            width: 100%;
             background: var(--white);
             color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            width: 26px;
-            height: 26px;
-            font-size: 0.95em;
+            border: none;
+            font-size: 0.72em;
             font-weight: bold;
+            padding: 2px 8px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
+            line-height: 1.15;
+            transition: background-color 0.15s;
         }
-        .kw-nav-btn:active {
-            transform: scale(0.9);
+        .kw-v-btn:active {
+            background-color: var(--bg-color);
         }
+
         .kw-badge {
+            width: 100%;
             font-size: 0.78em;
             font-weight: bold;
             background: var(--primary-color);
             color: var(--white);
-            padding: 4px 10px;
-            border-radius: 8px;
+            padding: 3px 10px;
             cursor: pointer;
             user-select: none;
+            text-align: center;
         }
 
         .week-list-card {
@@ -432,17 +483,20 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
+        .week-day-group {
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+        }
+        .week-day-group:last-child {
+            border-bottom: none;
+        }
+
         .week-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 6px;
             padding: 8px 10px;
-            border-bottom: 1px solid rgba(0,0,0,0.07);
             transition: background-color 0.2s;
-        }
-        .week-row:last-child {
-            border-bottom: none;
         }
         .week-row.is-today {
             background-color: var(--bg-color);
@@ -453,17 +507,27 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            min-width: 62px;
+            min-width: 68px;
             text-align: left;
             line-height: 1.2;
+            cursor: pointer;
+        }
+        .day-label-top {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .day-label strong {
             font-size: 0.9em;
             color: var(--text-color);
         }
+        .day-edit-hint {
+            font-size: 0.72em;
+            opacity: 0.55;
+        }
         .day-label span {
             font-size: 0.71em;
-            opacity: 0.7;
+            opacity: 0.75;
             white-space: nowrap;
         }
 
@@ -476,9 +540,9 @@
         }
         .day-times input.day-start,
         .day-times input.day-end {
-            width: 54px;
+            width: 52px;
             padding: 6px 2px;
-            font-size: 0.86em;
+            font-size: 0.85em;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             background: var(--bg-color);
@@ -503,6 +567,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            cursor: pointer;
         }
 
         .status-pill {
@@ -512,13 +577,13 @@
             color: var(--text-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 5px 8px;
-            font-size: 0.76em;
+            padding: 5px 6px;
+            font-size: 0.75em;
             font-weight: bold;
             text-align: center;
             cursor: pointer;
-            min-width: 72px;
-            max-width: 76px;
+            min-width: 70px;
+            max-width: 74px;
         }
         .status-pill:focus {
             outline: none;
@@ -532,6 +597,71 @@
         }
         .status-pill[data-status="free"] {
             opacity: 0.75;
+        }
+
+        /* Aufklapp-Detail-Editor pro Tag in der Wochenbilanz */
+        .day-detail-drawer {
+            background-color: var(--bg-color);
+            padding: 8px 10px 10px;
+            border-top: 1px dashed var(--border-color);
+            text-align: left;
+            font-size: 0.8em;
+        }
+        .drawer-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .drawer-block-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 5px;
+        }
+        .drawer-block-inputs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .drawer-block-inputs input {
+            width: 54px;
+            padding: 4px 2px;
+            font-size: 0.92em;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            font-weight: bold;
+        }
+        .drawer-mini-btn {
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.88em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .drawer-mini-btn.secondary {
+            background: var(--white);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        .drawer-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 7px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+        }
+        .drawer-smoke-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .balance-sub {
@@ -566,32 +696,32 @@
             max-height: 92vh;
             overflow-y: auto;
             border-radius: 12px;
-            padding: 22px;
+            padding: 20px;
             position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         .modal-content h2 {
             margin-top: 0;
             color: var(--text-color);
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             font-size: 1.2em;
         }
         .close-btn {
             position: absolute;
-            top: 15px; right: 15px;
+            top: 14px; right: 15px;
             background: none; border: none;
             font-size: 1.5em; color: var(--text-color);
             cursor: pointer;
         }
         
         .settings-group {
-            margin-bottom: 18px;
+            margin-bottom: 14px;
             text-align: left;
         }
         .settings-group label {
             display: block;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: var(--text-color);
         }
         .soll-pair {
@@ -600,40 +730,43 @@
             gap: 8px;
         }
 
-        .smoker-setting-row {
+        .setting-box-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 8px;
             background: var(--bg-color);
-            padding: 10px 12px;
+            padding: 9px 11px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
         }
-        .smoker-toggle-label {
+        .toggle-label-nowrap {
             display: flex !important;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             margin-bottom: 0 !important;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 0.9em;
+            white-space: nowrap;
         }
-        .smoker-toggle-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+        .toggle-label-nowrap input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
             accent-color: var(--primary-color);
             cursor: pointer;
+            flex-shrink: 0;
         }
         .smoker-mins-wrap {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.85em;
+            gap: 4px;
+            font-size: 0.82em;
             font-weight: bold;
+            white-space: nowrap;
         }
         .smoker-mins-wrap input {
-            width: 48px;
-            padding: 6px 2px;
+            width: 44px;
+            padding: 5px 2px;
             font-size: 0.95em;
         }
         
@@ -651,10 +784,10 @@
         .color-preview {
             display: flex;
             gap: 10px;
-            margin-top: 12px;
+            margin-top: 10px;
         }
         .color-dot {
-            width: 30px; height: 30px;
+            width: 28px; height: 28px;
             border-radius: 50%;
             border: 2px solid #ccc;
         }
@@ -664,7 +797,7 @@
 
         .slider-control {
             width: 100%;
-            margin-top: 14px;
+            margin-top: 12px;
             text-align: left;
         }
         .slider-control label {
@@ -696,15 +829,16 @@
             border: none;
             padding: 12px;
             border-radius: 8px;
-            font-size: 1.1em;
+            font-size: 1.05em;
             font-weight: bold;
             cursor: pointer;
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="app-container">
         <!-- Kopfbereich: Große laufende Uhr + Wochentag links, Menü-Buttons im einheitlichen Design rechts -->
         <header class="top-header-card">
             <div class="live-clock-box">
@@ -712,18 +846,38 @@
                 <div class="live-weekday" id="live-clock-day">-</div>
             </div>
             <div class="header-actions">
-                <button class="tab-btn" id="btn-toggle-view" title="Wochenbilanz">📊</button>
-                <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙️</button>
+                <button class="tab-btn" id="btn-toggle-view" title="Wochenbilanz" aria-label="Wochenbilanz">
+                    <!-- Balkendiagramm SVG -->
+                    <svg id="icon-view-week" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <!-- Uhr SVG (wenn in Wochenbilanz) -->
+                    <svg id="icon-view-clock" style="display:none;" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <polyline points="12 7 12 12 15 14"></polyline>
+                    </svg>
+                </button>
+                <button class="settings-btn" id="btn-settings" title="Einstellungen" aria-label="Einstellungen">
+                    <!-- Drei Striche Burger-Menü SVG -->
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
+                </button>
             </div>
         </header>
 
         <!-- ANSICHT 1: STEMPELUHR (Ein durchgehender, verschmolzener Bereich) -->
         <div id="view-clock" class="view-section active">
             <div class="feature-section">
-                <!-- 1. Kommen & Gehen Buttons -->
+                <!-- 1. Kommen, Gehen & Schritt-zurück (Undo) -->
                 <div class="stamp-btn-row">
                     <button class="btn-stamp" id="btn-now-start">Kommen</button>
                     <button class="btn-stamp" id="btn-now-end">Gehen</button>
+                    <button class="btn-undo" id="btn-undo" title="Letzte Eingabe rückgängig" aria-label="Rückgängig" disabled>↶</button>
                 </div>
 
                 <!-- Optionaler Raucherpausen-Zähler (nur sichtbar wenn in Einstellungen aktiv) -->
@@ -753,21 +907,17 @@
 
                 <hr class="section-divider">
 
-                <!-- 3. Manuelle Kommen-Zeit (links) & Gehen-Zeit (rechts) ohne Kästchen -->
+                <!-- 3. [ K ] [ hh ] [ mm ] (links) & [ G ] [ hh ] [ mm ] (rechts) -->
                 <div class="dual-manual-times">
-                    <div class="manual-time-col">
-                        <div class="inputs-group-compact">
-                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" title="Kommen Stunde">
-                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" title="Kommen Minute">
-                            <input type="number" id="startSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss" title="Kommen Sekunde">
-                        </div>
+                    <div class="inputs-group-kg">
+                        <div class="kg-badge" title="Kommen">K</div>
+                        <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" title="Kommen Stunde">
+                        <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" title="Kommen Minute">
                     </div>
-                    <div class="manual-time-col">
-                        <div class="inputs-group-compact">
-                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" title="Gehen Stunde">
-                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" title="Gehen Minute">
-                            <input type="number" id="endSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss" title="Gehen Sekunde">
-                        </div>
+                    <div class="inputs-group-kg">
+                        <div class="kg-badge" title="Gehen">G</div>
+                        <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" title="Gehen Stunde">
+                        <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" title="Gehen Minute">
                     </div>
                 </div>
 
@@ -798,20 +948,20 @@
             </div>
         </div>
 
-        <!-- ANSICHT 2: WOCHENBILANZ (Mo-Sa + History) -->
+        <!-- ANSICHT 2: WOCHENBILANZ (Mo-Sa + Vertikale KW-Steuerung + Aufklapp-Editor) -->
         <div id="view-week" class="view-section">
             <div class="feature-section">
                 <div class="week-header">
                     <h2>Wochenbilanz</h2>
-                    <div class="kw-nav">
-                        <button type="button" class="kw-nav-btn" id="btn-prev-week" title="Vorherige Woche">‹</button>
+                    <div class="kw-vertical-nav">
+                        <button type="button" class="kw-v-btn" id="btn-prev-week" title="Vorherige Woche">▲</button>
                         <span class="kw-badge" id="week-kw-badge" title="Zur aktuellen Woche">KW -</span>
-                        <button type="button" class="kw-nav-btn" id="btn-next-week" title="Nächste Woche">›</button>
+                        <button type="button" class="kw-v-btn" id="btn-next-week" title="Nächste Woche">▼</button>
                     </div>
                 </div>
 
                 <div class="week-list-card" id="week-days-container">
-                    <!-- 6 kompakte Ein-Zeilen-Einträge (Mo-Sa) -->
+                    <!-- 6 kompakte Einträge (Mo-Sa) inkl. Aufklapp-Editor -->
                 </div>
 
                 <div class="output-decimal-container">
@@ -832,7 +982,7 @@
 
     <!-- Modal für Einstellungen -->
     <div class="modal-overlay" id="settings-modal">
-        <div class="modal-content">
+        <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
             <h2>Einstellungen</h2>
             
@@ -846,8 +996,8 @@
             </div>
 
             <div class="settings-group">
-                <div class="smoker-setting-row">
-                    <label class="smoker-toggle-label" for="isSmokerCheck">
+                <div class="setting-box-row">
+                    <label class="toggle-label-nowrap" for="isSmokerCheck">
                         <input type="checkbox" id="isSmokerCheck">
                         <span>🚬 Raucher-Modus</span>
                     </label>
@@ -858,9 +1008,18 @@
                 </div>
             </div>
 
+            <div class="settings-group">
+                <div class="setting-box-row">
+                    <label class="toggle-label-nowrap" for="gesturesEnabledCheck">
+                        <input type="checkbox" id="gesturesEnabledCheck" checked>
+                        <span>👆 Wischgesten (Menü & KW)</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="settings-group color-wheel-container">
                 <label>Farbharmonie</label>
-                <canvas id="colorWheel" width="180" height="180"></canvas>
+                <canvas id="colorWheel" width="175" height="175"></canvas>
                 <div class="color-preview">
                     <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
                     <div class="color-dot dot-2" title="Primär (Buttons)"></div>
@@ -921,6 +1080,32 @@
                 return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
+            // --- HSL zu HEX für Live-Anpassung der Android-Systemleiste ---
+            function hslToHex(h, s, l) {
+                h = ((h % 360) + 360) % 360;
+                s /= 100;
+                l /= 100;
+                const a = s * Math.min(l, 1 - l);
+                const f = n => {
+                    const k = (n + h / 30) % 12;
+                    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                    return Math.round(255 * color).toString(16).padStart(2, '0');
+                };
+                return `#${f(0)}${f(8)}${f(4)}`;
+            }
+
+            const metaThemeColor = document.getElementById("meta-theme-color");
+            function applyThemeColors(hue, lightness, spread) {
+                document.documentElement.style.setProperty('--hue', hue);
+                document.documentElement.style.setProperty('--lightness', lightness + '%');
+                document.documentElement.style.setProperty('--spread', spread);
+                // Hintergrundfarbe live in Android-Statusleiste übertragen
+                const bgHex = hslToHex(hue + spread, 50, 95);
+                if (metaThemeColor) {
+                    metaThemeColor.setAttribute("content", bgHex);
+                }
+            }
+
             // --- Feiertags-Logik Niedersachsen (2026-2028) ---
             const holidaysNds = {
                 "2026-01-01": "Neujahr", "2026-04-03": "Karfreitag", "2026-04-06": "Ostermontag",
@@ -951,42 +1136,59 @@
                 localStorage.setItem("day_" + dateStr, JSON.stringify(data));
             }
 
-            // --- Ansichten Umschalter & Wochen-Offset (History) ---
+            // --- Ansichten Umschalter & Wochen-Offset ---
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
             const toggleViewBtn = document.getElementById("btn-toggle-view");
+            const iconViewWeek = document.getElementById("icon-view-week");
+            const iconViewClock = document.getElementById("icon-view-clock");
             let weekOffset = 0;
+            let expandedDayStr = null;
+
+            function switchToClockView() {
+                viewWeek.classList.remove("active");
+                viewClock.classList.add("active");
+                iconViewWeek.style.display = "block";
+                iconViewClock.style.display = "none";
+                toggleViewBtn.title = "Wochenbilanz";
+            }
+
+            function switchToWeekView() {
+                viewClock.classList.remove("active");
+                viewWeek.classList.add("active");
+                iconViewWeek.style.display = "none";
+                iconViewClock.style.display = "block";
+                toggleViewBtn.title = "Stempeluhr";
+                weekOffset = 0;
+                expandedDayStr = null;
+                buildWeekView();
+            }
 
             toggleViewBtn.addEventListener("click", () => {
                 if (viewClock.classList.contains("active")) {
-                    viewClock.classList.remove("active");
-                    viewWeek.classList.add("active");
-                    toggleViewBtn.textContent = "⏱️";
-                    toggleViewBtn.title = "Stempeluhr";
-                    weekOffset = 0;
-                    buildWeekView();
+                    switchToWeekView();
                 } else {
-                    viewWeek.classList.remove("active");
-                    viewClock.classList.add("active");
-                    toggleViewBtn.textContent = "📊";
-                    toggleViewBtn.title = "Wochenbilanz";
+                    switchToClockView();
                 }
             });
 
             document.getElementById("btn-prev-week").addEventListener("click", () => {
                 weekOffset--;
+                expandedDayStr = null;
                 buildWeekView();
             });
             document.getElementById("btn-next-week").addEventListener("click", () => {
                 weekOffset++;
+                expandedDayStr = null;
                 buildWeekView();
             });
             document.getElementById("week-kw-badge").addEventListener("click", () => {
                 weekOffset = 0;
+                expandedDayStr = null;
                 buildWeekView();
             });
 
-            // --- Einstellungen, Farben & Raucher-Modus ---
+            // --- Einstellungen, Farben, Raucher-Modus & Gesten-Schalter ---
             let appHue = parseInt(localStorage.getItem("appHue"));
             if (isNaN(appHue)) appHue = 195;
 
@@ -1005,15 +1207,15 @@
             let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"));
             if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
 
+            let gesturesEnabled = localStorage.getItem("gesturesEnabled") !== "false";
+
             let todaySmokeCount = 0;
             const initialTodayData = getDayData(getTodayStr());
             if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
                 todaySmokeCount = initialTodayData.smokeCount;
             }
             
-            document.documentElement.style.setProperty('--hue', appHue);
-            document.documentElement.style.setProperty('--lightness', appLightness + '%');
-            document.documentElement.style.setProperty('--spread', appSpread);
+            applyThemeColors(appHue, appLightness, appSpread);
 
             const sollHoursInput = document.getElementById("sollHours");
             const sollMinutesInput = document.getElementById("sollMinutes");
@@ -1025,9 +1227,11 @@
             const smokerMinsWrap = document.getElementById("smokerMinsWrap");
             const smokeBar = document.getElementById("smoke-bar");
             const smokeCountDisplay = document.getElementById("smoke-count-display");
+            const gesturesEnabledCheck = document.getElementById("gesturesEnabledCheck");
 
             isSmokerCheck.checked = isSmoker;
             smokeMinutesInput.value = smokeMinutesPerBreak;
+            gesturesEnabledCheck.checked = gesturesEnabled;
 
             function updateSmokerUI() {
                 smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
@@ -1051,6 +1255,7 @@
             }
 
             document.getElementById("btn-add-smoke").addEventListener("click", () => {
+                pushUndoSnapshot();
                 todaySmokeCount++;
                 updateSmokerUI();
                 saveTodaySmokeData();
@@ -1059,6 +1264,7 @@
 
             document.getElementById("btn-sub-smoke").addEventListener("click", () => {
                 if (todaySmokeCount > 0) {
+                    pushUndoSnapshot();
                     todaySmokeCount--;
                     updateSmokerUI();
                     saveTodaySmokeData();
@@ -1079,13 +1285,13 @@
             lightnessSlider.addEventListener("input", () => {
                 appLightness = parseInt(lightnessSlider.value, 10);
                 lightnessVal.textContent = appLightness;
-                document.documentElement.style.setProperty('--lightness', appLightness + '%');
+                applyThemeColors(appHue, appLightness, appSpread);
                 drawColorWheel();
             });
 
             spreadSelect.addEventListener("change", () => {
                 appSpread = parseInt(spreadSelect.value, 10);
-                document.documentElement.style.setProperty('--spread', appSpread);
+                applyThemeColors(appHue, appLightness, appSpread);
                 drawColorWheel();
             });
 
@@ -1137,7 +1343,7 @@
                 let angle = Math.atan2(y, x) * 180 / Math.PI;
                 if (angle < 0) angle += 360;
                 appHue = Math.round(angle);
-                document.documentElement.style.setProperty('--hue', appHue);
+                applyThemeColors(appHue, appLightness, appSpread);
                 drawColorWheel();
             }
 
@@ -1157,10 +1363,12 @@
             });
 
             const modal = document.getElementById("settings-modal");
-            document.getElementById("btn-settings").addEventListener("click", () => {
+            function openSettings() {
                 modal.classList.add("active");
                 drawColorWheel();
-            });
+            }
+
+            document.getElementById("btn-settings").addEventListener("click", openSettings);
 
             function closeSettings() {
                 modal.classList.remove("active");
@@ -1172,11 +1380,14 @@
                 isSmoker = isSmokerCheck.checked;
                 smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value) || 5));
                 smokeMinutesInput.value = smokeMinutesPerBreak;
+
+                gesturesEnabled = gesturesEnabledCheck.checked;
                 
                 localStorage.setItem("sollHours", sollHours);
                 localStorage.setItem("sollMinutes", sollMinutes);
                 localStorage.setItem("isSmoker", isSmoker);
                 localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
+                localStorage.setItem("gesturesEnabled", gesturesEnabled);
                 localStorage.setItem("appHue", appHue);
                 localStorage.setItem("appLightness", appLightness);
                 localStorage.setItem("appSpread", appSpread);
@@ -1192,13 +1403,12 @@
             document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
             document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
 
-            // --- Zeit-Inputs & Multi-Stempel-Logik ---
+            // --- Zeit-Inputs ([K][hh][mm] & [G][hh][mm]), Sekundengenauigkeit & Undo-Stapel ---
             const startHoursInput = document.getElementById("startHours");
             const startMinutesInput = document.getElementById("startMinutes");
-            const startSecondsInput = document.getElementById("startSeconds");
             const endHoursInput = document.getElementById("endHours");
             const endMinutesInput = document.getElementById("endMinutes");
-            const endSecondsInput = document.getElementById("endSeconds");
+            const btnUndo = document.getElementById("btn-undo");
 
             const sessionsBox = document.getElementById("sessions-box");
             const sessionsList = document.getElementById("sessions-list");
@@ -1207,35 +1417,67 @@
             const sessionsGapSum = document.getElementById("sessions-gap-sum");
 
             let todaySessions = [];
+            let undoStack = [];
+
+            function updateUndoButtonState() {
+                btnUndo.disabled = undoStack.length === 0;
+            }
+
+            function pushUndoSnapshot() {
+                const snapshot = {
+                    sessions: JSON.parse(JSON.stringify(todaySessions)),
+                    smokeCount: todaySmokeCount
+                };
+                undoStack.push(snapshot);
+                if (undoStack.length > 20) undoStack.shift();
+                updateUndoButtonState();
+            }
+
+            btnUndo.addEventListener("click", () => {
+                if (undoStack.length === 0) return;
+                const prev = undoStack.pop();
+                todaySessions = prev.sessions || [];
+                todaySmokeCount = typeof prev.smokeCount === "number" ? prev.smokeCount : 0;
+                updateUndoButtonState();
+                updateSmokerUI();
+                saveTodaySmokeData();
+                syncInputsFromSessions();
+                saveSessionsAndDay();
+                calculateAllTimes();
+            });
 
             function timeObjToSecs(t) {
                 if (!t || t.h === "" || isNaN(parseInt(t.h, 10))) return null;
                 return (parseInt(t.h, 10) * 3600) + ((parseInt(t.m, 10) || 0) * 60) + (parseInt(t.s, 10) || 0);
             }
 
-            function formatTimeObj(t) {
+            function formatTimeObjWithSecs(t) {
                 if (!t || t.h === "") return "--:--";
                 return `${format2(parseInt(t.h, 10))}:${format2(parseInt(t.m, 10) || 0)}:${format2(parseInt(t.s, 10) || 0)}`;
             }
 
-            function getSessionMetrics() {
+            function getSessionMetricsFromList(sessionsArr) {
                 let totalPresSecs = 0;
                 let totalGapSecs = 0;
 
-                for (let i = 0; i < todaySessions.length; i++) {
-                    const sSecs = timeObjToSecs(todaySessions[i].start);
-                    const eSecs = timeObjToSecs(todaySessions[i].end);
+                for (let i = 0; i < sessionsArr.length; i++) {
+                    const sSecs = timeObjToSecs(sessionsArr[i].start);
+                    const eSecs = timeObjToSecs(sessionsArr[i].end);
                     if (sSecs !== null && eSecs !== null && eSecs > sSecs) {
                         totalPresSecs += (eSecs - sSecs);
                     }
                     if (i > 0) {
-                        const prevEndSecs = timeObjToSecs(todaySessions[i - 1].end);
+                        const prevEndSecs = timeObjToSecs(sessionsArr[i - 1].end);
                         if (prevEndSecs !== null && sSecs !== null && sSecs > prevEndSecs) {
                             totalGapSecs += (sSecs - prevEndSecs);
                         }
                     }
                 }
                 return { totalPresSecs, totalGapSecs };
+            }
+
+            function getSessionMetrics() {
+                return getSessionMetricsFromList(todaySessions);
             }
 
             function renderSessionsBox() {
@@ -1254,9 +1496,9 @@
                 todaySessions.forEach((sess, idx) => {
                     const row = document.createElement("div");
                     row.className = "session-item";
-                    const endStr = sess.end ? formatTimeObj(sess.end) : "läuft...";
+                    const endStr = sess.end ? formatTimeObjWithSecs(sess.end) : "läuft...";
                     row.innerHTML = `
-                        <span><strong>#${idx + 1}:</strong> ${formatTimeObj(sess.start)} – ${endStr}</span>
+                        <span><strong>#${idx + 1}:</strong> ${formatTimeObjWithSecs(sess.start)} – ${endStr}</span>
                         <button type="button" class="session-del-btn" data-idx="${idx}" title="Block entfernen">×</button>
                     `;
                     sessionsList.appendChild(row);
@@ -1264,6 +1506,7 @@
 
                 sessionsList.querySelectorAll(".session-del-btn").forEach(btn => {
                     btn.addEventListener("click", (e) => {
+                        pushUndoSnapshot();
                         const idx = parseInt(e.target.getAttribute("data-idx"), 10);
                         todaySessions.splice(idx, 1);
                         syncInputsFromSessions();
@@ -1285,26 +1528,21 @@
                 if (todaySessions.length === 0) {
                     startHoursInput.value = "";
                     startMinutesInput.value = "";
-                    startSecondsInput.value = "";
                     endHoursInput.value = "";
                     endMinutesInput.value = "";
-                    endSecondsInput.value = "";
                     return;
                 }
                 const firstStart = todaySessions[0].start;
                 startHoursInput.value = firstStart.h;
                 startMinutesInput.value = firstStart.m;
-                startSecondsInput.value = firstStart.s;
 
                 const lastSession = todaySessions[todaySessions.length - 1];
                 if (lastSession.end) {
                     endHoursInput.value = lastSession.end.h;
                     endMinutesInput.value = lastSession.end.m;
-                    endSecondsInput.value = lastSession.end.s;
                 } else {
                     endHoursInput.value = "";
                     endMinutesInput.value = "";
-                    endSecondsInput.value = "";
                 }
             }
 
@@ -1335,6 +1573,8 @@
                 saveDayData(todayStr, currentDay);
             }
 
+            let manualEditSnapshotTaken = false;
+
             function onManualTimeInputChange() {
                 const stH = startHoursInput.value;
                 const enH = endHoursInput.value;
@@ -1345,16 +1585,17 @@
                     return;
                 }
 
+                // Bei manueller Eingabe von hh/mm werden die Sekunden für diesen Randpunkt sauber auf 00 gesetzt
                 const startObj = stH !== "" ? {
                     h: format2(parseInt(stH, 10) || 0),
                     m: format2(parseInt(startMinutesInput.value, 10) || 0),
-                    s: format2(parseInt(startSecondsInput.value, 10) || 0)
+                    s: "00"
                 } : null;
 
                 const endObj = enH !== "" ? {
                     h: format2(parseInt(enH, 10) || 0),
                     m: format2(parseInt(endMinutesInput.value, 10) || 0),
-                    s: format2(parseInt(endSecondsInput.value, 10) || 0)
+                    s: "00"
                 } : null;
 
                 if (todaySessions.length === 0) {
@@ -1363,9 +1604,18 @@
                     }
                 } else {
                     if (startObj) {
-                        todaySessions[0].start = startObj;
+                        // Sekunden nur überschreiben, wenn sich hh oder mm tatsächlich geändert hat
+                        const oldS = todaySessions[0].start;
+                        const sSec = (oldS && oldS.h === startObj.h && oldS.m === startObj.m) ? (oldS.s || "00") : "00";
+                        todaySessions[0].start = { ...startObj, s: sSec };
                     }
-                    todaySessions[todaySessions.length - 1].end = endObj;
+                    if (endObj) {
+                        const oldE = todaySessions[todaySessions.length - 1].end;
+                        const eSec = (oldE && oldE.h === endObj.h && oldE.m === endObj.m) ? (oldE.s || "00") : "00";
+                        todaySessions[todaySessions.length - 1].end = { ...endObj, s: eSec };
+                    } else {
+                        todaySessions[todaySessions.length - 1].end = null;
+                    }
                 }
                 saveSessionsAndDay();
             }
@@ -1386,8 +1636,15 @@
             }
 
             function setupInput(currentInput, nextInput, onUpdate) {
-                currentInput.addEventListener("focus", () => { currentInput.select(); });
+                currentInput.addEventListener("focus", () => {
+                    currentInput.select();
+                    manualEditSnapshotTaken = false;
+                });
                 currentInput.addEventListener("input", () => {
+                    if (!manualEditSnapshotTaken) {
+                        pushUndoSnapshot();
+                        manualEditSnapshotTaken = true;
+                    }
                     if (currentInput.value.length > 2) currentInput.value = currentInput.value.slice(0, 2);
                     if (currentInput.value.length === 2 && nextInput) nextInput.focus();
                     if (onUpdate) onUpdate();
@@ -1401,13 +1658,12 @@
             }
 
             setupInput(startHoursInput, startMinutesInput, onManualTimeInputChange);
-            setupInput(startMinutesInput, startSecondsInput, onManualTimeInputChange);
-            setupInput(startSecondsInput, endHoursInput, onManualTimeInputChange);
+            setupInput(startMinutesInput, endHoursInput, onManualTimeInputChange);
             setupInput(endHoursInput, endMinutesInput, onManualTimeInputChange);
-            setupInput(endMinutesInput, endSecondsInput, onManualTimeInputChange);
-            setupInput(endSecondsInput, null, onManualTimeInputChange);
+            setupInput(endMinutesInput, null, onManualTimeInputChange);
 
             document.getElementById("btn-now-start").addEventListener("click", () => {
+                pushUndoSnapshot();
                 const now = new Date();
                 const tObj = {
                     h: format2(now.getHours()),
@@ -1432,6 +1688,7 @@
             });
 
             document.getElementById("btn-now-end").addEventListener("click", () => {
+                pushUndoSnapshot();
                 const now = new Date();
                 const tObj = {
                     h: format2(now.getHours()),
@@ -1476,7 +1733,10 @@
             function calculateEndTimes() {
                 const hours = parseInt(startHoursInput.value, 10);
                 const minutes = parseInt(startMinutesInput.value, 10) || 0;
-                const seconds = parseInt(startSecondsInput.value, 10) || 0;
+                // Exakte Sekunden aus dem ersten Session-Block nehmen!
+                const seconds = (todaySessions.length > 0 && todaySessions[0].start)
+                    ? (parseInt(todaySessions[0].start.s, 10) || 0)
+                    : 0;
                 
                 if (isNaN(hours)) {
                     document.getElementById("output-no-pause").textContent = "-";
@@ -1512,16 +1772,23 @@
             function calculateWorkingTime() {
                 const stH = parseInt(startHoursInput.value, 10);
                 const stM = parseInt(startMinutesInput.value, 10) || 0;
-                const stS = parseInt(startSecondsInput.value, 10) || 0;
                 const enH = parseInt(endHoursInput.value, 10);
                 const enM = parseInt(endMinutesInput.value, 10) || 0;
-                const enS = parseInt(endSecondsInput.value, 10) || 0;
 
                 if (isNaN(stH) || isNaN(enH)) {
                     document.getElementById("output-decimal-time").textContent = "-";
                     document.getElementById("output-overtime").textContent = "-";
                     return;
                 }
+
+                // Exakte Sekunden aus den Session-Blöcken verwenden
+                const stS = (todaySessions.length > 0 && todaySessions[0].start)
+                    ? (parseInt(todaySessions[0].start.s, 10) || 0)
+                    : 0;
+                const lastSess = todaySessions[todaySessions.length - 1];
+                const enS = (lastSess && lastSess.end)
+                    ? (parseInt(lastSess.end.s, 10) || 0)
+                    : 0;
 
                 const startSecs = (stH * 3600) + (stM * 60) + stS;
                 const endSecs = (enH * 3600) + (enM * 60) + enS;
@@ -1577,12 +1844,55 @@
                 return { h: '', m: '' };
             }
 
-            // --- Wochenbilanz Speicher & Generator (Mo-Sa + History) ---
+            // --- Wochenbilanz Speicher, Generator & Voll-Editor (Mo-Sa) ---
             function getMonday(d) {
                 d = new Date(d);
                 let day = d.getDay(),
                     diff = d.getDate() - day + (day === 0 ? -6 : 1);
                 return new Date(d.setDate(diff));
+            }
+
+            function syncDayFromSessionsList(dateStr, dayObj) {
+                const sessions = dayObj.sessions || [];
+                const { totalPresSecs } = getSessionMetricsFromList(sessions);
+                if (sessions.length > 0) {
+                    dayObj.startH = sessions[0].start.h;
+                    dayObj.startM = sessions[0].start.m;
+                    const last = sessions[sessions.length - 1];
+                    if (last.end) {
+                        dayObj.endH = last.end.h;
+                        dayObj.endM = last.end.m;
+                    } else {
+                        dayObj.endH = '';
+                        dayObj.endM = '';
+                    }
+                    dayObj.customPresSecs = totalPresSecs > 0 ? totalPresSecs : null;
+                } else {
+                    dayObj.startH = '';
+                    dayObj.startM = '';
+                    dayObj.endH = '';
+                    dayObj.endM = '';
+                    dayObj.customPresSecs = null;
+                }
+                saveDayData(dateStr, dayObj);
+
+                // Wenn Heute im Wochenbericht editiert wurde, Stempeluhr synchron halten
+                if (dateStr === getTodayStr()) {
+                    todaySessions = JSON.parse(JSON.stringify(sessions));
+                    todaySmokeCount = dayObj.smokeCount || 0;
+                    updateSmokerUI();
+                    syncInputsFromSessions();
+                    renderSessionsBox();
+                    if (todaySessions.length > 0) {
+                        localStorage.setItem("savedTodaySessions", JSON.stringify({
+                            date: dateStr,
+                            sessions: todaySessions
+                        }));
+                    } else {
+                        localStorage.removeItem("savedTodaySessions");
+                    }
+                    calculateAllTimes();
+                }
             }
 
             function calcWorkedSecsFromDay(saved) {
@@ -1644,6 +1954,9 @@
                         saved.status = 'holiday';
                     }
 
+                    const group = document.createElement("div");
+                    group.className = "week-day-group";
+
                     const row = document.createElement("div");
                     row.className = "week-row" + (dateStr === todayStr ? " is-today" : "");
 
@@ -1670,8 +1983,11 @@
                     }
 
                     row.innerHTML = `
-                        <div class="day-label">
-                            <strong>${dayShort[i]}</strong>
+                        <div class="day-label" data-toggle-date="${dateStr}" title="Antippen für Blöcke & Details">
+                            <div class="day-label-top">
+                                <strong>${dayShort[i]}</strong>
+                                <span class="day-edit-hint">✎</span>
+                            </div>
                             <span>${dateShort}${smokeSub}${splitSub}</span>
                         </div>
                         ${middleHtml}
@@ -1684,7 +2000,157 @@
                         </select>
                     `;
 
-                    container.appendChild(row);
+                    group.appendChild(row);
+
+                    // Aufklappbarer Detail-Editor für diesen Tag (Blöcke & Raucherpausen bearbeiten)
+                    if (expandedDayStr === dateStr) {
+                        const drawer = document.createElement("div");
+                        drawer.className = "day-detail-drawer";
+
+                        let blocks = (saved.sessions && saved.sessions.length > 0)
+                            ? saved.sessions
+                            : (saved.startH !== '' ? [{
+                                start: { h: saved.startH, m: saved.startM || '00', s: '00' },
+                                end: saved.endH !== '' ? { h: saved.endH, m: saved.endM || '00', s: '00' } : null
+                            }] : []);
+
+                        let blocksHtml = "";
+                        if (blocks.length === 0) {
+                            blocksHtml = `<div style="opacity:0.7; margin-bottom:6px;">Keine Stempel-Blöcke vorhanden.</div>`;
+                        } else {
+                            blocks.forEach((b, bIdx) => {
+                                const bStart = b.start ? `${b.start.h}:${b.start.m}` : '';
+                                const bEnd = b.end ? `${b.end.h}:${b.end.m}` : '';
+                                blocksHtml += `
+                                    <div class="drawer-block-row">
+                                        <span>Block #${bIdx + 1}:</span>
+                                        <div class="drawer-block-inputs">
+                                            <input type="text" inputmode="numeric" class="blk-start" data-bidx="${bIdx}" placeholder="07:30" value="${bStart}">
+                                            <span>–</span>
+                                            <input type="text" inputmode="numeric" class="blk-end" data-bidx="${bIdx}" placeholder="16:00" value="${bEnd}">
+                                            <button type="button" class="drawer-mini-btn secondary blk-del" data-bidx="${bIdx}" title="Block löschen">×</button>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        const sCount = saved.smokeCount || 0;
+                        drawer.innerHTML = `
+                            <div class="drawer-title-row">
+                                <span>Details ${dayShort[i]}, ${dateShort}</span>
+                                <button type="button" class="drawer-mini-btn secondary" id="btn-add-day-block">+ Block</button>
+                            </div>
+                            ${blocksHtml}
+                            <div class="drawer-footer-row">
+                                <div class="drawer-smoke-ctrl">
+                                    <span>🚬 Pausen:</span>
+                                    <button type="button" class="drawer-mini-btn secondary" id="btn-day-smoke-minus">−</button>
+                                    <strong>${sCount}×</strong>
+                                    <button type="button" class="drawer-mini-btn secondary" id="btn-day-smoke-plus">+</button>
+                                </div>
+                                <button type="button" class="drawer-mini-btn" id="btn-close-drawer">Fertig</button>
+                            </div>
+                        `;
+
+                        group.appendChild(drawer);
+
+                        // Detail-Editor Events
+                        drawer.querySelector("#btn-close-drawer").addEventListener("click", () => {
+                            expandedDayStr = null;
+                            buildWeekView();
+                        });
+
+                        drawer.querySelector("#btn-add-day-block").addEventListener("click", () => {
+                            const current = getDayData(dateStr) || { status: 'work' };
+                            current.status = 'work';
+                            if (!current.sessions || current.sessions.length === 0) {
+                                current.sessions = current.startH !== '' ? [{
+                                    start: { h: current.startH, m: current.startM || '00', s: '00' },
+                                    end: current.endH !== '' ? { h: current.endH, m: current.endM || '00', s: '00' } : null
+                                }] : [];
+                            }
+                            current.sessions.push({
+                                start: { h: '12', m: '00', s: '00' },
+                                end: { h: '16', m: '00', s: '00' }
+                            });
+                            syncDayFromSessionsList(dateStr, current);
+                            buildWeekView();
+                        });
+
+                        drawer.querySelectorAll(".blk-del").forEach(btn => {
+                            btn.addEventListener("click", (e) => {
+                                const bIdx = parseInt(e.target.getAttribute("data-bidx"), 10);
+                                const current = getDayData(dateStr) || { status: 'work' };
+                                if (!current.sessions) current.sessions = [];
+                                current.sessions.splice(bIdx, 1);
+                                syncDayFromSessionsList(dateStr, current);
+                                buildWeekView();
+                            });
+                        });
+
+                        drawer.querySelectorAll(".blk-start, .blk-end").forEach(inp => {
+                            inp.addEventListener("focus", () => inp.select());
+                            inp.addEventListener("blur", (e) => {
+                                const bIdx = parseInt(e.target.getAttribute("data-bidx"), 10);
+                                const bRow = e.target.closest(".drawer-block-row");
+                                const sRaw = bRow.querySelector(".blk-start").value;
+                                const eRaw = bRow.querySelector(".blk-end").value;
+
+                                const current = getDayData(dateStr) || { status: 'work' };
+                                current.status = 'work';
+                                if (!current.sessions || current.sessions.length === 0) {
+                                    current.sessions = JSON.parse(JSON.stringify(blocks));
+                                }
+                                const pS = parseTimeString(sRaw);
+                                const pE = parseTimeString(eRaw);
+                                if (pS.h !== '') {
+                                    const oldS = current.sessions[bIdx]?.start;
+                                    const secS = (oldS && oldS.h === pS.h && oldS.m === pS.m) ? (oldS.s || '00') : '00';
+                                    current.sessions[bIdx].start = { h: pS.h, m: pS.m, s: secS };
+                                }
+                                if (pE.h !== '') {
+                                    const oldE = current.sessions[bIdx]?.end;
+                                    const secE = (oldE && oldE.h === pE.h && oldE.m === pE.m) ? (oldE.s || '00') : '00';
+                                    current.sessions[bIdx].end = { h: pE.h, m: pE.m, s: secE };
+                                } else if (!eRaw) {
+                                    current.sessions[bIdx].end = null;
+                                }
+                                syncDayFromSessionsList(dateStr, current);
+                                buildWeekView();
+                            });
+                        });
+
+                        drawer.querySelector("#btn-day-smoke-plus").addEventListener("click", () => {
+                            const current = getDayData(dateStr) || { status: 'work' };
+                            current.smokeCount = (current.smokeCount || 0) + 1;
+                            current.smokeTotalMins = current.smokeCount * smokeMinutesPerBreak;
+                            saveDayData(dateStr, current);
+                            if (dateStr === todayStr) {
+                                todaySmokeCount = current.smokeCount;
+                                updateSmokerUI();
+                                calculateAllTimes();
+                            }
+                            buildWeekView();
+                        });
+
+                        drawer.querySelector("#btn-day-smoke-minus").addEventListener("click", () => {
+                            const current = getDayData(dateStr) || { status: 'work' };
+                            if ((current.smokeCount || 0) > 0) {
+                                current.smokeCount--;
+                                current.smokeTotalMins = current.smokeCount * smokeMinutesPerBreak;
+                                saveDayData(dateStr, current);
+                                if (dateStr === todayStr) {
+                                    todaySmokeCount = current.smokeCount;
+                                    updateSmokerUI();
+                                    calculateAllTimes();
+                                }
+                                buildWeekView();
+                            }
+                        });
+                    }
+
+                    container.appendChild(group);
 
                     if (saved.status === 'work') {
                         totalCreditedSecs += calcWorkedSecsFromDay(saved);
@@ -1692,6 +2158,15 @@
                         totalCreditedSecs += sollSecsPerDay;
                     }
                 }
+
+                // Tag aufklappen zum Bearbeiten von Blöcken & Details
+                container.querySelectorAll('[data-toggle-date]').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        const dStr = e.currentTarget.getAttribute('data-toggle-date');
+                        expandedDayStr = (expandedDayStr === dStr) ? null : dStr;
+                        buildWeekView();
+                    });
+                });
 
                 container.querySelectorAll('.status-pill').forEach(sel => {
                     sel.addEventListener('change', (e) => {
@@ -1712,25 +2187,51 @@
                         const endValRaw = rowEl.querySelector('.day-end').value;
                         
                         const current = getDayData(dStr) || { status: 'work' };
-                        current.customPresSecs = null;
-
                         const parsedStart = parseTimeString(startValRaw);
-                        if (parsedStart.h !== '') {
-                            current.startH = parsedStart.h;
-                            current.startM = parsedStart.m;
-                        } else if (!startValRaw) {
-                            current.startH = ''; current.startM = '';
-                        }
-
                         const parsedEnd = parseTimeString(endValRaw);
-                        if (parsedEnd.h !== '') {
-                            current.endH = parsedEnd.h;
-                            current.endM = parsedEnd.m;
-                        } else if (!endValRaw) {
-                            current.endH = ''; current.endM = '';
+
+                        // Wenn Blöcke existieren, ersten Start & letztes Ende aktualisieren, sodass Unterbrechungen erhalten bleiben!
+                        if (current.sessions && current.sessions.length > 0) {
+                            if (parsedStart.h !== '') {
+                                current.sessions[0].start = { h: parsedStart.h, m: parsedStart.m, s: '00' };
+                            }
+                            if (parsedEnd.h !== '') {
+                                current.sessions[current.sessions.length - 1].end = { h: parsedEnd.h, m: parsedEnd.m, s: '00' };
+                            } else if (!endValRaw) {
+                                current.sessions[current.sessions.length - 1].end = null;
+                            }
+                            if (!startValRaw && !endValRaw) {
+                                current.sessions = [];
+                            }
+                            syncDayFromSessionsList(dStr, current);
+                        } else {
+                            current.customPresSecs = null;
+                            if (parsedStart.h !== '') {
+                                current.startH = parsedStart.h;
+                                current.startM = parsedStart.m;
+                            } else if (!startValRaw) {
+                                current.startH = ''; current.startM = '';
+                            }
+
+                            if (parsedEnd.h !== '') {
+                                current.endH = parsedEnd.h;
+                                current.endM = parsedEnd.m;
+                            } else if (!endValRaw) {
+                                current.endH = ''; current.endM = '';
+                            }
+                            saveDayData(dStr, current);
+
+                            if (dStr === todayStr) {
+                                todaySessions = (current.startH !== '') ? [{
+                                    start: { h: current.startH, m: current.startM || '00', s: '00' },
+                                    end: current.endH !== '' ? { h: current.endH, m: current.endM || '00', s: '00' } : null
+                                }] : [];
+                                syncInputsFromSessions();
+                                renderSessionsBox();
+                                calculateAllTimes();
+                            }
                         }
 
-                        saveDayData(dStr, current);
                         buildWeekView();
                     });
                 });
@@ -1751,6 +2252,76 @@
                 document.getElementById("output-week-total").textContent = `${sign}${fmtHM(diffSecs)}`;
                 document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
             }
+
+            // --- Wischgesten (Horizontal: Stempeluhr <-> Wochenbilanz <-> Einstellungen | Vertikal in Wochenbilanz: KW) ---
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchBlocked = false;
+
+            document.addEventListener("touchstart", (e) => {
+                if (!gesturesEnabled || e.touches.length !== 1) {
+                    touchBlocked = true;
+                    return;
+                }
+                const target = e.target;
+                // Sperrzonen: Farbrad, Schieberegler, Text-/Zahlenfelder, Dropdowns
+                if (target.closest("canvas, input, select, textarea, .day-detail-drawer")) {
+                    touchBlocked = true;
+                    return;
+                }
+                touchBlocked = false;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            document.addEventListener("touchend", (e) => {
+                if (!gesturesEnabled || touchBlocked || e.changedTouches.length !== 1) return;
+
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+                const absX = Math.abs(dx);
+                const absY = Math.abs(dy);
+
+                const isSettingsOpen = modal.classList.contains("active");
+                const isClockActive = viewClock.classList.contains("active");
+                const isWeekActive = viewWeek.classList.contains("active");
+
+                // 1. Horizontale Wischgeste (Ansichten wechseln)
+                if (absX > 65 && absX > absY * 1.45) {
+                    if (isSettingsOpen) {
+                        // Nach rechts wischen schließt Einstellungen
+                        if (dx > 0) {
+                            closeSettings();
+                        }
+                    } else if (isClockActive) {
+                        // Auf Stempeluhr nach links -> Wochenbilanz
+                        if (dx < 0) {
+                            switchToWeekView();
+                        }
+                    } else if (isWeekActive) {
+                        // Auf Wochenbilanz nach rechts -> Stempeluhr; nach links -> Einstellungen
+                        if (dx > 0) {
+                            switchToClockView();
+                        } else {
+                            openSettings();
+                        }
+                    }
+                    return;
+                }
+
+                // 2. Vertikale Wischgeste in der Wochenbilanz (KW vor / zurück)
+                if (!isSettingsOpen && isWeekActive && expandedDayStr === null && absY > 60 && absY > absX * 1.45) {
+                    if (dy < 0) {
+                        // Nach oben wischen -> nächste KW
+                        weekOffset++;
+                        buildWeekView();
+                    } else {
+                        // Nach unten wischen -> vorherige KW
+                        weekOffset--;
+                        buildWeekView();
+                    }
+                }
+            }, { passive: true });
 
             // Startup Check für Heute
             try {
