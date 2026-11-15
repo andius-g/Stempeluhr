@@ -898,6 +898,23 @@
             color: var(--white);
         }
 
+        .btn-reset-day {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1.5px solid #d9534f;
+            background: #fff6f6;
+            color: #b52b27;
+            font-weight: bold;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .btn-reset-day:active {
+            background: #d9534f;
+            color: #ffffff;
+        }
+
         /* Einstellungen Styles */
         .settings-group {
             margin-bottom: 13px;
@@ -1197,7 +1214,7 @@
                     </div>
 
                     <div class="week-list-card" id="week-days-container">
-                        <!-- 6 gut lesbare Zeilen (Mo-Sa) -->
+                        <!-- Mo-Fr immer sichtbar; Sa & So erscheinen automatisch sobald Zeiten gebucht wurden -->
                     </div>
 
                     <div class="output-decimal-container">
@@ -1286,6 +1303,7 @@
                 Für diesen Status wird keine Arbeitszeit gestempelt.
             </div>
 
+            <button type="button" class="btn-reset-day" id="btn-reset-day-editor">🗑 Tag zurücksetzen / Zeiten löschen</button>
             <button class="settings-save" id="btn-save-day-editor">Übernehmen & Schließen</button>
         </div>
     </div>
@@ -1361,7 +1379,7 @@
             </div>
 
             <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.05</span>
+                <span id="app-version-label" style="font-weight:bold;">Version 1.06</span>
                 <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
             </div>
 
@@ -1370,7 +1388,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.05";
+        const APP_VERSION = "1.06";
 
         document.addEventListener("DOMContentLoaded", () => {
             const format2 = (val) => String(val).padStart(2, '0');
@@ -1461,6 +1479,17 @@
 
             function saveDayData(dateStr, data) {
                 localStorage.setItem("day_" + dateStr, JSON.stringify(data));
+            }
+
+            // Prüft, ob für einen Tag (z. B. Samstag/Sonntag) tatsächlich Zeiten/Buchungen vorliegen
+            function hasWeekendBooking(saved) {
+                if (!saved) return false;
+                const hasTimes = (saved.startH !== '' && saved.startH !== undefined)
+                    || (saved.endH !== '' && saved.endH !== undefined)
+                    || (Array.isArray(saved.sessions) && saved.sessions.length > 0);
+                const hasSmoke = typeof saved.smokeCount === 'number' && saved.smokeCount > 0;
+                const hasNonFreeStatus = saved.status && saved.status !== 'free' && saved.status !== 'work';
+                return hasTimes || hasSmoke || hasNonFreeStatus;
             }
 
             // --- Ansichten Umschalter & Animationen ---
@@ -1785,7 +1814,6 @@
                     console.warn("Update-Check Hinweis:", err);
                 }
 
-                // Cache-Busting Reload ohne Verlust der gespeicherten Zeiten
                 const baseUrl = window.location.href.split('?')[0];
                 window.location.replace(`${baseUrl}?v=${Date.now()}`);
             });
@@ -1944,6 +1972,14 @@
                     }));
                 } else {
                     localStorage.removeItem("savedTodaySessions");
+                }
+
+                // Falls gar nichts mehr gespeichert ist und es Wochenende ist, Tag sauber entfernen
+                const dow = new Date().getDay();
+                const isWeekendToday = (dow === 0 || dow === 6);
+                if (todaySessions.length === 0 && todaySmokeCount === 0 && isWeekendToday) {
+                    localStorage.removeItem("day_" + todayStr);
+                    return;
                 }
 
                 const { totalPresSecs } = getSessionMetrics();
@@ -2494,6 +2530,27 @@
                 editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
             });
 
+            // Tag komplett zurücksetzen / löschen
+            document.getElementById("btn-reset-day-editor").addEventListener("click", () => {
+                if (!editingDateStr) return;
+                const targetDate = editingDateStr;
+                localStorage.removeItem("day_" + targetDate);
+
+                if (targetDate === getTodayStr()) {
+                    pushUndoSnapshot();
+                    todaySessions = [];
+                    todaySmokeCount = 0;
+                    updateSmokerUI();
+                    syncInputsFromSessions();
+                    renderSessionsBox();
+                    localStorage.removeItem("savedTodaySessions");
+                    calculateAllTimes();
+                }
+
+                closeDayEditor();
+                buildWeekView();
+            });
+
             document.getElementById("btn-close-day-editor").addEventListener("click", closeDayEditor);
 
             document.getElementById("btn-save-day-editor").addEventListener("click", () => {
@@ -2524,7 +2581,16 @@
                 }
 
                 editingDraft.smokeTotalMins = (editingDraft.smokeCount || 0) * smokeMinutesPerBreak;
-                saveDayData(editingDateStr, editingDraft);
+
+                // Falls Wochenende und alles leer/frei, Eintrag entfernen statt leeres Objekt zu speichern
+                const parts = editingDateStr.split("-").map(Number);
+                const dow = new Date(parts[0], parts[1] - 1, parts[2]).getDay();
+                const isWeekend = (dow === 0 || dow === 6);
+                if (isWeekend && !hasWeekendBooking(editingDraft)) {
+                    localStorage.removeItem("day_" + editingDateStr);
+                } else {
+                    saveDayData(editingDateStr, editingDraft);
+                }
 
                 if (editingDateStr === getTodayStr()) {
                     pushUndoSnapshot();
@@ -2575,24 +2641,30 @@
                 const totalSollSecs = sollSecsPerDay * 5;
                 let totalCreditedSecs = 0;
 
-                const dayShort = ["Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-                const dayFull = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+                const dayShort = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+                const dayFull = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 
-                for (let i = 0; i < 6; i++) {
+                for (let i = 0; i < 7; i++) {
                     const currDate = new Date(monday);
                     currDate.setDate(monday.getDate() + i);
                     const dateStr = `${currDate.getFullYear()}-${format2(currDate.getMonth() + 1)}-${format2(currDate.getDate())}`;
                     const dateShort = `${format2(currDate.getDate())}.${format2(currDate.getMonth() + 1)}.`;
                     const holidayName = getHolidayName(dateStr);
+                    const isWeekend = (i === 5 || i === 6);
 
                     const rawSaved = localStorage.getItem("day_" + dateStr);
-                    const defaultStatus = holidayName ? 'holiday' : ((i === 5) ? 'free' : 'work');
+                    const defaultStatus = holidayName ? 'holiday' : (isWeekend ? 'free' : 'work');
                     let saved = getDayData(dateStr) || {
                         status: defaultStatus,
                         startH: '', startM: '', endH: '', endM: ''
                     };
                     if (holidayName && !rawSaved) {
                         saved.status = 'holiday';
+                    }
+
+                    // Samstag (i=5) & Sonntag (i=6) nur anzeigen, wenn Zeiten/Buchungen gespeichert wurden
+                    if (isWeekend && !hasWeekendBooking(saved)) {
+                        continue;
                     }
 
                     const row = document.createElement("div");
@@ -2617,7 +2689,7 @@
                     } else if (saved.status === 'vacation' || saved.status === 'sick') {
                         middleHtml = `<div class="day-status-note">Soll gutgeschrieben</div>`;
                     } else {
-                        middleHtml = `<div class="day-status-note">${i === 5 ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
+                        middleHtml = `<div class="day-status-note">${isWeekend ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
                     }
 
                     row.innerHTML = `
@@ -2679,7 +2751,6 @@
             document.getElementById("btn-download-month-pdf").addEventListener("click", () => {
                 if (!pdfMonthSelect.value) return;
 
-                // Name ggf. gleich mit speichern
                 const enteredName = pdfUserNamePreview.value.trim();
                 if (enteredName !== userName) {
                     userName = enteredName;
@@ -2778,7 +2849,6 @@
                         saved.status = "holiday";
                     }
 
-                    // Zebra / Wochenend-Hintergrund
                     if (isWeekend) {
                         doc.setFillColor(246, 246, 246);
                         doc.rect(14, y - 4.3, 182, rowH, "F");
