@@ -1,3 +1,5012 @@
+Unterhaltung mit Gemini
+
+color wheel,
+
+kannst duz beschreiben was dieses tool hier alles kann https://htmlcolorcodes.com/color-wheel/
+
+Das Tool unter deinem Link ist ein interaktives Farbrad (Color Wheel), das dir dabei hilft, optisch ansprechende und harmonische Farbpaletten für Designs (wie Webseiten, Grafiken oder Illustrationen) zu erstellen. Es basiert auf den Regeln der klassischen Farbtheorie.
+
+Hier ist eine Übersicht der wichtigsten Funktionen:
+
+1. Automatische Farbharmonien erstellen
+Du wählst eine Grundfarbe aus und das Tool berechnet automatisch passende Farbkombinationen für dich. Folgende Schemata kannst du im Dropdown-Menü auswählen:
+
+    Komplementär (Complementary): Wählt die Farbe, die genau gegenüber auf dem Farbrad liegt (für sehr starke, auffällige Kontraste).
+
+    Analog (Analogous): Wählt Farben, die auf dem Rad direkt nebeneinander liegen (wirkt sehr harmonisch und ruhig).
+
+    Teilkomplementär (Split-Complementary): Nimmt die Grundfarbe und die zwei Farben, die direkt neben ihrer Komplementärfarbe liegen (guter Kontrast, aber weicher als rein komplementär).
+
+    Triadisch (Triadic): Wählt drei Farben, die im exakt gleichen Abstand zueinander ein Dreieck auf dem Rad bilden.
+
+    Tetradisch & Quadratisch (Tetradic & Square): Wählt vier Farben in bestimmten geometrischen Abständen als Basis für komplexere Paletten.
+
+2. Interaktive Farbanpassung
+
+    Farbrad & Sättigung: Du kannst die Punkte auf dem Rad frei mit der Maus ziehen. Je weiter du den Punkt in die Mitte ziehst, desto blasser (entsättigter) wird die Farbe.
+
+    Helligkeitsring: Mit dem äußeren Ring um das Farbrad herum machst du die gewählte Farbe heller oder dunkler.
+
+    Direkteingabe: Du kannst auch einfach einen vorhandenen HEX-Code einfügen, um von einer bestimmten Farbe aus zu starten.
+
+3. Schattierungen, Tönungen und Abstufungen
+Das Tool berechnet automatisch Abstufungen deiner gewählten Farbe:
+
+    Shades (Schattierungen): Deine Farbe gemischt mit Schwarz.
+
+    Tints (Tönungen): Deine Farbe gemischt mit Weiß.
+
+    Tones (Töne): Deine Farbe gemischt mit Grau.
+
+4. Code-Ausgabe & Export
+Sobald du deine perfekte Farbe oder Palette gefunden hast, liefert dir das Tool sofort die passenden Codes für die Programmierung oder Bildbearbeitung:
+
+    Werte in HEX (z. B. #F54927), RGB, HSL und dem neueren OKLCH-Format.
+
+    Es gibt einen Button, um die fertige Farbpalette für deine Projekte direkt zu exportieren.
+
+5. Integrierte Zusatz-Werkzeuge
+Direkt auf der Seite verknüpft sind noch nützliche Helfer für Webdesigner, wie ein Contrast Checker (prüft, ob Text auf dem Hintergrund gut lesbar ist) und ein Farbenblindheit-Simulator (zeigt, wie Menschen mit Sehschwächen deine Farben wahrnehmen).
+
+Analogous also das finde ich sehr schön!
+
+wie unterscheidet sich dieses von dem in meinem tool?
+
+https://github.com/andius-g/Stempeluhr/blob/main/index.html
+
+Ein analoges (analogous) Farbschema ist in der Tat sehr harmonisch und angenehm für das Auge! Es nutzt Farben, die auf dem Farbrad direkt nebeneinanderliegen (z. B. Blau, Blaugrün und Grün). Dadurch entstehen fließende, natürliche Übergänge ohne harte Kontraste.
+
+Leider kann ich als KI nicht direkt den Quellcode aus deinem verlinkten GitHub-Repository auslesen. Ich kann dir aber ganz generell erklären, wie sich ein analoges Farbschema von den Farbschemata unterscheidet, die typischerweise in funktionalen Tools wie einer Stempeluhr eingesetzt werden:
+
+    Der Fokus eines analogen Schemas (wie aus dem Color Wheel): Es ist darauf ausgelegt, eine ruhige, einheitliche Stimmung zu erzeugen. Es eignet sich hervorragend für Hintergründe, Illustrationen oder entspannte Benutzeroberflächen. Da die Farben sehr eng verwandt sind, ist der Kontrast zwischen ihnen eher gering.
+
+    Typische Farben in einer Stempeluhr (funktionale UI): Bei einem Tool wie einer Stempeluhr stehen Übersichtlichkeit und klare Handlungsaufforderungen im Vordergrund. Daher wird dort meistens ein komplementäres oder ein akzentbasiertes Farbschema verwendet.
+
+        Oft nutzt man sehr neutrale Töne (Weiß, Grau, Schwarz) für den Hintergrund und den Text.
+
+        Für die wichtigsten Buttons ("Kommen", "Gehen", "Pause") werden starke Signalfarben gewählt (z. B. Grün für Start, Rot für Stopp), die sich deutlich vom Rest abheben und oft auf entgegengesetzten Seiten des Farbrads liegen (Komplementärfarben).
+
+Kurz gesagt: Das analoge Schema aus dem Tool wirkt weicher, fließender und „künstlerischer“. Dein Stempeluhr-Tool verwendet vermutlich ein kontrastreicheres, funktionaleres Design, um die Bedienung (Usability) so intuitiv wie möglich zu machen.
+
+Wenn du möchtest, kannst du mir aber einfach deinen CSS-Code (oder deine Farb-Variablen / HEX-Codes) aus deiner index.html hier in den Chat kopieren. Dann kann ich dir ganz exakt sagen, welches Farbschema du aktuell in deinem Tool verwendest und wie du es auf ein „Analogous“-Design umstellen könntest!
+
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>Stempeluhr & Wochenübersicht</title>
+
+    
+
+    <!-- PWA Meta-Tags -->
+
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    
+
+    <!-- Verknüpfungen -->
+
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <link rel="apple-touch-icon" href="favicon.png">
+
+    
+
+    <style>
+
+        :root {
+
+            --hue: 195;
+
+            --primary-color: hsl(var(--hue), 60%, 50%);
+
+            --bg-color: hsl(calc(var(--hue) + 30), 50%, 95%);
+
+            --card-bg: hsl(calc(var(--hue) + 30), 40%, 90%);
+
+            --text-color: hsl(calc(var(--hue) - 30), 70%, 20%);
+
+            --border-color: hsl(calc(var(--hue) - 30), 30%, 70%);
+
+            --white: #ffffff;
+
+        }
+
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background-color: var(--bg-color);
+
+            color: var(--text-color);
+
+            display: flex;
+
+            align-items: flex-start;
+
+            justify-content: center;
+
+            min-height: 100vh;
+
+            padding: 20px;
+
+            transition: background-color 0.3s;
+
+        }
+
+
+        .header-bar {
+
+            position: absolute;
+
+            top: 15px;
+
+            right: 15px;
+
+            display: flex;
+
+            gap: 10px;
+
+        }
+
+
+        .settings-btn, .tab-btn {
+
+            background: var(--primary-color);
+
+            color: var(--white);
+
+            border: none;
+
+            border-radius: 50%;
+
+            width: 40px;
+
+            height: 40px;
+
+            font-size: 1.1em;
+
+            cursor: pointer;
+
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+            transition: transform 0.2s;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+        
+
+        .settings-btn:active, .tab-btn:active {
+
+            transform: scale(0.9);
+
+        }
+
+
+        .container {
+
+            max-width: 390px;
+
+            width: 100%;
+
+            text-align: center;
+
+            margin-top: 40px;
+
+        }
+
+
+        .view-section {
+
+            display: none;
+
+        }
+
+        .view-section.active {
+
+            display: block;
+
+        }
+
+
+        .feature-section {
+
+            background-color: var(--card-bg);
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+            margin-bottom: 25px;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+            transition: background-color 0.3s;
+
+        }
+
+
+        .time-picker {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .time-input-pair {
+
+            display: grid;
+
+            grid-template-columns: 1fr auto;
+
+            align-items: center;
+
+            gap: 10px;
+
+            width: 100%;
+
+        }
+
+
+        .btn-now {
+
+            background-color: var(--primary-color);
+
+            color: var(--white);
+
+            border: none;
+
+            padding: 11px 10px;
+
+            border-radius: 6px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            font-size: 0.92em;
+
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+            white-space: nowrap;
+
+            width: 100%;
+
+            text-align: center;
+
+        }
+
+
+        .btn-now:active {
+
+            transform: scale(0.96);
+
+        }
+
+
+        .row-tag {
+
+            font-size: 0.9em;
+
+            font-weight: bold;
+
+            color: var(--text-color);
+
+            opacity: 0.75;
+
+            text-align: center;
+
+            padding: 10px;
+
+            border-radius: 6px;
+
+            border: 1px dashed var(--border-color);
+
+        }
+
+
+        .inputs-group {
+
+            display: flex;
+
+            gap: 6px;
+
+            align-items: center;
+
+            justify-content: flex-end;
+
+        }
+
+
+        input[type="text"], input[type="number"] {
+
+            width: 50px;
+
+            padding: 10px 2px;
+
+            font-size: 1.1em;
+
+            border-radius: 6px;
+
+            border: 2px solid var(--border-color);
+
+            text-align: center;
+
+            background: var(--white);
+
+            color: var(--text-color);
+
+            transition: border-color 0.3s, box-shadow 0.3s;
+
+        }
+
+
+        input[type="text"]:focus, input[type="number"]:focus {
+
+            border-color: var(--primary-color);
+
+            outline: none;
+
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+
+        }
+
+
+        input[type="number"]::-webkit-outer-spin-button,
+
+        input[type="number"]::-webkit-inner-spin-button {
+
+            -webkit-appearance: none;
+
+            margin: 0;
+
+        }
+
+        input[type="number"] {
+
+            -moz-appearance: textfield;
+
+        }
+
+
+        .output-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+        }
+
+
+        .output, .output-decimal {
+
+            background-color: var(--primary-color);
+
+            color: var(--white);
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+            text-align: center;
+
+        }
+
+
+        .output h3, .output-decimal h3 {
+
+            font-size: 0.85em;
+
+            margin-bottom: 4px;
+
+            opacity: 0.9;
+
+            font-weight: normal;
+
+        }
+
+
+        .output div, .output-decimal div {
+
+            font-size: 1.3em;
+
+            font-weight: bold;
+
+        }
+
+
+        .output-decimal-container {
+
+            display: flex;
+
+            gap: 12px;
+
+        }
+
+        
+
+        .output-decimal-container .output-decimal {
+
+            flex: 1;
+
+        }
+
+
+        /* Wochenübersicht Styles */
+
+        .week-summary-card {
+
+            background: var(--white);
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+            margin-bottom: 12px;
+
+            text-align: left;
+
+            border: 1px solid var(--border-color);
+
+        }
+
+        .week-summary-card h4 {
+
+            font-size: 0.95em;
+
+            color: var(--primary-color);
+
+            margin-bottom: 8px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+        }
+
+        .week-summary-card select, .week-summary-card input {
+
+            padding: 6px;
+
+            border-radius: 4px;
+
+            border: 1px solid var(--border-color);
+
+            font-size: 0.95em;
+
+            color: var(--text-color);
+
+            background: var(--white);
+
+        }
+
+
+        .modal-overlay {
+
+            position: fixed;
+
+            top: 0; left: 0; width: 100%; height: 100%;
+
+            background: rgba(0,0,0,0.5);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition: opacity 0.3s;
+
+            z-index: 1000;
+
+        }
+
+        .modal-overlay.active {
+
+            opacity: 1;
+
+            pointer-events: auto;
+
+        }
+
+        .modal-content {
+
+            background: var(--white);
+
+            width: 90%;
+
+            max-width: 350px;
+
+            border-radius: 12px;
+
+            padding: 25px;
+
+            position: relative;
+
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+        }
+
+        .modal-content h2 {
+
+            margin-top: 0;
+
+            color: var(--text-color);
+
+            margin-bottom: 20px;
+
+            font-size: 1.2em;
+
+        }
+
+        .close-btn {
+
+            position: absolute;
+
+            top: 15px; right: 15px;
+
+            background: none; border: none;
+
+            font-size: 1.5em; color: var(--text-color);
+
+            cursor: pointer;
+
+        }
+
+        
+
+        .settings-group {
+
+            margin-bottom: 25px;
+
+            text-align: left;
+
+        }
+
+        .settings-group label {
+
+            display: block;
+
+            font-weight: bold;
+
+            margin-bottom: 10px;
+
+            color: var(--text-color);
+
+        }
+
+        .soll-pair {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+        
+
+        .color-wheel-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+        }
+
+        canvas {
+
+            border-radius: 50%;
+
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+            cursor: crosshair;
+
+            touch-action: none; 
+
+        }
+
+        .color-preview {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 15px;
+
+        }
+
+        .color-dot {
+
+            width: 30px; height: 30px;
+
+            border-radius: 50%;
+
+            border: 2px solid #ccc;
+
+        }
+
+        .dot-1 { background: var(--text-color); }
+
+        .dot-2 { background: var(--primary-color); }
+
+        .dot-3 { background: var(--bg-color); }
+
+
+        .settings-save {
+
+            width: 100%;
+
+            background: var(--primary-color);
+
+            color: var(--white);
+
+            border: none;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            font-size: 1.1em;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+    <div class="header-bar">
+
+        <button class="tab-btn" id="btn-toggle-view" title="Ansicht wechseln">📊</button>
+
+        <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙️</button>
+
+    </div>
+
+
+    <div class="container">
+
+        <!-- ANSICHT 1: STEMPELUHR -->
+
+        <div id="view-clock" class="view-section active">
+
+            <!-- Abschnitt 1: Kommen & Pausen -->
+
+            <div class="feature-section">
+
+                <div class="time-picker">
+
+                    <div class="time-input-pair">
+
+                        <button class="btn-now" id="btn-now-start">🕒 Jetzt Kommen</button>
+
+                        <div class="inputs-group">
+
+                            <input type="number" id="hours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+
+                            <input type="number" id="minutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+
+                            <input type="number" id="seconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                
+
+                <div class="output-container">
+
+                    <div class="output">
+
+                        <h3>Keine Pause (gehen um):</h3>
+
+                        <div id="output-no-pause">-</div>
+
+                    </div>
+
+                    <div class="output">
+
+                        <h3>30 min Pause (von - bis):</h3>
+
+                        <div id="output-30min-pause-range">-</div>
+
+                    </div>
+
+                    <div class="output">
+
+                        <h3>45 min Pause (ab):</h3>
+
+                        <div id="output-45min-pause">-</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Abschnitt 2: Arbeitszeit-Rechner -->
+
+            <div class="feature-section">
+
+                <div class="time-picker">
+
+                    <div class="time-input-pair">
+
+                        <span class="row-tag">Startzeit</span>
+
+                        <div class="inputs-group">
+
+                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+
+                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+
+                            <input type="number" id="startSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+
+                        </div>
+
+                    </div>
+
+                    <div class="time-input-pair">
+
+                        <button class="btn-now" id="btn-now-end">🕒 Jetzt Gehen</button>
+
+                        <div class="inputs-group">
+
+                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+
+                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+
+                            <input type="number" id="endSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                
+
+                <div class="output-decimal-container">
+
+                    <div class="output-decimal">
+
+                        <h3>Dezimal (h)</h3>
+
+                        <div id="output-decimal-time">-</div>
+
+                    </div>
+
+                    <div class="output-decimal">
+
+                        <h3>+/-</h3>
+
+                        <div id="output-overtime">-</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ANSICHT 2: WOCHENÜBERSICHT (Mo-Fr) -->
+
+        <div id="view-week" class="view-section">
+
+            <div class="feature-section">
+
+                <h2 style="font-size: 1.1em; margin-bottom: 12px; color: var(--primary-color); text-align: left;">Wochenbilanz (Mo – Fr)</h2>
+
+                
+
+                <div class="week-summary-card">
+
+                    <h4>Start-Guthaben (Wochenanfang)</h4>
+
+                    <div style="display: flex; gap: 5px;">
+
+                        <input type="number" id="weekStartOvertimeH" value="0" style="width: 70px;" placeholder="Std">
+
+                        <span style="font-weight: bold; align-self: center;">:</span>
+
+                        <input type="number" id="weekStartOvertimeM" value="0" style="width: 70px;" placeholder="Min">
+
+                    </div>
+
+                </div>
+
+
+                <div id="week-days-container">
+
+                    <!-- Wird dynamisch per JS generiert (Mo-Fr) -->
+
+                </div>
+
+
+                <div class="output" style="margin-top: 15px;">
+
+                    <h3>Wochen-Gesamtsaldo:</h3>
+
+                    <div id="output-week-total">-</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Modal für Einstellungen -->
+
+    <div class="modal-overlay" id="settings-modal">
+
+        <div class="modal-content">
+
+            <button class="close-btn" id="btn-close-settings">&times;</button>
+
+            <h2>Einstellungen</h2>
+
+            
+
+            <div class="settings-group">
+
+                <label>Sollarbeitszeit (Std : Min)</label>
+
+                <div class="soll-pair">
+
+                    <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
+
+                    <span style="font-weight:bold; color:var(--text-color);">:</span>
+
+                    <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-group color-wheel-container">
+
+                <label>Farbharmonie (3 analoge Farben)</label>
+
+                <canvas id="colorWheel" width="200" height="200"></canvas>
+
+                <div class="color-preview">
+
+                    <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
+
+                    <div class="color-dot dot-2" title="Primär (Buttons)"></div>
+
+                    <div class="color-dot dot-3" title="Hintergrund (hell)"></div>
+
+                </div>
+
+                <p style="font-size: 0.8em; margin-top:10px; color:var(--text-color); text-align:center;">
+
+                    Tippe auf das Farbrad, um die App-Farben (30° Abstand) live anzupassen.
+
+                </p>
+
+            </div>
+
+
+            <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const format2 = (val) => String(val).padStart(2, '0');
+
+            const getTodayStr = () => new Date().toISOString().split('T')[0];
+
+
+            // --- Feiertags-Logik Niedersachsen (2026-2028) ---
+
+            const holidaysNds = {
+
+                "2026-01-01": "Neujahr", "2026-04-03": "Karfreitag", "2026-04-06": "Ostermontag",
+
+                "2026-05-01": "Tag der Arbeit", "2026-05-14": "Christi Himmelfahrt", "2026-05-25": "Pfingstmontag",
+
+                "2026-10-03": "Tag d. Dt. Einheit", "2026-10-31": "Reformationstag", "2026-12-25": "1. Weihnachtstag", "2026-12-26": "2. Weihnachtstag",
+
+                
+
+                "2027-01-01": "Neujahr", "2027-03-26": "Karfreitag", "2027-03-29": "Ostermontag",
+
+                "2027-05-01": "Tag der Arbeit", "2027-05-06": "Christi Himmelfahrt", "2027-05-17": "Pfingstmontag",
+
+                "2027-10-03": "Tag d. Dt. Einheit", "2027-10-31": "Reformationstag", "2027-12-25": "1. Weihnachtstag", "2027-12-26": "2. Weihnachtstag",
+
+                
+
+                "2028-01-01": "Neujahr", "2028-04-14": "Karfreitag", "2028-04-17": "Ostermontag",
+
+                "2028-05-01": "Tag der Arbeit", "2028-05-25": "Christi Himmelfahrt", "2028-06-05": "Pfingstmontag",
+
+                "2028-10-03": "Tag d. Dt. Einheit", "2028-10-31": "Reformationstag", "2028-12-25": "1. Weihnachtstag", "2028-12-26": "2. Weihnachtstag"
+
+            };
+
+
+            function getHolidayName(dateStr) {
+
+                return holidaysNds[dateStr] || null;
+
+            }
+
+
+            // --- Ansichten Umschalter ---
+
+            const viewClock = document.getElementById("view-clock");
+
+            const viewWeek = document.getElementById("view-week");
+
+            const toggleViewBtn = document.getElementById("btn-toggle-view");
+
+
+            toggleViewBtn.addEventListener("click", () => {
+
+                if (viewClock.classList.contains("active")) {
+
+                    viewClock.classList.remove("active");
+
+                    viewWeek.classList.add("active");
+
+                    toggleViewBtn.textContent = "⏱️";
+
+                    buildWeekView();
+
+                } else {
+
+                    viewWeek.classList.remove("active");
+
+                    viewClock.classList.add("active");
+
+                    toggleViewBtn.textContent = "📊";
+
+                }
+
+            });
+
+
+            // --- Einstellungen & Farben ---
+
+            let appHue = localStorage.getItem("appHue") || 195;
+
+            let sollHours = parseInt(localStorage.getItem("sollHours"));
+
+            if (isNaN(sollHours)) sollHours = 8;
+
+            let sollMinutes = parseInt(localStorage.getItem("sollMinutes"));
+
+            if (isNaN(sollMinutes)) sollMinutes = 0;
+
+            
+
+            document.documentElement.style.setProperty('--hue', appHue);
+
+            const sollHoursInput = document.getElementById("sollHours");
+
+            const sollMinutesInput = document.getElementById("sollMinutes");
+
+            sollHoursInput.value = sollHours;
+
+            sollMinutesInput.value = sollMinutes;
+
+
+            const canvas = document.getElementById("colorWheel");
+
+            const ctx = canvas.getContext("2d");
+
+            const radius = canvas.width / 2;
+
+
+            function drawColorWheel() {
+
+                for (let angle = 0; angle < 360; angle++) {
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(radius, radius);
+
+                    ctx.arc(radius, radius, radius, (angle - 0.5) * Math.PI / 180, (angle + 1.5) * Math.PI / 180);
+
+                    ctx.closePath();
+
+                    ctx.fillStyle = `hsl(${angle}, 100%, 50%)`;
+
+                    ctx.fill();
+
+                }
+
+                const rad = appHue * Math.PI / 180;
+
+                const dotX = radius + Math.cos(rad) * (radius * 0.7);
+
+                const dotY = radius + Math.sin(rad) * (radius * 0.7);
+
+                
+
+                ctx.beginPath();
+
+                ctx.arc(dotX, dotY, 7, 0, 2 * Math.PI);
+
+                ctx.fillStyle = "white";
+
+                ctx.fill();
+
+                ctx.lineWidth = 2;
+
+                ctx.strokeStyle = "rgba(0,0,0,0.5)";
+
+                ctx.stroke();
+
+            }
+
+
+            function handleColorPick(e) {
+
+                if (e.cancelable) e.preventDefault();
+
+                const rect = canvas.getBoundingClientRect();
+
+                let clientX, clientY;
+
+                if (e.touches && e.touches.length > 0) {
+
+                    clientX = e.touches[0].clientX;
+
+                    clientY = e.touches[0].clientY;
+
+                } else {
+
+                    clientX = e.clientX;
+
+                    clientY = e.clientY;
+
+                }
+
+                const x = clientX - rect.left - radius;
+
+                const y = clientY - rect.top - radius;
+
+                let angle = Math.atan2(y, x) * 180 / Math.PI;
+
+                if (angle < 0) angle += 360;
+
+                appHue = Math.round(angle);
+
+                document.documentElement.style.setProperty('--hue', appHue);
+
+                drawColorWheel();
+
+            }
+
+
+            canvas.addEventListener("mousedown", (e) => {
+
+                handleColorPick(e);
+
+                canvas.addEventListener("mousemove", handleColorPick);
+
+            });
+
+            window.addEventListener("mouseup", () => {
+
+                canvas.removeEventListener("mousemove", handleColorPick);
+
+            });
+
+            canvas.addEventListener("touchstart", (e) => {
+
+                handleColorPick(e);
+
+                canvas.addEventListener("touchmove", handleColorPick, { passive: false });
+
+            }, { passive: false });
+
+            window.addEventListener("touchend", () => {
+
+                canvas.removeEventListener("touchmove", handleColorPick);
+
+            });
+
+
+            const modal = document.getElementById("settings-modal");
+
+            document.getElementById("btn-settings").addEventListener("click", () => {
+
+                modal.classList.add("active");
+
+                drawColorWheel();
+
+            });
+
+
+            function closeSettings() {
+
+                modal.classList.remove("active");
+
+                sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value) || 0));
+
+                sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value) || 0));
+
+                sollHoursInput.value = sollHours;
+
+                sollMinutesInput.value = sollMinutes;
+
+                
+
+                localStorage.setItem("sollHours", sollHours);
+
+                localStorage.setItem("sollMinutes", sollMinutes);
+
+                localStorage.setItem("appHue", appHue);
+
+                calculateWorkingTime();
+
+            }
+
+
+            document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
+
+            document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
+
+
+            // --- Zeit-Inputs Logik ---
+
+            const hoursInput = document.getElementById("hours");
+
+            const minutesInput = document.getElementById("minutes");
+
+            const secondsInput = document.getElementById("seconds");
+
+
+            const startHoursInput = document.getElementById("startHours");
+
+            const startMinutesInput = document.getElementById("startMinutes");
+
+            const startSecondsInput = document.getElementById("startSeconds");
+
+            const endHoursInput = document.getElementById("endHours");
+
+            const endMinutesInput = document.getElementById("endMinutes");
+
+            const endSecondsInput = document.getElementById("endSeconds");
+
+
+            function syncAndSaveStartTime() {
+
+                startHoursInput.value = hoursInput.value;
+
+                startMinutesInput.value = minutesInput.value;
+
+                startSecondsInput.value = secondsInput.value;
+
+
+                const todayStr = getTodayStr();
+
+                if (hoursInput.value !== "") {
+
+                    localStorage.setItem("savedStartTime", JSON.stringify({
+
+                        date: todayStr,
+
+                        h: hoursInput.value,
+
+                        m: minutesInput.value,
+
+                        s: secondsInput.value
+
+                    }));
+
+                    let currentDay = getDayData(todayStr) || { status: 'work' };
+
+                    currentDay.startH = hoursInput.value;
+
+                    currentDay.startM = minutesInput.value;
+
+                    currentDay.endH = endHoursInput.value;
+
+                    currentDay.endM = endMinutesInput.value;
+
+                    saveDayData(todayStr, currentDay);
+
+                } else {
+
+                    localStorage.removeItem("savedStartTime");
+
+                }
+
+            }
+
+
+            function clampInput(input) {
+
+                if (input.value === "") return;
+
+                let val = parseInt(input.value, 10);
+
+                const min = parseInt(input.min, 10);
+
+                const max = parseInt(input.max, 10);
+
+
+                if (isNaN(val)) {
+
+                    input.value = "";
+
+                    return;
+
+                }
+
+                if (!isNaN(min) && val < min) val = min;
+
+                if (!isNaN(max) && val > max) val = max;
+
+                input.value = format2(val);
+
+            }
+
+
+            function setupInput(currentInput, nextInput, onUpdate) {
+
+                currentInput.addEventListener("focus", () => { currentInput.select(); });
+
+                currentInput.addEventListener("input", () => {
+
+                    if (currentInput.value.length > 2) currentInput.value = currentInput.value.slice(0, 2);
+
+                    if (currentInput.value.length === 2 && nextInput) nextInput.focus();
+
+                    if (onUpdate) onUpdate();
+
+                    calculateAllTimes();
+
+                });
+
+                currentInput.addEventListener("blur", () => {
+
+                    clampInput(currentInput);
+
+                    if (onUpdate) onUpdate();
+
+                    calculateAllTimes();
+
+                });
+
+            }
+
+
+            setupInput(hoursInput, minutesInput, syncAndSaveStartTime);
+
+            setupInput(minutesInput, secondsInput, syncAndSaveStartTime);
+
+            setupInput(secondsInput, null, syncAndSaveStartTime);
+
+
+            setupInput(startHoursInput, startMinutesInput);
+
+            setupInput(startMinutesInput, startSecondsInput);
+
+            setupInput(startSecondsInput, endHoursInput);
+
+            setupInput(endHoursInput, endMinutesInput);
+
+            setupInput(endMinutesInput, endSecondsInput);
+
+            setupInput(endSecondsInput, null);
+
+
+            document.getElementById("btn-now-start").addEventListener("click", () => {
+
+                const now = new Date();
+
+                hoursInput.value = format2(now.getHours());
+
+                minutesInput.value = format2(now.getMinutes());
+
+                secondsInput.value = format2(now.getSeconds());
+
+                syncAndSaveStartTime();
+
+                calculateAllTimes();
+
+            });
+
+
+            document.getElementById("btn-now-end").addEventListener("click", () => {
+
+                const now = new Date();
+
+                endHoursInput.value = format2(now.getHours());
+
+                endMinutesInput.value = format2(now.getMinutes());
+
+                endSecondsInput.value = format2(now.getSeconds());
+
+                calculateWorkingTime();
+
+                
+
+                const todayStr = getTodayStr();
+
+                let currentDay = getDayData(todayStr) || { status: 'work' };
+
+                currentDay.startH = startHoursInput.value;
+
+                currentDay.startM = startMinutesInput.value;
+
+                currentDay.endH = endHoursInput.value;
+
+                currentDay.endM = endMinutesInput.value;
+
+                saveDayData(todayStr, currentDay);
+
+            });
+
+
+            function calculateAllTimes() {
+
+                calculateEndTimes();
+
+                calculateWorkingTime();
+
+            }
+
+
+            function calculateEndTimes() {
+
+                const hours = parseInt(hoursInput.value, 10);
+
+                const minutes = parseInt(minutesInput.value, 10) || 0;
+
+                const seconds = parseInt(secondsInput.value, 10) || 0;
+
+                
+
+                if (isNaN(hours)) {
+
+                    document.getElementById("output-no-pause").textContent = "-";
+
+                    document.getElementById("output-30min-pause-range").textContent = "-";
+
+                    document.getElementById("output-45min-pause").textContent = "-";
+
+                    return;
+
+                }
+
+
+                const startTime = new Date();
+
+                startTime.setHours(hours, minutes, seconds, 0);
+
+
+                const noPauseSecs = (6 * 3600) + (29 * 60) + 59;
+
+                const endNoPause = new Date(startTime.getTime() + noPauseSecs * 1000);
+
+
+                const p30StartSecs = (6 * 3600) + (30 * 60);
+
+                const end30Start = new Date(startTime.getTime() + p30StartSecs * 1000);
+
+
+                const p30EndSecs = (9 * 3600) + (44 * 60) + 59;
+
+                const end30End = new Date(startTime.getTime() + p30EndSecs * 1000);
+
+
+                const p45Secs = (9 * 3600) + (45 * 60);
+
+                const end45 = new Date(startTime.getTime() + p45Secs * 1000);
+
+
+                const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
+
+
+                document.getElementById("output-no-pause").textContent = formatT(endNoPause);
+
+                document.getElementById("output-30min-pause-range").textContent = `${formatT(end30Start)} bis ${formatT(end30End)}`;
+
+                document.getElementById("output-45min-pause").textContent = formatT(end45);
+
+            }
+
+
+            function calculateWorkingTime() {
+
+                const stH = parseInt(startHoursInput.value, 10);
+
+                const stM = parseInt(startMinutesInput.value, 10) || 0;
+
+                const stS = parseInt(startSecondsInput.value, 10) || 0;
+
+                const enH = parseInt(endHoursInput.value, 10);
+
+                const enM = parseInt(endMinutesInput.value, 10) || 0;
+
+                const enS = parseInt(endSecondsInput.value, 10) || 0;
+
+
+                if (isNaN(stH) || isNaN(enH)) {
+
+                    document.getElementById("output-decimal-time").textContent = "-";
+
+                    document.getElementById("output-overtime").textContent = "-";
+
+                    return;
+
+                }
+
+
+                const startSecs = (stH * 3600) + (stM * 60) + stS;
+
+                const endSecs = (enH * 3600) + (enM * 60) + enS;
+
+
+                if (endSecs <= startSecs) {
+
+                    document.getElementById("output-decimal-time").textContent = "Ungültig";
+
+                    document.getElementById("output-overtime").textContent = "-";
+
+                    return;
+
+                }
+
+
+                const totalPresSecs = endSecs - startSecs;
+
+                const presHours = totalPresSecs / 3600;
+
+                let pauseSecs = 0;
+
+
+                if (presHours >= 6.5) pauseSecs = 30 * 60;
+
+                if (presHours >= 9.75) pauseSecs = 45 * 60;
+
+
+                const workSecs = totalPresSecs - pauseSecs;
+
+                const workDec = workSecs / 3600;
+
+                
+
+                const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
+
+                const overSecs = workSecs - sollSecs;
+
+
+                const formatOvertime = (secs) => {
+
+                    const sign = secs < 0 ? "-" : "+";
+
+                    const aSecs = Math.abs(secs);
+
+                    const h = Math.floor(aSecs / 3600);
+
+                    const m = Math.floor((aSecs % 3600) / 60);
+
+                    const s = aSecs % 60;
+
+                    return `${sign}${format2(h)}:${format2(m)}:${format2(s)}`;
+
+                };
+
+
+                document.getElementById("output-decimal-time").textContent = workDec.toFixed(2);
+
+                document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
+
+            }
+
+
+            // --- Hilfsfunktion zum Parsen von "0725" oder "7:25" oder "725" zu "07:25" ---
+
+            function parseTimeString(str) {
+
+                if (!str) return { h: '', m: '' };
+
+                let clean = str.replace(/[^0-9]/g, ''); // Nur Ziffern behalten
+
+                if (clean.length === 3) {
+
+                    clean = '0' + clean; // z.B. "725" -> "0725"
+
+                }
+
+                if (clean.length === 4) {
+
+                    let h = parseInt(clean.substring(0, 2), 10);
+
+                    let m = parseInt(clean.substring(2, 4), 10);
+
+                    if (h <= 23 && m <= 59) {
+
+                        return { h: format2(h), m: format2(m) };
+
+                    }
+
+                }
+
+                return { h: '', m: '' };
+
+            }
+
+
+            // --- Wochenübersicht Speicher & Generator (Mo-Fr) ---
+
+            function getDayData(dateStr) {
+
+                try {
+
+                    return JSON.parse(localStorage.getItem("day_" + dateStr)) || null;
+
+                } catch(e) { return null; }
+
+            }
+
+
+            function saveDayData(dateStr, data) {
+
+                localStorage.setItem("day_" + dateStr, JSON.stringify(data));
+
+            }
+
+
+            function getMonday(d) {
+
+                d = new Date(d);
+
+                let day = d.getDay(),
+
+                    diff = d.getDate() - day + (day === 0 ? -6 : 1);
+
+                return new Date(d.setDate(diff));
+
+            }
+
+
+            function buildWeekView() {
+
+                const container = document.getElementById("week-days-container");
+
+                container.innerHTML = "";
+
+
+                let monday = getMonday(new Date());
+
+                let totalWeekSecsDiff = 0;
+
+                const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
+
+
+                const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+
+
+                for (let i = 0; i < 5; i++) {
+
+                    let currDate = new Date(monday);
+
+                    currDate.setDate(monday.getDate() + i);
+
+                    let dateStr = currDate.toISOString().split('T')[0];
+
+                    let holidayName = getHolidayName(dateStr);
+
+
+                    let saved = getDayData(dateStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
+
+
+                    if (holidayName && !localStorage.getItem("day_" + dateStr)) {
+
+                        saved.status = 'holiday';
+
+                    }
+
+
+                    let card = document.createElement("div");
+
+                    card.className = "week-summary-card";
+
+                    
+
+                    let holidayBadge = holidayName ? ` <span style="color:red; font-size:0.8em;">(🎉 ${holidayName})</span>` : "";
+
+                    let startValFormatted = saved.startH && saved.startM !== undefined && saved.startH !== '' ? `${saved.startH}:${saved.startM}` : '';
+
+                    let endValFormatted = saved.endH && saved.endM !== undefined && saved.endH !== '' ? `${saved.endH}:${saved.endM}` : '';
+
+                    
+
+                    card.innerHTML = `
+
+                        <h4>${dayNames[i]} (${dateStr.split('-').reverse().join('.')})${holidayBadge}</h4>
+
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+
+                            <select class="day-status" data-date="${dateStr}" style="flex: 1;">
+
+                                <option value="work" ${saved.status === 'work' ? 'selected' : ''}>Arbeitstag</option>
+
+                                <option value="vacation" ${saved.status === 'vacation' ? 'selected' : ''}>Urlaub</option>
+
+                                <option value="sick" ${saved.status === 'sick' ? 'selected' : ''}>Krank</option>
+
+                                <option value="holiday" ${saved.status === 'holiday' ? 'selected' : ''}>Feiertag</option>
+
+                                <option value="free" ${saved.status === 'free' ? 'selected' : ''}>Frei / Gleitzeit</option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="day-inputs-wrapper" style="display: ${saved.status === 'work' || saved.status === 'holiday' ? 'flex' : 'none'}; gap: 5px; align-items: center;">
+
+                            <input type="text" inputmode="numeric" placeholder="hh:mm" class="day-start" data-date="${dateStr}" value="${startValFormatted}" style="width: 90px;">
+
+                            <span>bis</span>
+
+                            <input type="text" inputmode="numeric" placeholder="hh:mm" class="day-end" data-date="${dateStr}" value="${endValFormatted}" style="width: 90px;">
+
+                        </div>
+
+                    `;
+
+
+                    container.appendChild(card);
+
+
+                    // Auswertung pro Tag für die Wochenbilanz
+
+                    if (saved.status === 'work') {
+
+                        totalWeekSecsDiff -= sollSecsPerDay;
+
+                        if (saved.startH && saved.endH) {
+
+                            let sh = parseInt(saved.startH, 10);
+
+                            let sm = parseInt(saved.startM, 10) || 0;
+
+                            let eh = parseInt(saved.endH, 10);
+
+                            let em = parseInt(saved.endM, 10) || 0;
+
+                            if (!isNaN(sh) && !isNaN(eh)) {
+
+                                let sSecs = sh * 3600 + sm * 60;
+
+                                let eSecs = eh * 3600 + em * 60;
+
+                                if (eSecs > sSecs) {
+
+                                    let pres = eSecs - sSecs;
+
+                                    let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
+
+                                    let worked = pres - pause;
+
+                                    totalWeekSecsDiff += worked;
+
+                                }
+
+                            }
+
+                        }
+
+                    } else if (saved.status === 'holiday' && saved.startH && saved.endH) {
+
+                        let sh = parseInt(saved.startH, 10);
+
+                        let sm = parseInt(saved.startM, 10) || 0;
+
+                        let eh = parseInt(saved.endH, 10);
+
+                        let em = parseInt(saved.endM, 10) || 0;
+
+                        if (!isNaN(sh) && !isNaN(eh)) {
+
+                            let sSecs = sh * 3600 + sm * 60;
+
+                            let eSecs = eh * 3600 + em * 60;
+
+                            if (eSecs > sSecs) {
+
+                                let pres = eSecs - sSecs;
+
+                                let pause = pres >= 23400 ? 1800 : (pres >= 35100 ? 2700 : 0);
+
+                                let worked = pres - pause;
+
+                                totalWeekSecsDiff += worked; // Feiertagsarbeit zählt voll als Plus
+
+                            }
+
+                        }
+
+                    } else if (saved.status === 'free') {
+
+                        totalWeekSecsDiff -= sollSecsPerDay;
+
+                    }
+
+                }
+
+
+                // Event-Listener für Status-Änderungen
+
+                container.querySelectorAll('.day-status').forEach(sel => {
+
+                    sel.addEventListener('change', (e) => {
+
+                        let dStr = e.target.getAttribute('data-date');
+
+                        let current = getDayData(dStr) || { startH:'', startM:'', endH:'', endM:'' };
+
+                        current.status = e.target.value;
+
+                        saveDayData(dStr, current);
+
+                        buildWeekView();
+
+                    });
+
+                });
+
+
+                // Event-Listener für Start- und End-Eingaben mit automatischer "0725" -> "07:25" Erkennung
+
+                container.querySelectorAll('.day-start, .day-end').forEach(inp => {
+
+                    inp.addEventListener('focus', () => { inp.select(); });
+
+                    inp.addEventListener('blur', (e) => {
+
+                        let dStr = e.target.getAttribute('data-date');
+
+                        let cardEl = e.target.closest('.week-summary-card');
+
+                        let startValRaw = cardEl.querySelector('.day-start').value;
+
+                        let endValRaw = cardEl.querySelector('.day-end').value;
+
+                        
+
+                        let current = getDayData(dStr) || { status: 'work' };
+
+
+                        let parsedStart = parseTimeString(startValRaw);
+
+                        if (parsedStart.h !== '') {
+
+                            current.startH = parsedStart.h;
+
+                            current.startM = parsedStart.m;
+
+                        } else if (!startValRaw) {
+
+                            current.startH = ''; current.startM = '';
+
+                        }
+
+
+                        let parsedEnd = parseTimeString(endValRaw);
+
+                        if (parsedEnd.h !== '') {
+
+                            current.endH = parsedEnd.h;
+
+                            current.endM = parsedEnd.m;
+
+                        } else if (!endValRaw) {
+
+                            current.endH = ''; current.endM = '';
+
+                        }
+
+
+                        saveDayData(dStr, current);
+
+                        buildWeekView();
+
+                    });
+
+                });
+
+
+                // Wochen-Startguthaben einrechnen
+
+                let startH = parseInt(document.getElementById("weekStartOvertimeH").value) || 0;
+
+                let startM = parseInt(document.getElementById("weekStartOvertimeM").value) || 0;
+
+                let startSecs = (Math.abs(startH) * 3600 + startM * 60) * (startH < 0 ? -1 : 1);
+
+                
+
+                let finalWeekSecs = totalWeekSecsDiff + startSecs;
+
+                let sign = finalWeekSecs < 0 ? "-" : "+";
+
+                let aSecs = Math.abs(finalWeekSecs);
+
+                let wh = Math.floor(aSecs / 3600);
+
+                let wm = Math.floor((aSecs % 3600) / 60);
+
+
+                document.getElementById("output-week-total").textContent = `${sign}${format2(wh)}:${format2(wm)} h`;
+
+            }
+
+
+            document.getElementById("weekStartOvertimeH").addEventListener("input", buildWeekView);
+
+            document.getElementById("weekStartOvertimeM").addEventListener("input", buildWeekView);
+
+
+            // Startup Check für Heute
+
+            try {
+
+                const savedRaw = localStorage.getItem("savedStartTime");
+
+                if (savedRaw) {
+
+                    const saved = JSON.parse(savedRaw);
+
+                    if (saved.date === getTodayStr() && saved.h !== "") {
+
+                        hoursInput.value = saved.h;
+
+                        minutesInput.value = saved.m || "";
+
+                        secondsInput.value = saved.s || "";
+
+                        startHoursInput.value = saved.h;
+
+                        startMinutesInput.value = saved.m || "";
+
+                        startSecondsInput.value = saved.s || "";
+
+                        calculateAllTimes();
+
+                    } else if (saved.date !== getTodayStr()) {
+
+                        localStorage.removeItem("savedStartTime");
+
+                    }
+
+                }
+
+            } catch (e) {
+
+                localStorage.removeItem("savedStartTime");
+
+            }
+
+        });
+
+    </script>
+
+    <script>
+
+      if ('serviceWorker' in navigator) {
+
+        navigator.serviceWorker.register('sw.js');
+
+      }
+
+    </script>
+
+</body>
+
+</html>
+
+Das Spannende vorweg: Vom Grundprinzip her nutzt deine Stempeluhr bereits exakt dieselbe „Analogous“-Logik!
+
+In deinem :root-CSS berechnest du drei Farbtöne mit jeweils 30° Abstand auf dem Farbkreis:
+
+    Mitte (--hue): Deine Primärfarbe (Buttons)
+
+    Rechts daneben (--hue + 30): Hintergrund und Karten
+
+    Links daneben (--hue - 30): Text und Rahmen
+
+Genau das (Basiswinkel ± 30°) ist die klassische Definition einer analogen Farbharmonie. Die Unterschiede zwischen deinem Tool und htmlcolorcodes.com liegen im Detail – und machen deine Lösung für eine App tatsächlich deutlich praxistauglicher:
+Merkmal	Deine Stempeluhr	htmlcolorcodes.com (Analogous)
+Farbwinkel (Hue)	Basiswinkel ± 30° (--hue, +30, -30).	Basiswinkel ± 30° (z. B. 10°, 340°, 40°).
+Helligkeit & Sättigung	Für UI-Kontrast optimiert: Jeder der 3 Winkel bekommt eigene Werte (95% Helligkeit für den Hintergrund, 50% für Buttons, 20% für Text).	Für alle 3 Farben identisch: Alle drei Farben haben exakt dieselbe Sättigung und Helligkeit (z. B. alle 56% hell).
+Steuerung im Rad	Nur Farbton (Winkel): Egal ob du weit innen oder außen auf das Canvas tippst, es ändert sich nur der Winkel. Sättigung und Helligkeit sind fest im CSS verankert.	Winkel + Sättigung + Helligkeit: Zur Mitte hin werden die Farben blasser (entsättigt), über den äußeren Ring heller oder dunkler.
+Anzeige auf dem Rad	Zeigt 1 weißen Punkt für deine Hauptfarbe; die beiden Nachbarfarben siehst du erst in den 3 Vorschau-Kreisen darunter.	Zeigt alle 3 Punkte gleichzeitig direkt auf dem Farbrad, sodass man den 30°-Abstand visuell sieht.
+Warum deine Umsetzung für die App besser funktioniert
+
+Würdest du die drei analogen Farben von htmlcolorcodes.com unverändert in deine Stempeluhr übernehmen, hätten Hintergrund, Buttons und Schrift alle dieselbe mittlere Helligkeit – der Text wäre kaum noch lesbar.
+
+Dadurch, dass du in deinem CSS den Farbton um ±30° drehst, aber gleichzeitig die Helligkeit stark spreizt (95% vs. 50% vs. 20%), bekommst du das Beste aus beiden Welten: den ruhigen, harmonischen Farbübergang eines analogen Schemas und trotzdem einen knackigen Kontrast für die Lesbarkeit.
+
+(Kleiner kosmetischer Tipp, falls du noch weiterbasteln willst: In deiner drawColorWheel()-Funktion könntest du zusätzlich zum weißen Hauptpunkt noch zwei kleinere Punkte bei appHue - 30 und appHue + 30 auf das Canvas zeichnen – dann sieht dein Rad genauso aus wie auf der Website.)
+
+ok ich möchte aber bei meinem das die farben doch weiter auseinander leigen was kann man da machen und einen slider der die helligkleit regelt habe ich glaube ich nicht
+
+Um die Farben deutlich weiter auseinanderzuziehen und einen Helligkeits-Slider nachzurüsten, brauchst du nur an drei Stellen in deiner index.html kleine Anpassungen vorzunehmen.
+1. Farben weiter auseinanderziehen (:root im CSS)
+
+Aktuell nutzt du 30 Grad Abstand (+ 30 und - 30). Wenn du dafür eine eigene Variable --spread anlegst, kannst du den Abstand auf dem Farbkreis beliebig vergrößern:
+
+    60: Deutlich mehr Farbvarianz, bleibt aber noch harmonisch.
+
+    120 (Triadisch): Drei komplett eigenständige Farben im gleichen Abstand (z. B. Blau, Rot, Grün) – sehr lebendig.
+
+    150 (Split-Complementary): Maximaler Kontrast, ohne unruhig zu wirken.
+
+Ersetze deinen bisherigen :root-Block durch diesen:
+CSS
+
+:root {
+    --hue: 195;
+    --lightness: 50%;
+    --spread: 120; /* Hier Abstand wählen: z.B. 60, 120 oder 150 */
+    --primary-color: hsl(var(--hue), 60%, var(--lightness));
+    --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
+    --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
+    --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
+    --border-color: hsl(calc(var(--hue) - var(--spread)), 30%, 70%);
+    --white: #ffffff;
+}
+
+2. Helligkeits-Slider im Einstellungs-Modal einbauen (HTML)
+
+Füge im Modal direkt unter <div class="color-preview">...</div> den Slider ein. Mit min="25" und max="70" stellst du sicher, dass die weiße Schrift auf deinen Buttons immer gut lesbar bleibt:
+HTML
+
+<div style="width: 100%; margin-top: 15px;">
+    <label for="lightnessSlider" style="font-size: 0.85em; margin-bottom: 5px;">
+        Helligkeit Primärfarbe: <span id="lightnessVal">50</span>%
+    </label>
+    <input type="range" id="lightnessSlider" min="25" max="70" value="50" style="width: 100%; accent-color: var(--primary-color);">
+</div>
+
+3. Slider live schalten und speichern (JavaScript)
+
+Ergänze im <script>-Bereich bei // --- Einstellungen & Farben --- die Logik für den Slider, damit er beim Tippen live reagiert und im localStorage gespeichert wird:
+JavaScript
+
+// Direkt unter: let appHue = localStorage.getItem("appHue") || 195;
+let appLightness = localStorage.getItem("appLightness") || 50;
+document.documentElement.style.setProperty('--lightness', appLightness + '%');
+
+const lightnessSlider = document.getElementById("lightnessSlider");
+const lightnessVal = document.getElementById("lightnessVal");
+lightnessSlider.value = appLightness;
+lightnessVal.textContent = appLightness;
+
+lightnessSlider.addEventListener("input", () => {
+    appLightness = lightnessSlider.value;
+    lightnessVal.textContent = appLightness;
+    document.documentElement.style.setProperty('--lightness', appLightness + '%');
+});
+
+Damit der Wert beim Schließen der Einstellungen auch dauerhaft gespeichert bleibt, fügst du in deiner bestehenden closeSettings()-Funktion noch diese eine Zeile hinzu:
+JavaScript
+
+localStorage.setItem("appLightness", appLightness);
+
+Soll ich dir zusätzlich noch zeigen, wie du die zwei Nebenfarben als kleine Punkte direkt mit auf dein Farbrad-Canvas zeichnest, damit du den gewählten Abstand auch visuell auf dem Rad siehst?
+
+gib bitte die ganze html als als singel file html
+
+Deine aktualisierte index.html als Single-File ist fertig:
+HTML-Symbol
+index
+ HTML 
+
+Folgende Erweiterungen sind direkt integriert (alle bestehenden Funktionen wie Wochenbilanz, Niedersachsen-Feiertage und Service Worker bleiben unverändert erhalten):
+
+    Wählbarer Farbabstand (--spread): Im Einstellungs-Modal kannst du jetzt direkt zwischen 30° (Analog), 60° (Erweitert), 120° (Triadisch) und 150° (Split-Komplementär) umschalten, damit die Farben deutlich weiter auseinanderliegen.
+
+    Helligkeits-Slider (25 % – 70 %): Regelt die Helligkeit der Primärfarbe live – inklusive direkter Anpassung des Farbrads selbst, während die Lesbarkeit der weißen Button-Schrift erhalten bleibt.
+
+    3 Harmonie-Punkte auf dem Rad: Neben dem großen Punkt für die Hauptfarbe zeigt das Farbrad jetzt auch die beiden Nebenfarben (-spread und +spread) als kleinere Punkte an.
+
+    Dauerhafte Speicherung: Farbton (appHue), Helligkeit (appLightness) und Farbabstand (appSpread) werden automatisch im localStorage gespeichert.
+
+der bereich wochenbilanz ist zu unruhig aktuell hat ein wochentag 3 zeilen , einen für datum einen für die auswahldbox einen für die zeiten das sind zwei zu viel möchte es schlanker haben den dropbereich können wir reduzieren oeigentlich brauche ich den nicht, so einfach wie möglich halten. startgutahaben zum wochenstart kann auch raus. aber bei der bilanz unten brauche ich neben den stunden saldo auch das haben und passendere worte finden. was meinst du ? noch weitere ideen , ziel soll clean aber schick aussehen und intuitiv easy ui haben
+
+Die aktualisierte index.html mit der entschlackten Wochenbilanz ist fertig:
+HTML-Symbol
+index
+ HTML 
+Was sich verbessert hat & weitere UI-Ideen:
+
+    1 Zeile statt 3 pro Wochentag: Alle 5 Tage liegen jetzt gemeinsam in einer einzigen weißen Karte mit feinen Trennlinien statt 5 getrennten Kästen. Links steht kompakt Mo / 09.11., in der Mitte 07:30 – 16:00, rechts ein kleiner Status-Chip (Arbeit).
+
+    Status-Chip statt klobiger Dropdown-Zeile: Standardmäßig steht dort unauffällig Arbeit. Tippt man drauf, öffnet sich das native Auswahlrad für Urlaub, Krank, Feiertag oder Frei – und die Zeitfelder verschwinden in dieser Zeile automatisch (Niedersachsen-Feiertage werden weiterhin selbstständig erkannt und farblich hervorgehoben).
+
+    Bessere Begriffe in der Bilanz unten: Das Start-Guthaben ist raus; unten stehen jetzt zweispaltig wie auf der Hauptseite:
+
+        Geleistet (Ist): zeigt deine angesammelten Stunden inklusive Urlaubs-/Feiertagsgutschrift (z. B. 32:00 h) plus den Subtext von 40:00 h Soll.
+
+        Wochen-Saldo: zeigt die Differenz (+01:15 h / -08:00 h) samt Dezimalwert darunter (-8,00 h dez.).
+
+    Zusätzliche visuelle Ruhe & Orientierung:
+
+        Heute-Markierung: Der aktuelle Wochentag bekommt links einen farbigen Akzentbalken und eine leicht getönte Hinterlegung.
+
+        KW-Badge: Oben rechts neben „Wochenbilanz“ wird automatisch die aktuelle Kalenderwoche (KW 46) angezeigt.
+
+Gefällt dir die Darstellung mit dem kompakten Status-Chip rechts, oder möchtest du bei Feiertag zusätzlich noch Zeiten eintragen können (falls du an einem Feiertag arbeitest)?
+
+also noch eine frage was ist wenn eine woche um ist? was passiert dann mit den daten? werden die überschrieben odedr bleiben sie erhalten?
+
+Die Daten bleiben dauerhaft erhalten und werden nicht überschrieben.
+
+Das funktioniert im Hintergrund folgendermaßen:
+
+    Speicherung nach exaktem Datum: Jeder Tag wird im Browser-Speicher (localStorage) unter seinem genauen Kalenderdatum abgelegt – zum Beispiel als day_2026-11-09, day_2026-11-10 usw..   
+    index.html
+
+    Was am neuen Montag passiert: Die Wochenbilanz ermittelt beim Öffnen immer automatisch den Montag der aktuellen Woche (getMonday(new Date())). Sobald eine neue Woche beginnt, zeigt die Oberfläche also automatisch fünf leere Zeilen für die neuen Daten an (z. B. ab day_2026-11-16), während die Einträge der Vorwoche unberührt im Speicher liegen bleiben.   
+    index.html
+
+    Einzige Ausnahme (savedStartTime): Nur die sekundengenaue Startzeit auf der ersten Hauptseite („Jetzt Kommen“) wird am nächsten Tag automatisch zurückgesetzt, damit du morgens wieder frisch stempeln kannst.   
+    index.html
+
+Kleiner Haken aktuell: Die alten Wochen sind zwar sicher gespeichert, du hast in der Oberfläche aber noch keine Möglichkeit, sie dir wieder anzuschauen, weil die Ansicht fest auf die aktuelle Woche springt.   
+index.html
+
+Soll ich dir neben dem KW-Badge oben noch zwei dezente Pfeile (‹ und ›) einbauen, mit denen du bei Bedarf durch vergangene (oder zukünftige) Wochen blättern kannst?
+
+ja ich glaube wir brauchen so eine history oder?
+
+
+wenn jemand raucher ist , soll er in den einstellungen eingeben können das er raucher ist und wie viel minuten er pausschal für einen rauchgang einbuchen möchte 5 oder 7 zum beispiel und auf der hauptseite soll es dann einen knopf wo er klicken kann 1, 2, 3 mal rauchen und die zeit wird ihm dann abgezogen, gute idee? können wir das in die bestehende matirx einpflegen?
+
+Deine aktualisierte index.html mit Wochen-History und Raucher-Modus ist fertig:
+HTML-Symbol
+index-v3
+ HTML 
+
+Das ist eine richtig starke Idee – vor allem, weil der Raucher-Modus für Nichtraucher komplett unsichtbar bleibt und sich bei Aktivierung nahtlos in das bestehende 2-Spalten-Raster einfügt:
+
+    Einstellungen (⚙️): Unter der Sollarbeitszeit gibt es jetzt den Schalter 🚬 Raucher-Modus samt Minuten-Eingabe (5 Min/Gang als Standard, beliebig anpassbar).
+
+    Hauptseite (⏱️): Sobald aktiv, erscheint direkt unter 🕒 Jetzt Kommen die Zeile 🚬 Raucherpause (links der Button zum Hochzählen 1×, 2×, 3× …, rechts die Anzeige 0× (-0m) mit kleinem −-Button zum Korrigieren).
+
+    Durchgängige Berechnung: Jeder Klick verschiebt oben die Feierabend-Zeiten entsprechend nach hinten, zieht die Minuten unten bei Dezimal (h) sowie +/- ab und speichert den Tageswert automatisch für die Wochenbilanz.
+
+    Wochen-History (📊): Oben rechts neben Wochenbilanz kannst du jetzt mit ‹ und › durch vergangene und kommende Kalenderwochen blättern (ein Tipp auf das KW-Badge springt direkt zur aktuellen Woche zurück). Falls an einem Tag Raucherpausen gebucht wurden, erscheint dezent unter dem Datum z. B. · 🚬2.
+
+ok also das hier ist die neueste version, und ich möchte änderungen vornehmen:
+
+wenn eine mitarbeiter 6 stunden 29 und 59 sekunden arbeitet wird ihm keine pause abgezogen. wenn er raucher ist dann die anzahl minuten abziehen die er sich ausgestempelt hat. wenn jemand ab 6 stunden 30 und mehr arbeitet und 3 mal rauchen geht wird im insggesat auch nur 30 min pause abgezogen , ich glaube das ist die rechung derzeit anders?
+
+analysiere bitte die pausenzeit reglung wie sie derteiut ist und was ich als änderung vorschlage
+
+
+
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>Stempeluhr & Wochenübersicht</title>
+
+    
+
+    <!-- PWA Meta-Tags -->
+
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    
+
+    <!-- Verknüpfungen -->
+
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <link rel="apple-touch-icon" href="favicon.png">
+
+    
+
+    <style>
+
+        :root {
+
+            --hue: 195;
+
+            --lightness: 50%;
+
+            --spread: 120;
+
+            --primary-color: hsl(var(--hue), 60%, var(--lightness));
+
+            --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
+
+            --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
+
+            --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
+
+            --border-color: hsl(calc(var(--hue) - var(--spread)), 30%, 70%);
+
+            --white: #ffffff;
+
+        }
+
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background-color: var(--bg-color);
+
+            color: var(--text-color);
+
+            display: flex;
+
+            align-items: flex-start;
+
+            justify-content: center;
+
+            min-height: 100vh;
+
+            padding: 20px;
+
+            transition: background-color 0.3s;
+
+        }
+
+
+        .header-bar {
+
+            position: absolute;
+
+            top: 15px;
+
+            right: 15px;
+
+            display: flex;
+
+            gap: 10px;
+
+        }
+
+
+        .settings-btn, .tab-btn {
+
+            background: var(--primary-color);
+
+            color: var(--white);
+
+            border: none;
+
+            border-radius: 50%;
+
+            width: 40px;
+
+            height: 40px;
+
+            font-size: 1.1em;
+
+            cursor: pointer;
+
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+            transition: transform 0.2s;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+        
+
+        .settings-btn:active, .tab-btn:active {
+
+            transform: scale(0.9);
+
+        }
+
+
+        .container {
+
+            max-width: 390px;
+
+            width: 100%;
+
+            text-align: center;
+
+            margin-top: 40px;
+
+        }
+
+
+        .view-section {
+
+            display: none;
+
+        }
+
+        .view-section.active {
+
+            display: block;
+
+        }
+
+
+        .feature-section {
+
+            background-color: var(--card-bg);
+
+            border-radius: 12px;
+
+            padding: 18px;
+
+            margin-bottom: 22px;
+
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+            transition: background-color 0.3s;
+
+        }
+
+
+        .time-picker {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .time-input-pair {
+
+            display: grid;
+
+            grid-template-columns: 1fr auto;
+
+            align-items: center;
+
+            gap: 10px;
+
+            width: 100%;
+
+        }
+
+
+        .btn-now {
+
+            background-color: var(--primary-color);
+
+            color: var(--white);
+
+            border: none;
+
+            padding: 11px 10px;
+
+            border-radius: 6px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            font-size: 0.92em;
+
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+            white-space: nowrap;
+
+            width: 100%;
+
+            text-align: center;
+
+        }
+
+
+        .btn-now:active {
+
+            transform: scale(0.96);
+
+        }
+
+
+        .row-tag {
+
+            font-size: 0.9em;
+
+            font-weight: bold;
+
+            color: var(--text-color);
+
+            opacity: 0.75;
+
+            text-align: center;
+
+            padding: 10px;
+
+            border-radius: 6px;
+
+            border: 1px dashed var(--border-color);
+
+        }
+
+
+        .inputs-group {
+
+            display: flex;
+
+            gap: 6px;
+
+            align-items: center;
+
+            justify-content: flex-end;
+
+        }
+
+
+        /* Raucherpause-Zähler exakt auf Breite der 3 Zeitfelder (3*50 + 2*6 = 162px) */
+
+        .smoke-counter-box {
+
+            width: 162px;
+
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 6px 0 10px;
+
+            border-radius: 6px;
+
+            border: 2px solid var(--border-color);
+
+            background: var(--white);
+
+            color: var(--text-color);
+
+            font-size: 0.88em;
+
+            font-weight: bold;
+
+        }
+
+        .btn-smoke-minus {
+
+            width: 28px;
+
+            height: 28px;
+
+            border-radius: 5px;
+
+            border: 1px solid var(--border-color);
+
+            background: var(--bg-color);
+
+            color: var(--text-color);
+
+            font-weight: bold;
+
+            font-size: 1.1em;
+
+            line-height: 1;
+
+            cursor: pointer;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+        .btn-smoke-minus:active {
+
+            transform: scale(0.9);
+
+        }
+
+
+        input[type="text"], input[type="number"] {
+
+            width: 50px;
+
+            padding: 10px 2px;
+
+            font-size: 1.1em;
+
+            border-radius: 6px;
+
+            border: 2px solid var(--border-color);
+
+            text-align: center;
+
+            background: var(--white);
+
+            color: var(--text-color);
+
+            transition: border-color 0.3s, box-shadow 0.3s;
+
+        }
+
+
+        input[type="text"]:focus, input[type="number"]:focus {
+
+            border-color: var(--primary-color);
+
+            outline: none;
+
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+
+        }
+
+
+        input[type="number"]::-webkit-outer-spin-button,
+
+        input[type="number"]::-webkit-inner-spin-button {
+
+            -webkit-appearance: none;
+
+            margin: 0;
+
+        }
+
+        input[type="number"] {
+
+            -moz-appearance: textfield;
+
+        }
+
+
+        .output-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+        }
+
+
+        .output, .output-decimal {
+
+            background-color: var(--primary-color);
+
+            color: var(--white);
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+            text-align: center;
+
+        }
+
+
+        .output h3, .output-decimal h3 {
+
+            font-size: 0.85em;
+
+            margin-bottom: 4px;
+
+            opacity: 0.9;
+
+            font-weight: normal;
+
+        }
+
+
+        .output div, .output-decimal div {
+
+            font-size: 1.3em;
+
+            font-weight: bold;
+
+        }
+
+
+        .output-decimal-container {
+
+            display: flex;
+
+            gap: 10px;
+
+        }
+
+        
+
+        .output-decimal-container .output-decimal {
+
+            flex: 1;
+
+        }
+
+
+        /* --- CLEAN WOCHENBILANZ (1-Zeilen-Design + History) --- */
+
+        .week-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 12px;
+
+        }
+
+        .week-header h2 {
+
+            font-size: 1.05em;
+
+            color: var(--text-color);
+
+        }
+
+        .kw-nav {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+        }
+
+        .kw-nav-btn {
+
+            background: var(--white);
+
+            color: var(--text-color);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 50%;
+
+            width: 26px;
+
+            height: 26px;
+
+            font-size: 0.95em;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            line-height: 1;
+
+        }
+
+        .kw-nav-btn:active {
+
+            transform: scale(0.9);
+
+        }
+
+        .kw-badge {
+
+            font-size: 0.78em;
+
+            font-weight: bold;
+
+            background: var(--primary-color);
+
+            color: var(--white);
+
+            padding: 4px 10px;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            user-select: none;
+
+        }
+
+
+        .week-list-card {
+
+            background: var(--white);
+
+            border-radius: 10px;
+
+            border: 1px solid var(--border-color);
+
+            overflow: hidden;
+
+            margin-bottom: 14px;
+
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+        }
+
+
+        .week-row {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 6px;
+
+            padding: 9px 10px;
+
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+
+            transition: background-color 0.2s;
+
+        }
+
+        .week-row:last-child {
+
+            border-bottom: none;
+
+        }
+
+        .week-row.is-today {
+
+            background-color: var(--bg-color);
+
+            box-shadow: inset 3px 0 0 var(--primary-color);
+
+        }
+
+
+        .day-label {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: flex-start;
+
+            min-width: 62px;
+
+            text-align: left;
+
+            line-height: 1.2;
+
+        }
+
+        .day-label strong {
+
+            font-size: 0.9em;
+
+            color: var(--text-color);
+
+        }
+
+        .day-label span {
+
+            font-size: 0.71em;
+
+            opacity: 0.7;
+
+            white-space: nowrap;
+
+        }
+
+
+        .day-times {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 4px;
+
+            flex: 1;
+
+            justify-content: center;
+
+        }
+
+        .day-times input.day-start,
+
+        .day-times input.day-end {
+
+            width: 54px;
+
+            padding: 6px 2px;
+
+            font-size: 0.86em;
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 6px;
+
+            background: var(--bg-color);
+
+            color: var(--text-color);
+
+            font-weight: bold;
+
+        }
+
+        .day-times input.day-start:focus,
+
+        .day-times input.day-end:focus {
+
+            background: var(--white);
+
+            border-color: var(--primary-color);
+
+        }
+
+        .day-times .dash {
+
+            font-size: 0.8em;
+
+            opacity: 0.5;
+
+        }
+
+
+        .day-status-note {
+
+            flex: 1;
+
+            font-size: 0.8em;
+
+            opacity: 0.7;
+
+            text-align: center;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+        }
+
+
+        .status-pill {
+
+            appearance: none;
+
+            -webkit-appearance: none;
+
+            background-color: var(--card-bg);
+
+            color: var(--text-color);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 14px;
+
+            padding: 5px 8px;
+
+            font-size: 0.76em;
+
+            font-weight: bold;
+
+            text-align: center;
+
+            cursor: pointer;
+
+            min-width: 72px;
+
+            max-width: 76px;
+
+        }
+
+        .status-pill:focus {
+
+            outline: none;
+
+            border-color: var(--primary-color);
+
+        }
+
+        .status-pill[data-status="vacation"],
+
+        .status-pill[data-status="holiday"] {
+
+            background-color: var(--primary-color);
+
+            color: var(--white);
+
+            border-color: var(--primary-color);
+
+        }
+
+        .status-pill[data-status="free"] {
+
+            opacity: 0.75;
+
+        }
+
+
+        .balance-sub {
+
+            font-size: 0.72em !important;
+
+            font-weight: normal !important;
+
+            opacity: 0.85;
+
+            margin-top: 2px;
+
+        }
+
+
+        /* --- MODAL --- */
+
+        .modal-overlay {
+
+            position: fixed;
+
+            top: 0; left: 0; width: 100%; height: 100%;
+
+            background: rgba(0,0,0,0.5);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition: opacity 0.3s;
+
+            z-index: 1000;
+
+            padding: 15px;
+
+        }
+
+        .modal-overlay.active {
+
+            opacity: 1;
+
+            pointer-events: auto;
+
+        }
+
+        .modal-content {
+
+            background: var(--white);
+
+            width: 95%;
+
+            max-width: 350px;
+
+            max-height: 92vh;
+
+            overflow-y: auto;
+
+            border-radius: 12px;
+
+            padding: 22px;
+
+            position: relative;
+
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+        }
+
+        .modal-content h2 {
+
+            margin-top: 0;
+
+            color: var(--text-color);
+
+            margin-bottom: 18px;
+
+            font-size: 1.2em;
+
+        }
+
+        .close-btn {
+
+            position: absolute;
+
+            top: 15px; right: 15px;
+
+            background: none; border: none;
+
+            font-size: 1.5em; color: var(--text-color);
+
+            cursor: pointer;
+
+        }
+
+        
+
+        .settings-group {
+
+            margin-bottom: 18px;
+
+            text-align: left;
+
+        }
+
+        .settings-group label {
+
+            display: block;
+
+            font-weight: bold;
+
+            margin-bottom: 8px;
+
+            color: var(--text-color);
+
+        }
+
+        .soll-pair {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+        .smoker-setting-row {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 10px;
+
+            background: var(--bg-color);
+
+            padding: 10px 12px;
+
+            border-radius: 8px;
+
+            border: 1px solid var(--border-color);
+
+        }
+
+        .smoker-toggle-label {
+
+            display: flex !important;
+
+            align-items: center;
+
+            gap: 8px;
+
+            margin-bottom: 0 !important;
+
+            cursor: pointer;
+
+            font-size: 0.95em;
+
+        }
+
+        .smoker-toggle-label input[type="checkbox"] {
+
+            width: 18px;
+
+            height: 18px;
+
+            accent-color: var(--primary-color);
+
+            cursor: pointer;
+
+        }
+
+        .smoker-mins-wrap {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+            font-size: 0.85em;
+
+            font-weight: bold;
+
+        }
+
+        .smoker-mins-wrap input {
+
+            width: 48px;
+
+            padding: 6px 2px;
+
+            font-size: 0.95em;
+
+        }
+
+        
+
+        .color-wheel-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+        }
+
+        canvas {
+
+            border-radius: 50%;
+
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+            cursor: crosshair;
+
+            touch-action: none; 
+
+        }
+
+        .color-preview {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 12px;
+
+        }
+
+        .color-dot {
+
+            width: 30px; height: 30px;
+
+            border-radius: 50%;
+
+            border: 2px solid #ccc;
+
+        }
+
+        .dot-1 { background: var(--text-color); }
+
+        .dot-2 { background: var(--primary-color); }
+
+        .dot-3 { background: var(--bg-color); }
+
+
+        .slider-control {
+
+            width: 100%;
+
+            margin-top: 14px;
+
+            text-align: left;
+
+        }
+
+        .slider-control label {
+
+            font-size: 0.85em;
+
+            margin-bottom: 4px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+        }
+
+        .slider-control input[type="range"] {
+
+            width: 100%;
+
+            accent-color: var(--primary-color);
+
+            cursor: pointer;
+
+        }
+
+        .harmony-select {
+
+            width: 100%;
+
+            padding: 7px 8px;
+
+            border-radius: 6px;
+
+            border: 1px solid var(--border-color);
+
+            background: var(--white);
+
+            color: var(--text-color);
+
+            font-size: 0.9em;
+
+            margin-top: 4px;
+
+        }
+
+
+        .settings-save {
+
+            width: 100%;
+
+            background: var(--primary-color);
+
+            color: var(--white);
+
+            border: none;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            font-size: 1.1em;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+    <div class="header-bar">
+
+        <button class="tab-btn" id="btn-toggle-view" title="Ansicht wechseln">📊</button>
+
+        <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙️</button>
+
+    </div>
+
+
+    <div class="container">
+
+        <!-- ANSICHT 1: STEMPELUHR -->
+
+        <div id="view-clock" class="view-section active">
+
+            <!-- Abschnitt 1: Kommen & Pausen -->
+
+            <div class="feature-section">
+
+                <div class="time-picker">
+
+                    <div class="time-input-pair">
+
+                        <button class="btn-now" id="btn-now-start">🕒 Jetzt Kommen</button>
+
+                        <div class="inputs-group">
+
+                            <input type="number" id="hours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+
+                            <input type="number" id="minutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+
+                            <input type="number" id="seconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Optionaler Raucherpausen-Zähler (nur sichtbar wenn in Einstellungen aktiv) -->
+
+                    <div class="time-input-pair" id="smoke-bar" style="display: none;">
+
+                        <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
+
+                        <div class="smoke-counter-box">
+
+                            <span id="smoke-count-display">0× (-0m)</span>
+
+                            <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                
+
+                <div class="output-container">
+
+                    <div class="output">
+
+                        <h3>Keine Pause (gehen um):</h3>
+
+                        <div id="output-no-pause">-</div>
+
+                    </div>
+
+                    <div class="output">
+
+                        <h3>30 min Pause (von - bis):</h3>
+
+                        <div id="output-30min-pause-range">-</div>
+
+                    </div>
+
+                    <div class="output">
+
+                        <h3>45 min Pause (ab):</h3>
+
+                        <div id="output-45min-pause">-</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Abschnitt 2: Arbeitszeit-Rechner -->
+
+            <div class="feature-section">
+
+                <div class="time-picker">
+
+                    <div class="time-input-pair">
+
+                        <span class="row-tag">Startzeit</span>
+
+                        <div class="inputs-group">
+
+                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+
+                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+
+                            <input type="number" id="startSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+
+                        </div>
+
+                    </div>
+
+                    <div class="time-input-pair">
+
+                        <button class="btn-now" id="btn-now-end">🕒 Jetzt Gehen</button>
+
+                        <div class="inputs-group">
+
+                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
+
+                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+
+                            <input type="number" id="endSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                
+
+                <div class="output-decimal-container">
+
+                    <div class="output-decimal">
+
+                        <h3>Dezimal (h)</h3>
+
+                        <div id="output-decimal-time">-</div>
+
+                    </div>
+
+                    <div class="output-decimal">
+
+                        <h3>+/-</h3>
+
+                        <div id="output-overtime">-</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ANSICHT 2: WOCHENBILANZ (Kompakt & Clean + History) -->
+
+        <div id="view-week" class="view-section">
+
+            <div class="feature-section">
+
+                <div class="week-header">
+
+                    <h2>Wochenbilanz</h2>
+
+                    <div class="kw-nav">
+
+                        <button type="button" class="kw-nav-btn" id="btn-prev-week" title="Vorherige Woche">‹</button>
+
+                        <span class="kw-badge" id="week-kw-badge" title="Zur aktuellen Woche">KW -</span>
+
+                        <button type="button" class="kw-nav-btn" id="btn-next-week" title="Nächste Woche">›</button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="week-list-card" id="week-days-container">
+
+                    <!-- 5 kompakte Ein-Zeilen-Einträge (Mo-Fr) -->
+
+                </div>
+
+
+                <div class="output-decimal-container">
+
+                    <div class="output-decimal">
+
+                        <h3>Geleistet (Ist)</h3>
+
+                        <div id="output-week-worked">-</div>
+
+                        <div class="balance-sub" id="output-week-soll">von 40:00 h Soll</div>
+
+                    </div>
+
+                    <div class="output-decimal">
+
+                        <h3>Wochen-Saldo</h3>
+
+                        <div id="output-week-total">-</div>
+
+                        <div class="balance-sub" id="output-week-decimal">0,00 h</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Modal für Einstellungen -->
+
+    <div class="modal-overlay" id="settings-modal">
+
+        <div class="modal-content">
+
+            <button class="close-btn" id="btn-close-settings">&times;</button>
+
+            <h2>Einstellungen</h2>
+
+            
+
+            <div class="settings-group">
+
+                <label>Sollarbeitszeit (Std : Min)</label>
+
+                <div class="soll-pair">
+
+                    <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
+
+                    <span style="font-weight:bold; color:var(--text-color);">:</span>
+
+                    <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-group">
+
+                <div class="smoker-setting-row">
+
+                    <label class="smoker-toggle-label" for="isSmokerCheck">
+
+                        <input type="checkbox" id="isSmokerCheck">
+
+                        <span>🚬 Raucher-Modus</span>
+
+                    </label>
+
+                    <div class="smoker-mins-wrap" id="smokerMinsWrap">
+
+                        <input type="number" id="smokeMinutesInput" min="1" max="60" value="5" inputmode="numeric">
+
+                        <span>Min/Gang</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-group color-wheel-container">
+
+                <label>Farbharmonie</label>
+
+                <canvas id="colorWheel" width="180" height="180"></canvas>
+
+                <div class="color-preview">
+
+                    <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
+
+                    <div class="color-dot dot-2" title="Primär (Buttons)"></div>
+
+                    <div class="color-dot dot-3" title="Hintergrund (hell)"></div>
+
+                </div>
+
+
+                <div class="slider-control">
+
+                    <label for="spreadSelect">Farbabstand auf dem Rad:</label>
+
+                    <select id="spreadSelect" class="harmony-select">
+
+                        <option value="30">30° – Analog (sanft)</option>
+
+                        <option value="60">60° – Erweitert</option>
+
+                        <option value="120" selected>120° – Triadisch (deutlich)</option>
+
+                        <option value="150">150° – Split-Komplementär (stark)</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="slider-control">
+
+                    <label for="lightnessSlider">
+
+                        <span>Helligkeit Primärfarbe:</span>
+
+                        <span><span id="lightnessVal">50</span>%</span>
+
+                    </label>
+
+                    <input type="range" id="lightnessSlider" min="25" max="70" value="50">
+
+                </div>
+
+            </div>
+
+
+            <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const format2 = (val) => String(val).padStart(2, '0');
+
+            const getTodayStr = () => {
+
+                const now = new Date();
+
+                return `${now.getFullYear()}-${format2(now.getMonth() + 1)}-${format2(now.getDate())}`;
+
+            };
+
+
+            function getCalendarWeek(date) {
+
+                const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+
+                const dayNum = d.getUTCDay() || 7;
+
+                d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+
+                const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+
+                return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+
+            }
+
+
+            // --- Feiertags-Logik Niedersachsen (2026-2028) ---
+
+            const holidaysNds = {
+
+                "2026-01-01": "Neujahr", "2026-04-03": "Karfreitag", "2026-04-06": "Ostermontag",
+
+                "2026-05-01": "Tag der Arbeit", "2026-05-14": "Christi Himmelfahrt", "2026-05-25": "Pfingstmontag",
+
+                "2026-10-03": "Tag d. Dt. Einheit", "2026-10-31": "Reformationstag", "2026-12-25": "1. Weihnachtstag", "2026-12-26": "2. Weihnachtstag",
+
+                
+
+                "2027-01-01": "Neujahr", "2027-03-26": "Karfreitag", "2027-03-29": "Ostermontag",
+
+                "2027-05-01": "Tag der Arbeit", "2027-05-06": "Christi Himmelfahrt", "2027-05-17": "Pfingstmontag",
+
+                "2027-10-03": "Tag d. Dt. Einheit", "2027-10-31": "Reformationstag", "2027-12-25": "1. Weihnachtstag", "2027-12-26": "2. Weihnachtstag",
+
+                
+
+                "2028-01-01": "Neujahr", "2028-04-14": "Karfreitag", "2028-04-17": "Ostermontag",
+
+                "2028-05-01": "Tag der Arbeit", "2028-05-25": "Christi Himmelfahrt", "2028-06-05": "Pfingstmontag",
+
+                "2028-10-03": "Tag d. Dt. Einheit", "2028-10-31": "Reformationstag", "2028-12-25": "1. Weihnachtstag", "2028-12-26": "2. Weihnachtstag"
+
+            };
+
+
+            function getHolidayName(dateStr) {
+
+                return holidaysNds[dateStr] || null;
+
+            }
+
+
+            // --- Speicher-Helfer für Tage ---
+
+            function getDayData(dateStr) {
+
+                try {
+
+                    return JSON.parse(localStorage.getItem("day_" + dateStr)) || null;
+
+                } catch(e) { return null; }
+
+            }
+
+
+            function saveDayData(dateStr, data) {
+
+                localStorage.setItem("day_" + dateStr, JSON.stringify(data));
+
+            }
+
+
+            // --- Ansichten Umschalter & Wochen-Offset (History) ---
+
+            const viewClock = document.getElementById("view-clock");
+
+            const viewWeek = document.getElementById("view-week");
+
+            const toggleViewBtn = document.getElementById("btn-toggle-view");
+
+            let weekOffset = 0;
+
+
+            toggleViewBtn.addEventListener("click", () => {
+
+                if (viewClock.classList.contains("active")) {
+
+                    viewClock.classList.remove("active");
+
+                    viewWeek.classList.add("active");
+
+                    toggleViewBtn.textContent = "⏱️";
+
+                    weekOffset = 0;
+
+                    buildWeekView();
+
+                } else {
+
+                    viewWeek.classList.remove("active");
+
+                    viewClock.classList.add("active");
+
+                    toggleViewBtn.textContent = "📊";
+
+                }
+
+            });
+
+
+            document.getElementById("btn-prev-week").addEventListener("click", () => {
+
+                weekOffset--;
+
+                buildWeekView();
+
+            });
+
+            document.getElementById("btn-next-week").addEventListener("click", () => {
+
+                weekOffset++;
+
+                buildWeekView();
+
+            });
+
+            document.getElementById("week-kw-badge").addEventListener("click", () => {
+
+                weekOffset = 0;
+
+                buildWeekView();
+
+            });
+
+
+            // --- Einstellungen, Farben & Raucher-Modus ---
+
+            let appHue = parseInt(localStorage.getItem("appHue"));
+
+            if (isNaN(appHue)) appHue = 195;
+
+
+            let appLightness = parseInt(localStorage.getItem("appLightness"));
+
+            if (isNaN(appLightness)) appLightness = 50;
+
+
+            let appSpread = parseInt(localStorage.getItem("appSpread"));
+
+            if (isNaN(appSpread)) appSpread = 120;
+
+
+            let sollHours = parseInt(localStorage.getItem("sollHours"));
+
+            if (isNaN(sollHours)) sollHours = 8;
+
+            let sollMinutes = parseInt(localStorage.getItem("sollMinutes"));
+
+            if (isNaN(sollMinutes)) sollMinutes = 0;
+
+
+            let isSmoker = localStorage.getItem("isSmoker") === "true";
+
+            let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"));
+
+            if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
+
+
+            // Heutiger Raucher-Zähler aus Tagesdaten laden
+
+            let todaySmokeCount = 0;
+
+            const initialTodayData = getDayData(getTodayStr());
+
+            if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
+
+                todaySmokeCount = initialTodayData.smokeCount;
+
+            }
+
+            
+
+            document.documentElement.style.setProperty('--hue', appHue);
+
+            document.documentElement.style.setProperty('--lightness', appLightness + '%');
+
+            document.documentElement.style.setProperty('--spread', appSpread);
+
+
+            const sollHoursInput = document.getElementById("sollHours");
+
+            const sollMinutesInput = document.getElementById("sollMinutes");
+
+            sollHoursInput.value = sollHours;
+
+            sollMinutesInput.value = sollMinutes;
+
+
+            const isSmokerCheck = document.getElementById("isSmokerCheck");
+
+            const smokeMinutesInput = document.getElementById("smokeMinutesInput");
+
+            const smokerMinsWrap = document.getElementById("smokerMinsWrap");
+
+            const smokeBar = document.getElementById("smoke-bar");
+
+            const smokeCountDisplay = document.getElementById("smoke-count-display");
+
+
+            isSmokerCheck.checked = isSmoker;
+
+            smokeMinutesInput.value = smokeMinutesPerBreak;
+
+
+            function updateSmokerUI() {
+
+                smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
+
+                smokeMinutesInput.disabled = !isSmokerCheck.checked;
+
+                smokeBar.style.display = isSmoker ? "grid" : "none";
+
+                const totalMins = todaySmokeCount * smokeMinutesPerBreak;
+
+                smokeCountDisplay.textContent = `${todaySmokeCount}× (-${totalMins}m)`;
+
+            }
+
+
+            isSmokerCheck.addEventListener("change", () => {
+
+                smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
+
+                smokeMinutesInput.disabled = !isSmokerCheck.checked;
+
+            });
+
+
+            function saveTodaySmokeData() {
+
+                const todayStr = getTodayStr();
+
+                const currentDay = getDayData(todayStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
+
+                currentDay.smokeCount = todaySmokeCount;
+
+                currentDay.smokeTotalMins = todaySmokeCount * smokeMinutesPerBreak;
+
+                saveDayData(todayStr, currentDay);
+
+            }
+
+
+            document.getElementById("btn-add-smoke").addEventListener("click", () => {
+
+                todaySmokeCount++;
+
+                updateSmokerUI();
+
+                saveTodaySmokeData();
+
+                calculateAllTimes();
+
+            });
+
+
+            document.getElementById("btn-sub-smoke").addEventListener("click", () => {
+
+                if (todaySmokeCount > 0) {
+
+                    todaySmokeCount--;
+
+                    updateSmokerUI();
+
+                    saveTodaySmokeData();
+
+                    calculateAllTimes();
+
+                }
+
+            });
+
+
+            updateSmokerUI();
+
+
+            const lightnessSlider = document.getElementById("lightnessSlider");
+
+            const lightnessVal = document.getElementById("lightnessVal");
+
+            lightnessSlider.value = appLightness;
+
+            lightnessVal.textContent = appLightness;
+
+
+            const spreadSelect = document.getElementById("spreadSelect");
+
+            spreadSelect.value = String(appSpread);
+
+
+            lightnessSlider.addEventListener("input", () => {
+
+                appLightness = parseInt(lightnessSlider.value, 10);
+
+                lightnessVal.textContent = appLightness;
+
+                document.documentElement.style.setProperty('--lightness', appLightness + '%');
+
+                drawColorWheel();
+
+            });
+
+
+            spreadSelect.addEventListener("change", () => {
+
+                appSpread = parseInt(spreadSelect.value, 10);
+
+                document.documentElement.style.setProperty('--spread', appSpread);
+
+                drawColorWheel();
+
+            });
+
+
+            const canvas = document.getElementById("colorWheel");
+
+            const ctx = canvas.getContext("2d");
+
+            const radius = canvas.width / 2;
+
+
+            function drawWheelDot(hueAngle, dotRadius) {
+
+                const rad = hueAngle * Math.PI / 180;
+
+                const dotX = radius + Math.cos(rad) * (radius * 0.7);
+
+                const dotY = radius + Math.sin(rad) * (radius * 0.7);
+
+                
+
+                ctx.beginPath();
+
+                ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI);
+
+                ctx.fillStyle = "white";
+
+                ctx.fill();
+
+                ctx.lineWidth = 2;
+
+                ctx.strokeStyle = "rgba(0,0,0,0.6)";
+
+                ctx.stroke();
+
+            }
+
+
+            function drawColorWheel() {
+
+                for (let angle = 0; angle < 360; angle++) {
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(radius, radius);
+
+                    ctx.arc(radius, radius, radius, (angle - 0.5) * Math.PI / 180, (angle + 1.5) * Math.PI / 180);
+
+                    ctx.closePath();
+
+                    ctx.fillStyle = `hsl(${angle}, 100%, ${appLightness}%)`;
+
+                    ctx.fill();
+
+                }
+
+                drawWheelDot(appHue - appSpread, 4.5);
+
+                drawWheelDot(appHue + appSpread, 4.5);
+
+                drawWheelDot(appHue, 7.5);
+
+            }
+
+
+            function handleColorPick(e) {
+
+                if (e.cancelable) e.preventDefault();
+
+                const rect = canvas.getBoundingClientRect();
+
+                let clientX, clientY;
+
+                if (e.touches && e.touches.length > 0) {
+
+                    clientX = e.touches[0].clientX;
+
+                    clientY = e.touches[0].clientY;
+
+                } else {
+
+                    clientX = e.clientX;
+
+                    clientY = e.clientY;
+
+                }
+
+                const x = clientX - rect.left - radius;
+
+                const y = clientY - rect.top - radius;
+
+                let angle = Math.atan2(y, x) * 180 / Math.PI;
+
+                if (angle < 0) angle += 360;
+
+                appHue = Math.round(angle);
+
+                document.documentElement.style.setProperty('--hue', appHue);
+
+                drawColorWheel();
+
+            }
+
+
+            canvas.addEventListener("mousedown", (e) => {
+
+                handleColorPick(e);
+
+                canvas.addEventListener("mousemove", handleColorPick);
+
+            });
+
+            window.addEventListener("mouseup", () => {
+
+                canvas.removeEventListener("mousemove", handleColorPick);
+
+            });
+
+            canvas.addEventListener("touchstart", (e) => {
+
+                handleColorPick(e);
+
+                canvas.addEventListener("touchmove", handleColorPick, { passive: false });
+
+            }, { passive: false });
+
+            window.addEventListener("touchend", () => {
+
+                canvas.removeEventListener("touchmove", handleColorPick);
+
+            });
+
+
+            const modal = document.getElementById("settings-modal");
+
+            document.getElementById("btn-settings").addEventListener("click", () => {
+
+                modal.classList.add("active");
+
+                drawColorWheel();
+
+            });
+
+
+            function closeSettings() {
+
+                modal.classList.remove("active");
+
+                sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value) || 0));
+
+                sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value) || 0));
+
+                sollHoursInput.value = sollHours;
+
+                sollMinutesInput.value = sollMinutes;
+
+
+                isSmoker = isSmokerCheck.checked;
+
+                smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value) || 5));
+
+                smokeMinutesInput.value = smokeMinutesPerBreak;
+
+                
+
+                localStorage.setItem("sollHours", sollHours);
+
+                localStorage.setItem("sollMinutes", sollMinutes);
+
+                localStorage.setItem("isSmoker", isSmoker);
+
+                localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
+
+                localStorage.setItem("appHue", appHue);
+
+                localStorage.setItem("appLightness", appLightness);
+
+                localStorage.setItem("appSpread", appSpread);
+
+
+                if (isSmoker && todaySmokeCount > 0) {
+
+                    saveTodaySmokeData();
+
+                }
+
+                updateSmokerUI();
+
+                calculateAllTimes();
+
+                if (viewWeek.classList.contains("active")) buildWeekView();
+
+            }
+
+
+            document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
+
+            document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
+
+
+            // --- Zeit-Inputs Logik ---
+
+            const hoursInput = document.getElementById("hours");
+
+            const minutesInput = document.getElementById("minutes");
+
+            const secondsInput = document.getElementById("seconds");
+
+
+            const startHoursInput = document.getElementById("startHours");
+
+            const startMinutesInput = document.getElementById("startMinutes");
+
+            const startSecondsInput = document.getElementById("startSeconds");
+
+            const endHoursInput = document.getElementById("endHours");
+
+            const endMinutesInput = document.getElementById("endMinutes");
+
+            const endSecondsInput = document.getElementById("endSeconds");
+
+
+            function syncAndSaveStartTime() {
+
+                startHoursInput.value = hoursInput.value;
+
+                startMinutesInput.value = minutesInput.value;
+
+                startSecondsInput.value = secondsInput.value;
+
+
+                const todayStr = getTodayStr();
+
+                if (hoursInput.value !== "") {
+
+                    localStorage.setItem("savedStartTime", JSON.stringify({
+
+                        date: todayStr,
+
+                        h: hoursInput.value,
+
+                        m: minutesInput.value,
+
+                        s: secondsInput.value
+
+                    }));
+
+                    let currentDay = getDayData(todayStr) || { status: 'work' };
+
+                    currentDay.startH = hoursInput.value;
+
+                    currentDay.startM = minutesInput.value;
+
+                    currentDay.endH = endHoursInput.value;
+
+                    currentDay.endM = endMinutesInput.value;
+
+                    saveDayData(todayStr, currentDay);
+
+                } else {
+
+                    localStorage.removeItem("savedStartTime");
+
+                }
+
+            }
+
+
+            function clampInput(input) {
+
+                if (input.value === "") return;
+
+                let val = parseInt(input.value, 10);
+
+                const min = parseInt(input.min, 10);
+
+                const max = parseInt(input.max, 10);
+
+
+                if (isNaN(val)) {
+
+                    input.value = "";
+
+                    return;
+
+                }
+
+                if (!isNaN(min) && val < min) val = min;
+
+                if (!isNaN(max) && val > max) val = max;
+
+                input.value = format2(val);
+
+            }
+
+
+            function setupInput(currentInput, nextInput, onUpdate) {
+
+                currentInput.addEventListener("focus", () => { currentInput.select(); });
+
+                currentInput.addEventListener("input", () => {
+
+                    if (currentInput.value.length > 2) currentInput.value = currentInput.value.slice(0, 2);
+
+                    if (currentInput.value.length === 2 && nextInput) nextInput.focus();
+
+                    if (onUpdate) onUpdate();
+
+                    calculateAllTimes();
+
+                });
+
+                currentInput.addEventListener("blur", () => {
+
+                    clampInput(currentInput);
+
+                    if (onUpdate) onUpdate();
+
+                    calculateAllTimes();
+
+                });
+
+            }
+
+
+            setupInput(hoursInput, minutesInput, syncAndSaveStartTime);
+
+            setupInput(minutesInput, secondsInput, syncAndSaveStartTime);
+
+            setupInput(secondsInput, null, syncAndSaveStartTime);
+
+
+            setupInput(startHoursInput, startMinutesInput);
+
+            setupInput(startMinutesInput, startSecondsInput);
+
+            setupInput(startSecondsInput, endHoursInput);
+
+            setupInput(endHoursInput, endMinutesInput);
+
+            setupInput(endMinutesInput, endSecondsInput);
+
+            setupInput(endSecondsInput, null);
+
+
+            document.getElementById("btn-now-start").addEventListener("click", () => {
+
+                const now = new Date();
+
+                hoursInput.value = format2(now.getHours());
+
+                minutesInput.value = format2(now.getMinutes());
+
+                secondsInput.value = format2(now.getSeconds());
+
+                syncAndSaveStartTime();
+
+                calculateAllTimes();
+
+            });
+
+
+            document.getElementById("btn-now-end").addEventListener("click", () => {
+
+                const now = new Date();
+
+                endHoursInput.value = format2(now.getHours());
+
+                endMinutesInput.value = format2(now.getMinutes());
+
+                endSecondsInput.value = format2(now.getSeconds());
+
+                calculateWorkingTime();
+
+                
+
+                const todayStr = getTodayStr();
+
+                let currentDay = getDayData(todayStr) || { status: 'work' };
+
+                currentDay.startH = startHoursInput.value;
+
+                currentDay.startM = startMinutesInput.value;
+
+                currentDay.endH = endHoursInput.value;
+
+                currentDay.endM = endMinutesInput.value;
+
+                saveDayData(todayStr, currentDay);
+
+            });
+
+
+            function getTodaySmokeSecs() {
+
+                if (!isSmoker) return 0;
+
+                return todaySmokeCount * smokeMinutesPerBreak * 60;
+
+            }
+
+
+            function calculateAllTimes() {
+
+                calculateEndTimes();
+
+                calculateWorkingTime();
+
+            }
+
+
+            function calculateEndTimes() {
+
+                const hours = parseInt(hoursInput.value, 10);
+
+                const minutes = parseInt(minutesInput.value, 10) || 0;
+
+                const seconds = parseInt(secondsInput.value, 10) || 0;
+
+                
+
+                if (isNaN(hours)) {
+
+                    document.getElementById("output-no-pause").textContent = "-";
+
+                    document.getElementById("output-30min-pause-range").textContent = "-";
+
+                    document.getElementById("output-45min-pause").textContent = "-";
+
+                    return;
+
+                }
+
+
+                const smokeSecs = getTodaySmokeSecs();
+
+                const startTime = new Date();
+
+                startTime.setHours(hours, minutes, seconds, 0);
+
+
+                const noPauseSecs = (6 * 3600) + (29 * 60) + 59 + smokeSecs;
+
+                const endNoPause = new Date(startTime.getTime() + noPauseSecs * 1000);
+
+
+                const p30StartSecs = (6 * 3600) + (30 * 60) + smokeSecs;
+
+                const end30Start = new Date(startTime.getTime() + p30StartSecs * 1000);
+
+
+                const p30EndSecs = (9 * 3600) + (44 * 60) + 59 + smokeSecs;
+
+                const end30End = new Date(startTime.getTime() + p30EndSecs * 1000);
+
+
+                const p45Secs = (9 * 3600) + (45 * 60) + smokeSecs;
+
+                const end45 = new Date(startTime.getTime() + p45Secs * 1000);
+
+
+                const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
+
+
+                document.getElementById("output-no-pause").textContent = formatT(endNoPause);
+
+                document.getElementById("output-30min-pause-range").textContent = `${formatT(end30Start)} bis ${formatT(end30End)}`;
+
+                document.getElementById("output-45min-pause").textContent = formatT(end45);
+
+            }
+
+
+            function calculateWorkingTime() {
+
+                const stH = parseInt(startHoursInput.value, 10);
+
+                const stM = parseInt(startMinutesInput.value, 10) || 0;
+
+                const stS = parseInt(startSecondsInput.value, 10) || 0;
+
+                const enH = parseInt(endHoursInput.value, 10);
+
+                const enM = parseInt(endMinutesInput.value, 10) || 0;
+
+                const enS = parseInt(endSecondsInput.value, 10) || 0;
+
+
+                if (isNaN(stH) || isNaN(enH)) {
+
+                    document.getElementById("output-decimal-time").textContent = "-";
+
+                    document.getElementById("output-overtime").textContent = "-";
+
+                    return;
+
+                }
+
+
+                const startSecs = (stH * 3600) + (stM * 60) + stS;
+
+                const endSecs = (enH * 3600) + (enM * 60) + enS;
+
+
+                if (endSecs <= startSecs) {
+
+                    document.getElementById("output-decimal-time").textContent = "Ungültig";
+
+                    document.getElementById("output-overtime").textContent = "-";
+
+                    return;
+
+                }
+
+
+                const smokeSecs = getTodaySmokeSecs();
+
+                const totalPresSecs = endSecs - startSecs;
+
+                const netPresSecs = Math.max(0, totalPresSecs - smokeSecs);
+
+                const presHours = netPresSecs / 3600;
+
+                let pauseSecs = 0;
+
+
+                if (presHours >= 6.5) pauseSecs = 30 * 60;
+
+                if (presHours >= 9.75) pauseSecs = 45 * 60;
+
+
+                const workSecs = Math.max(0, netPresSecs - pauseSecs);
+
+                const workDec = workSecs / 3600;
+
+                
+
+                const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
+
+                const overSecs = workSecs - sollSecs;
+
+
+                const formatOvertime = (secs) => {
+
+                    const sign = secs < 0 ? "-" : "+";
+
+                    const aSecs = Math.abs(secs);
+
+                    const h = Math.floor(aSecs / 3600);
+
+                    const m = Math.floor((aSecs % 3600) / 60);
+
+                    const s = aSecs % 60;
+
+                    return `${sign}${format2(h)}:${format2(m)}:${format2(s)}`;
+
+                };
+
+
+                document.getElementById("output-decimal-time").textContent = workDec.toFixed(2);
+
+                document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
+
+            }
+
+
+            // --- Hilfsfunktion zum Parsen von "0725" oder "7:25" oder "725" zu "07:25" ---
+
+            function parseTimeString(str) {
+
+                if (!str) return { h: '', m: '' };
+
+                let clean = str.replace(/[^0-9]/g, '');
+
+                if (clean.length === 3) {
+
+                    clean = '0' + clean;
+
+                }
+
+                if (clean.length === 4) {
+
+                    let h = parseInt(clean.substring(0, 2), 10);
+
+                    let m = parseInt(clean.substring(2, 4), 10);
+
+                    if (h <= 23 && m <= 59) {
+
+                        return { h: format2(h), m: format2(m) };
+
+                    }
+
+                }
+
+                return { h: '', m: '' };
+
+            }
+
+
+            // --- Wochenbilanz Speicher & Generator (1-Zeilen-Layout + History) ---
+
+            function getMonday(d) {
+
+                d = new Date(d);
+
+                let day = d.getDay(),
+
+                    diff = d.getDate() - day + (day === 0 ? -6 : 1);
+
+                return new Date(d.setDate(diff));
+
+            }
+
+
+            function calcWorkedSecsFromDay(saved) {
+
+                if (!saved || !saved.startH || !saved.endH) return 0;
+
+                const sh = parseInt(saved.startH, 10);
+
+                const sm = parseInt(saved.startM, 10) || 0;
+
+                const eh = parseInt(saved.endH, 10);
+
+                const em = parseInt(saved.endM, 10) || 0;
+
+                if (isNaN(sh) || isNaN(eh)) return 0;
+
+                const sSecs = sh * 3600 + sm * 60;
+
+                const eSecs = eh * 3600 + em * 60;
+
+                if (eSecs <= sSecs) return 0;
+
+
+                const smokeSecs = (saved.smokeTotalMins || 0) * 60;
+
+                const netPres = Math.max(0, (eSecs - sSecs) - smokeSecs);
+
+                const pause = netPres >= 35100 ? 2700 : (netPres >= 23400 ? 1800 : 0);
+
+                return Math.max(0, netPres - pause);
+
+            }
+
+
+            function buildWeekView() {
+
+                const container = document.getElementById("week-days-container");
+
+                container.innerHTML = "";
+
+
+                const todayStr = getTodayStr();
+
+                const refDate = new Date();
+
+                refDate.setDate(refDate.getDate() + (weekOffset * 7));
+
+
+                const kwNum = getCalendarWeek(refDate);
+
+                const kwBadge = document.getElementById("week-kw-badge");
+
+                kwBadge.textContent = weekOffset === 0 ? `KW ${kwNum} · Aktuell` : `KW ${kwNum} (${refDate.getFullYear()})`;
+
+
+                const monday = getMonday(refDate);
+
+                const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
+
+                const totalSollSecs = sollSecsPerDay * 5;
+
+                let totalCreditedSecs = 0;
+
+
+                const dayShort = ["Mo", "Di", "Mi", "Do", "Fr"];
+
+
+                for (let i = 0; i < 5; i++) {
+
+                    const currDate = new Date(monday);
+
+                    currDate.setDate(monday.getDate() + i);
+
+                    const dateStr = `${currDate.getFullYear()}-${format2(currDate.getMonth() + 1)}-${format2(currDate.getDate())}`;
+
+                    const dateShort = `${format2(currDate.getDate())}.${format2(currDate.getMonth() + 1)}.`;
+
+                    const holidayName = getHolidayName(dateStr);
+
+
+                    let saved = getDayData(dateStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
+
+                    if (holidayName && !localStorage.getItem("day_" + dateStr)) {
+
+                        saved.status = 'holiday';
+
+                    }
+
+
+                    const row = document.createElement("div");
+
+                    row.className = "week-row" + (dateStr === todayStr ? " is-today" : "");
+
+
+                    const startFormatted = (saved.startH !== '' && saved.startM !== undefined) ? `${saved.startH}:${saved.startM}` : '';
+
+                    const endFormatted = (saved.endH !== '' && saved.endM !== undefined) ? `${saved.endH}:${saved.endM}` : '';
+
+                    const smokeSub = (saved.smokeCount && saved.smokeCount > 0) ? ` · 🚬${saved.smokeCount}` : '';
+
+
+                    let middleHtml = "";
+
+                    if (saved.status === 'work') {
+
+                        middleHtml = `
+
+                            <div class="day-times">
+
+                                <input type="text" inputmode="numeric" placeholder="07:30" class="day-start" data-date="${dateStr}" value="${startFormatted}">
+
+                                <span class="dash">–</span>
+
+                                <input type="text" inputmode="numeric" placeholder="16:00" class="day-end" data-date="${dateStr}" value="${endFormatted}">
+
+                            </div>
+
+                        `;
+
+                    } else if (saved.status === 'holiday') {
+
+                        middleHtml = `<div class="day-status-note">🎉 ${holidayName || 'Feiertag'}</div>`;
+
+                    } else if (saved.status === 'vacation' || saved.status === 'sick') {
+
+                        middleHtml = `<div class="day-status-note">Soll gutgeschrieben</div>`;
+
+                    } else {
+
+                        middleHtml = `<div class="day-status-note">Gleitzeitabbau</div>`;
+
+                    }
+
+
+                    row.innerHTML = `
+
+                        <div class="day-label">
+
+                            <strong>${dayShort[i]}</strong>
+
+                            <span>${dateShort}${smokeSub}</span>
+
+                        </div>
+
+                        ${middleHtml}
+
+                        <select class="status-pill" data-date="${dateStr}" data-status="${saved.status}" aria-label="Status">
+
+                            <option value="work" ${saved.status === 'work' ? 'selected' : ''}>Arbeit</option>
+
+                            <option value="vacation" ${saved.status === 'vacation' ? 'selected' : ''}>Urlaub</option>
+
+                            <option value="sick" ${saved.status === 'sick' ? 'selected' : ''}>Krank</option>
+
+                            <option value="holiday" ${saved.status === 'holiday' ? 'selected' : ''}>Feiertag</option>
+
+                            <option value="free" ${saved.status === 'free' ? 'selected' : ''}>Frei</option>
+
+                        </select>
+
+                    `;
+
+
+                    container.appendChild(row);
+
+
+                    if (saved.status === 'work') {
+
+                        totalCreditedSecs += calcWorkedSecsFromDay(saved);
+
+                    } else if (saved.status === 'vacation' || saved.status === 'sick' || saved.status === 'holiday') {
+
+                        totalCreditedSecs += sollSecsPerDay;
+
+                    }
+
+                }
+
+
+                // Event-Listener für Status-Pill
+
+                container.querySelectorAll('.status-pill').forEach(sel => {
+
+                    sel.addEventListener('change', (e) => {
+
+                        const dStr = e.target.getAttribute('data-date');
+
+                        const current = getDayData(dStr) || { startH: '', startM: '', endH: '', endM: '' };
+
+                        current.status = e.target.value;
+
+                        saveDayData(dStr, current);
+
+                        buildWeekView();
+
+                    });
+
+                });
+
+
+                // Event-Listener für Start- und End-Eingaben
+
+                container.querySelectorAll('.day-start, .day-end').forEach(inp => {
+
+                    inp.addEventListener('focus', () => { inp.select(); });
+
+                    inp.addEventListener('blur', (e) => {
+
+                        const dStr = e.target.getAttribute('data-date');
+
+                        const rowEl = e.target.closest('.week-row');
+
+                        const startValRaw = rowEl.querySelector('.day-start').value;
+
+                        const endValRaw = rowEl.querySelector('.day-end').value;
+
+                        
+
+                        const current = getDayData(dStr) || { status: 'work' };
+
+
+                        const parsedStart = parseTimeString(startValRaw);
+
+                        if (parsedStart.h !== '') {
+
+                            current.startH = parsedStart.h;
+
+                            current.startM = parsedStart.m;
+
+                        } else if (!startValRaw) {
+
+                            current.startH = ''; current.startM = '';
+
+                        }
+
+
+                        const parsedEnd = parseTimeString(endValRaw);
+
+                        if (parsedEnd.h !== '') {
+
+                            current.endH = parsedEnd.h;
+
+                            current.endM = parsedEnd.m;
+
+                        } else if (!endValRaw) {
+
+                            current.endH = ''; current.endM = '';
+
+                        }
+
+
+                        saveDayData(dStr, current);
+
+                        buildWeekView();
+
+                    });
+
+                });
+
+
+                // Ausgabe: Geleistet (Ist) vs. Soll & Wochen-Saldo
+
+                const fmtHM = (secs) => {
+
+                    const aSecs = Math.abs(secs);
+
+                    const h = Math.floor(aSecs / 3600);
+
+                    const m = Math.floor((aSecs % 3600) / 60);
+
+                    return `${format2(h)}:${format2(m)} h`;
+
+                };
+
+
+                const diffSecs = totalCreditedSecs - totalSollSecs;
+
+                const sign = diffSecs < 0 ? "-" : "+";
+
+                const diffDec = (diffSecs / 3600).toFixed(2).replace('.', ',');
+
+
+                document.getElementById("output-week-worked").textContent = fmtHM(totalCreditedSecs);
+
+                document.getElementById("output-week-soll").textContent = `von ${fmtHM(totalSollSecs)} Soll`;
+
+                document.getElementById("output-week-total").textContent = `${sign}${fmtHM(diffSecs)}`;
+
+                document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
+
+            }
+
+
+            // Startup Check für Heute
+
+            try {
+
+                const savedRaw = localStorage.getItem("savedStartTime");
+
+                if (savedRaw) {
+
+                    const saved = JSON.parse(savedRaw);
+
+                    if (saved.date === getTodayStr() && saved.h !== "") {
+
+                        hoursInput.value = saved.h;
+
+                        minutesInput.value = saved.m || "";
+
+                        secondsInput.value = saved.s || "";
+
+                        startHoursInput.value = saved.h;
+
+                        startMinutesInput.value = saved.m || "";
+
+                        startSecondsInput.value = saved.s || "";
+
+                        calculateAllTimes();
+
+                    } else if (saved.date !== getTodayStr()) {
+
+                        localStorage.removeItem("savedStartTime");
+
+                    }
+
+                }
+
+            } catch (e) {
+
+                localStorage.removeItem("savedStartTime");
+
+            }
+
+        });
+
+    </script>
+
+    <script>
+
+      if ('serviceWorker' in navigator) {
+
+        navigator.serviceWorker.register('sw.js');
+
+      }
+
+    </script>
+
+</body>
+
+</html>
+1. Analyse der aktuellen Regelung (Ist-Zustand)
+
+Aktuell behandelt der Code Raucherpausen und die gesetzliche Pause additiv – sie werden also beide separat abgezogen:
+
+    Zuerst zieht die App die Raucherzeit komplett von der Anwesenheit ab (netPresSecs = totalPresSecs - smokeSecs).
+
+    Danach prüft sie auf dieser reduzierten Zeit die Schwellen 6,5 h (30 Min) bzw. 9,75 h (45 Min) und zieht diese gesetzliche Pause zusätzlich ab.
+
+Konkretes Beispiel (3× Rauchen à 5 Min = 15 Min):
+
+    Anwesenheit 06:20 Std.: 15 Min Raucherpause + 0 Min gesetzliche Pause = 15 Min Abzug (6:05 Std. Arbeitszeit).
+
+    Anwesenheit 07:00 Std.: 15 Min Raucherpause + 30 Min gesetzliche Pause = 45 Min Abzug (6:15 Std. Arbeitszeit).
+
+    Feierabend-Rechner oben: Alle drei Zeitfenster (Keine Pause, 30 min Pause, 45 min Pause) werden aktuell pauschal um die 15 Min nach hinten geschoben.
+
+2. Dein Änderungswunsch (Anrechnung / Maximum-Prinzip)
+
+Nach deinem Vorschlag werden Raucherpausen auf die gesetzliche Pause angerechnet (Math.max(gesetzlichePause, raucherPause)), statt oben draufgeschlagen zu werden:
+
+    Unter 6:30 Std. (bis 06:29:59): Keine gesetzliche Pause (0 Min). Es werden exakt die ausgestempelten Raucherminuten abgezogen (bei 3× 5 Min also 15 Min).
+
+    Ab 6:30 Std. (bis 09:44:59): Gesetzliche Pause beträgt 30 Min.
+
+        Bei 3× Rauchen (15 Min) greift die 30-Minuten-Regel – es werden insgesamt nur 30 Min abgezogen (die 15 Min Rauchen sind darin enthalten).
+
+        Sonderfall Vielraucher: Geht jemand 7× rauchen (35 Min), werden 35 Min abgezogen, damit niemand mehr Pause macht als abgezogen wird.
+
+    Ab 9:45 Std.: Analog dazu Math.max(45 Min, raucherPause) – bei ≤ 45 Min Rauchen bleibt es bei insgesamt 45 Min Abzug.
+
+3. Ein wichtiger Detailpunkt an der 6:30-Stunden-Grenze
+
+Damit die Berechnung bei dir und deinem Team (und rechtlich nach Arbeitszeitgesetz: ab 6:00 Std. reiner Arbeit müssen 30 Min Pause genommen sein) sauber aufgeht, gibt es zwei Möglichkeiten, wie die Schwelle 6:30:00 gemessen wird:
+
+    Variante A – Nach Gesamtanwesenheit (Kommen bis Gehen):
+
+        Bis 06:29:59 Anwesenheit: Abzug = Raucherzeit (z. B. 15 Min → max. 6:14:59 Netto-Arbeit).
+
+        Ab 06:30:00 Anwesenheit: Abzug = max(30 Min, Raucherzeit) (bei 15 Min Rauchen → genau 30 Min Abzug → 6:00:00 Netto-Arbeit).
+
+        Vorteil: Absolut logisch und gesetzeskonform (§ 4 ArbZG: ab 6:00 Std. reiner Arbeitszeit greifen die 30 Min Pause). Außerdem bleibt im oberen Rechner das Fenster „30 min Pause (von - bis)“ für alle gleich (solange ≤ 30 Min geraucht wird).
+
+    Variante B – Nach Netto-Arbeitszeit (Anwesenheit minus Rauchen):
+
+        Jemand ist 06:44:59 anwesend und raucht 15 Min → Netto-Arbeit wäre 06:29:59 (nur 15 Min Abzug).
+
+        Nachteil: Hier hätte der Mitarbeiter über 6 Stunden echte Arbeitszeit geleistet, aber nur 15 Min Pause abgezogen bekommen (Verstoß gegen das Arbeitszeitgesetz) – und bei 06:45:00 Anwesenheit würde plötzlich der 30-Minuten-Sprung zuschlagen, sodass er 15 Minuten länger dableiben müsste, ohne mehr Arbeitszeit zu gewinnen.
+
+Empfehlung: Variante A (Anrechnung auf Basis der Gesamtanwesenheit). Dabei gilt simpel und transparent:
+Abzug=⎩⎨⎧​Raucherzeitmax(30 Min,Raucherzeit)max(45 Min,Raucherzeit)​bei Anwesenheit <06:30:00bei Anwesenheit ≥06:30:00bei Anwesenheit ≥09:45:00​
+
+Soll ich die App (Stempeluhr, Feierabend-Vorschau und Wochenbilanz) genau nach Variante A umbauen?
+
+Also Variante A nach Gesamtanwesenheit, das Kommen und Gehen, das ist so wie wir es bei uns haben.
+
+Your HTML file is ready
+HTML-Symbol
+index-v4
+ HTML 
+
+Die Berechnung wurde in allen drei Bereichen (Feierabend-Vorschau, Arbeitszeit-Rechner und Wochenbilanz) auf Variante A umgestellt:
+
+    Unter 06:30:00 Gesamtanwesenheit: Keine gesetzliche Pause – es wird ausschließlich die ausgestempelte Raucherzeit abgezogen.
+
+    06:30:00 bis 09:44:59 Gesamtanwesenheit: Gesetzliche Pause von 30 Minuten greift (Math.max(30 Min, Raucherzeit)). Raucherpausen bis insgesamt 30 Minuten sind damit abgedeckt; erst darüber hinausgehende Minuten werden zusätzlich abgezogen.
+
+    Ab 09:45:00 Gesamtanwesenheit: Analog Math.max(45 Min, Raucherzeit).
+
+    Feierabend-Rechner oben: Die Schwellen (Keine Pause, 30 min Pause, 45 min Pause) orientieren sich fest an der Gesamtanwesenheit ab deiner Startzeit.
+
+Ich möchte ein bisschen was ändern. Ganz oben ist der Jetzt kommen Button und rechts daneben ist ein Uhrzeitenfenster. Da möchte ich eingreifen. Der Button unten Jetzt gehen soll nach rechts oben wandern neben den Jetzt kommen Button. Also oben hast du zwei Buttons, einmal Kommen und da soll auch nur Kommen drin stehen und rechts daneben soll der Button sein Gehen und da soll auch nur Gehen drin stehen. Dann soll der Bereich kommen mit einem Button Keine Pause, dann soll der Button kommen mit 30 Minuten Pause von bis und dann kommt das 45 Minuten Pause ab. Und dann kommt ein Bereich, wo zum einen die Kommen Uhrzeit, die allererste Kommen Uhrzeit steht und dann die Gehen Zeit eingetragen wird, wenn man eben geht. Und zwar das ist dann die letzte Gehen Zeit und dann kommt eben der Bereich Dezimal und so weiter und so fort. Und das möchte ich einmal machen und dann möchte ich noch was weiteres machen. Wenn ich mal keine Ahnung in die Stadt gehe für eine dreiviertel Stunde oder so, dann möchte ich die Möglichkeit haben, dass ich tatsächlich auch während der Arbeit mal komme und gehe und dass die Maschine das halt trotzdem mitrechnet. Genau. Das brauche ich. Und dann gibt es noch was Wichtiges. Ich habe jetzt heute ist ja Sonntag, ich habe gestern am Samstag gearbeitet und in der Wochenübersicht ist der Samstag jetzt überhaupt nicht aufgelistet. Das ist natürlich ein bisschen ein Problem, verstehst du?
+
+Deine aktualisierte Stempeluhr ist fertig:
+HTML-Symbol
+index-v5
+ HTML 
+Umgesetzte Änderungen
+
+    Neues Layout oben: Ganz oben sitzen jetzt die beiden Buttons Kommen (links) und Gehen (rechts) direkt nebeneinander, gefolgt von den drei Feierabend-Anzeigen (Keine Pause, 30 min Pause (von - bis), 45 min Pause (ab)).
+
+    Erste Kommen- & letzte Gehen-Zeit im unteren Bereich: Darunter stehen immer die allererste Kommen-Uhrzeit und die letzte Gehen-Uhrzeit des Tages (weiterhin manuell editierbar), gefolgt von Dezimal (h) und +/-.
+
+    Unterbrechungen (z. B. Stadtgang) werden mitgerechnet:
+
+        Drückst du zwischendurch auf Gehen (z. B. 11:00 Uhr) und später wieder auf Kommen (z. B. 11:45 Uhr), legt die App automatisch einen zweiten Stempel-Block an.
+
+        In den Zeitfeldern bleiben die allererste Kommen-Zeit und die letzte Gehen-Zeit stehen, während darunter automatisch eine kompakte Übersicht der Stempel-Blöcke heute inkl. Unterbrechungsdauer (z. B. 45 min) erscheint (einzelne Blöcke lassen sich dort über × auch wieder löschen).
+
+        Sowohl die Feierabend-Ziele oben als auch die Netto-Arbeitszeit (Variante A) und die Wochenbilanz rechnen die tatsächliche Anwesenheit über alle Blöcke hinweg exakt zusammen.
+
+    Samstag in der Wochenübersicht:
+
+        Die Wochenbilanz zeigt jetzt Mo–Sa.
+
+        Samstag steht standardmäßig auf Frei (erhöht das Wochen-Soll nicht künstlich), wechselt aber automatisch auf Arbeit, sobald du dort stempelst oder Zeiten einträgst, und rechnet deine Samstagsstunden voll auf Geleistet (Ist) und den Wochen-Saldo an.
+
+Dann möchte ich noch was ändern, und zwar im Hintergrund ist das so aufgebaut, dass wir einmal einen Block haben, der es umrandet, und dann haben wir einen weiteren Block, der es umrandet. Die möchte ich tatsächlich ein bisschen miteinander verschmelzen. Und dann haben wir über dem Bereich Stempelblöcke heute die Wörter stehen kommen und gehen in so Kästchen. Das möchte ich wegmachen, und zwar an der Stelle, wo kommen steht, soll ein Bereich sein, wo man manuell die Kommen-Zeit eintragen könnte, und rechts daneben soll die Gehen-Zeit sein. Das haben wir einmal. Und dann haben wir ganz oben das Menü für die Einstellungen und um in den Wochenplan zu gehen. Die sind jetzt kreisrund, die möchte ich gerne, dass sie dem anderen Design angepasst sind. Und dann möchte ich in diesem Bereich, der da ganz oben ist, da möchte ich, dass du groß die aktuelle Uhrzeit und den den Wochentag durchlaufen lässt. Alles klar?
+
+Deine angepasste HTML-Datei ist fertig:
+HTML-Symbol
+index-v6
+ HTML 
+Umgesetzte Änderungen
+
+    Neuer Kopfbereich mit Live-Uhr & Wochentag: Ganz oben läuft links groß die aktuelle Uhrzeit im Sekundentakt inklusive Wochentag und Datum (Sonntag, 15.11.2026). Rechts daneben sitzen die Buttons für Wochenbilanz (📊) und Einstellungen (⚙️) im gleichen abgerundeten Rechteck-Design (8px Eckenradius) wie die übrigen Buttons.
+
+    Verschmolzener Hauptbereich: Die beiden bisherigen äußeren Karten auf der Stempeluhr-Ansicht sind zu einem durchgehenden Block zusammengeführt, getrennt durch eine dezente Linie zwischen Pausen-Vorschau und manueller Zeiteingabe.
+
+    Manuelle Zeiten nebeneinander ohne Kästchen: Die gestrichelten Kommen- und Gehen-Kästchen sind entfernt. Stattdessen stehen die manuellen Eingabefelder für die Kommen-Zeit (links) und die Gehen-Zeit (rechts) direkt nebeneinander über den Stempel-Blöcken.
+
+
+Gemini ist eine KI und kann Fehler machen, auch bei Informationen über Personen. Datenschutz und GeminiWird in einem neuen Fenster geöffnet
+Wird analysiert
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -41,43 +5050,78 @@
             align-items: flex-start;
             justify-content: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px 20px 24px;
             transition: background-color 0.3s;
-        }
-
-        .header-bar {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .settings-btn, .tab-btn {
-            background: var(--primary-color);
-            color: var(--white);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 1.1em;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .settings-btn:active, .tab-btn:active {
-            transform: scale(0.9);
         }
 
         .container {
             max-width: 390px;
             width: 100%;
             text-align: center;
-            margin-top: 40px;
+        }
+
+        /* Kopfbereich: Live-Uhr & Wochentag links, eckig-abgerundete Menü-Buttons rechts */
+        .top-header-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .live-clock-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            line-height: 1.15;
+        }
+
+        .live-time {
+            font-size: 1.65em;
+            font-weight: bold;
+            color: var(--text-color);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+
+        .live-weekday {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: var(--text-color);
+            opacity: 0.78;
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .settings-btn, .tab-btn {
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            width: 42px;
+            height: 42px;
+            font-size: 1.15em;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
+            transition: transform 0.15s, background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .settings-btn:active, .tab-btn:active {
+            transform: scale(0.94);
         }
 
         .view-section {
@@ -90,17 +5134,35 @@
         .feature-section {
             background-color: var(--card-bg);
             border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 22px;
+            padding: 16px;
+            margin-bottom: 18px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             transition: background-color 0.3s;
         }
 
-        .time-picker {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
+        /* Zwei große Stempel-Buttons oben nebeneinander */
+        .stamp-btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .btn-stamp {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 14px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.05em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        .btn-stamp:active {
+            transform: scale(0.96);
         }
 
         .time-input-pair {
@@ -116,7 +5178,7 @@
             color: var(--white);
             border: none;
             padding: 11px 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
             font-size: 0.92em;
@@ -130,43 +5192,25 @@
             transform: scale(0.96);
         }
 
-        .row-tag {
-            font-size: 0.9em;
-            font-weight: bold;
-            color: var(--text-color);
-            opacity: 0.75;
-            text-align: center;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px dashed var(--border-color);
-        }
-
-        .inputs-group {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            justify-content: flex-end;
-        }
-
-        /* Raucherpause-Zähler exakt auf Breite der 3 Zeitfelder (3*50 + 2*6 = 162px) */
+        /* Raucherpause-Zähler exakt auf Breite der 3 Zeitfelder */
         .smoke-counter-box {
-            width: 162px;
+            width: 152px;
             height: 42px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 6px 0 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 2px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
-            font-size: 0.88em;
+            font-size: 0.86em;
             font-weight: bold;
         }
         .btn-smoke-minus {
             width: 28px;
             height: 28px;
-            border-radius: 5px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background: var(--bg-color);
             color: var(--text-color);
@@ -182,11 +5226,83 @@
             transform: scale(0.9);
         }
 
+        .output-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .output, .output-decimal {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 11px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .output h3, .output-decimal h3 {
+            font-size: 0.83em;
+            margin-bottom: 3px;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+
+        .output div, .output-decimal div {
+            font-size: 1.26em;
+            font-weight: bold;
+        }
+
+        /* Dezenter Trenner innerhalb der verschmolzenen Hauptkarte */
+        .section-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            opacity: 0.35;
+            margin: 14px 0;
+        }
+
+        /* Nebeneinanderliegende manuelle Zeitfelder (links Kommen, rechts Gehen) */
+        .dual-manual-times {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .manual-time-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .inputs-group-compact {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .inputs-group-compact input[type="number"] {
+            width: 100%;
+            min-width: 0;
+            padding: 9px 1px;
+            font-size: 1.02em;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            background: var(--white);
+            color: var(--text-color);
+            font-weight: bold;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
         input[type="text"], input[type="number"] {
             width: 50px;
             padding: 10px 2px;
             font-size: 1.1em;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 2px solid var(--border-color);
             text-align: center;
             background: var(--white);
@@ -209,33 +5325,6 @@
             -moz-appearance: textfield;
         }
 
-        .output-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .output, .output-decimal {
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .output h3, .output-decimal h3 {
-            font-size: 0.85em;
-            margin-bottom: 4px;
-            opacity: 0.9;
-            font-weight: normal;
-        }
-
-        .output div, .output-decimal div {
-            font-size: 1.3em;
-            font-weight: bold;
-        }
-
         .output-decimal-container {
             display: flex;
             gap: 10px;
@@ -245,7 +5334,60 @@
             flex: 1;
         }
 
-        /* --- CLEAN WOCHENBILANZ (1-Zeilen-Design + History) --- */
+        /* Stempel-Blöcke (bei Unterbrechungen / Zwischen-Gehen) */
+        .sessions-box {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 14px;
+            text-align: left;
+            font-size: 0.82em;
+        }
+        .sessions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            color: var(--text-color);
+        }
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.08);
+        }
+        .session-item:last-child {
+            border-bottom: none;
+        }
+        .session-del-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            opacity: 0.6;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .session-del-btn:hover {
+            opacity: 1;
+        }
+        .sessions-break-info {
+            margin-top: 5px;
+            padding-top: 4px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+            font-size: 0.92em;
+            opacity: 0.85;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* --- CLEAN WOCHENBILANZ --- */
         .week-header {
             display: flex;
             justify-content: space-between;
@@ -265,7 +5407,7 @@
             background: var(--white);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 50%;
+            border-radius: 6px;
             width: 26px;
             height: 26px;
             font-size: 0.95em;
@@ -285,7 +5427,7 @@
             background: var(--primary-color);
             color: var(--white);
             padding: 4px 10px;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             user-select: none;
         }
@@ -304,7 +5446,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 6px;
-            padding: 9px 10px;
+            padding: 8px 10px;
             border-bottom: 1px solid rgba(0,0,0,0.07);
             transition: background-color 0.2s;
         }
@@ -378,7 +5520,7 @@
             background-color: var(--card-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 8px;
             padding: 5px 8px;
             font-size: 0.76em;
             font-weight: bold;
@@ -548,7 +5690,7 @@
         .harmony-select {
             width: 100%;
             padding: 7px 8px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
@@ -571,36 +5713,38 @@
 </head>
 <body>
 
-    <div class="header-bar">
-        <button class="tab-btn" id="btn-toggle-view" title="Ansicht wechseln">📊</button>
-        <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙️</button>
-    </div>
-
     <div class="container">
-        <!-- ANSICHT 1: STEMPELUHR -->
-        <div id="view-clock" class="view-section active">
-            <!-- Abschnitt 1: Kommen & Pausen -->
-            <div class="feature-section">
-                <div class="time-picker">
-                    <div class="time-input-pair">
-                        <button class="btn-now" id="btn-now-start">🕒 Jetzt Kommen</button>
-                        <div class="inputs-group">
-                            <input type="number" id="hours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="minutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
-                            <input type="number" id="seconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
-                        </div>
-                    </div>
+        <!-- Kopfbereich: Große laufende Uhr + Wochentag links, Menü-Buttons im einheitlichen Design rechts -->
+        <header class="top-header-card">
+            <div class="live-clock-box">
+                <div class="live-time" id="live-clock-time">--:--:--</div>
+                <div class="live-weekday" id="live-clock-day">-</div>
+            </div>
+            <div class="header-actions">
+                <button class="tab-btn" id="btn-toggle-view" title="Wochenbilanz">📊</button>
+                <button class="settings-btn" id="btn-settings" title="Einstellungen">⚙️</button>
+            </div>
+        </header>
 
-                    <!-- Optionaler Raucherpausen-Zähler (nur sichtbar wenn in Einstellungen aktiv) -->
-                    <div class="time-input-pair" id="smoke-bar" style="display: none;">
-                        <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
-                        <div class="smoke-counter-box">
-                            <span id="smoke-count-display">0× (-0m)</span>
-                            <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
-                        </div>
+        <!-- ANSICHT 1: STEMPELUHR (Ein durchgehender, verschmolzener Bereich) -->
+        <div id="view-clock" class="view-section active">
+            <div class="feature-section">
+                <!-- 1. Kommen & Gehen Buttons -->
+                <div class="stamp-btn-row">
+                    <button class="btn-stamp" id="btn-now-start">Kommen</button>
+                    <button class="btn-stamp" id="btn-now-end">Gehen</button>
+                </div>
+
+                <!-- Optionaler Raucherpausen-Zähler (nur sichtbar wenn in Einstellungen aktiv) -->
+                <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 14px;">
+                    <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
+                    <div class="smoke-counter-box">
+                        <span id="smoke-count-display">0× (-0m)</span>
+                        <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
                     </div>
                 </div>
                 
+                <!-- 2. Feierabend-Vorschau -->
                 <div class="output-container">
                     <div class="output">
                         <h3>Keine Pause (gehen um):</h3>
@@ -615,29 +5759,41 @@
                         <div id="output-45min-pause">-</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Abschnitt 2: Arbeitszeit-Rechner -->
-            <div class="feature-section">
-                <div class="time-picker">
-                    <div class="time-input-pair">
-                        <span class="row-tag">Startzeit</span>
-                        <div class="inputs-group">
-                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
-                            <input type="number" id="startSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+                <hr class="section-divider">
+
+                <!-- 3. Manuelle Kommen-Zeit (links) & Gehen-Zeit (rechts) ohne Kästchen -->
+                <div class="dual-manual-times">
+                    <div class="manual-time-col">
+                        <div class="inputs-group-compact">
+                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" title="Kommen Stunde">
+                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" title="Kommen Minute">
+                            <input type="number" id="startSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss" title="Kommen Sekunde">
                         </div>
                     </div>
-                    <div class="time-input-pair">
-                        <button class="btn-now" id="btn-now-end">🕒 Jetzt Gehen</button>
-                        <div class="inputs-group">
-                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
-                            <input type="number" id="endSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss">
+                    <div class="manual-time-col">
+                        <div class="inputs-group-compact">
+                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" title="Gehen Stunde">
+                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" title="Gehen Minute">
+                            <input type="number" id="endSeconds" min="0" max="59" value="" inputmode="numeric" placeholder="ss" title="Gehen Sekunde">
                         </div>
                     </div>
                 </div>
+
+                <!-- 4. Stempel-Blöcke (erscheint automatisch bei Unterbrechungen / mehreren Blöcken) -->
+                <div class="sessions-box" id="sessions-box" style="display: none;">
+                    <div class="sessions-header">
+                        <span>Stempel-Blöcke heute</span>
+                        <span id="sessions-pres-sum">00:00 h</span>
+                    </div>
+                    <div id="sessions-list"></div>
+                    <div class="sessions-break-info" id="sessions-break-info" style="display: none;">
+                        <span>Unterbrechung (abwesend):</span>
+                        <strong id="sessions-gap-sum">0 min</strong>
+                    </div>
+                </div>
                 
+                <!-- 5. Dezimal & +/- -->
                 <div class="output-decimal-container">
                     <div class="output-decimal">
                         <h3>Dezimal (h)</h3>
@@ -651,7 +5807,7 @@
             </div>
         </div>
 
-        <!-- ANSICHT 2: WOCHENBILANZ (Kompakt & Clean + History) -->
+        <!-- ANSICHT 2: WOCHENBILANZ (Mo-Sa + History) -->
         <div id="view-week" class="view-section">
             <div class="feature-section">
                 <div class="week-header">
@@ -664,7 +5820,7 @@
                 </div>
 
                 <div class="week-list-card" id="week-days-container">
-                    <!-- 5 kompakte Ein-Zeilen-Einträge (Mo-Fr) -->
+                    <!-- 6 kompakte Ein-Zeilen-Einträge (Mo-Sa) -->
                 </div>
 
                 <div class="output-decimal-container">
@@ -751,6 +5907,21 @@
                 return `${now.getFullYear()}-${format2(now.getMonth() + 1)}-${format2(now.getDate())}`;
             };
 
+            // --- Live-Uhr & Wochentag im Kopfbereich ---
+            const liveTimeEl = document.getElementById("live-clock-time");
+            const liveDayEl = document.getElementById("live-clock-day");
+            const weekdaysFull = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+
+            function updateLiveClock() {
+                const now = new Date();
+                liveTimeEl.textContent = `${format2(now.getHours())}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                const dayName = weekdaysFull[now.getDay()];
+                const dateFormatted = `${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
+                liveDayEl.textContent = `${dayName}, ${dateFormatted}`;
+            }
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+
             function getCalendarWeek(date) {
                 const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
                 const dayNum = d.getUTCDay() || 7;
@@ -800,12 +5971,14 @@
                     viewClock.classList.remove("active");
                     viewWeek.classList.add("active");
                     toggleViewBtn.textContent = "⏱️";
+                    toggleViewBtn.title = "Stempeluhr";
                     weekOffset = 0;
                     buildWeekView();
                 } else {
                     viewWeek.classList.remove("active");
                     viewClock.classList.add("active");
                     toggleViewBtn.textContent = "📊";
+                    toggleViewBtn.title = "Wochenbilanz";
                 }
             });
 
@@ -841,7 +6014,6 @@
             let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"));
             if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
 
-            // Heutiger Raucher-Zähler aus Tagesdaten laden
             let todaySmokeCount = 0;
             const initialTodayData = getDayData(getTodayStr());
             if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
@@ -1018,7 +6190,7 @@
                 localStorage.setItem("appLightness", appLightness);
                 localStorage.setItem("appSpread", appSpread);
 
-                if (isSmoker && todaySmokeCount > 0) {
+                if (isSmoker) {
                     saveTodaySmokeData();
                 }
                 updateSmokerUI();
@@ -1029,11 +6201,7 @@
             document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
             document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
 
-            // --- Zeit-Inputs Logik ---
-            const hoursInput = document.getElementById("hours");
-            const minutesInput = document.getElementById("minutes");
-            const secondsInput = document.getElementById("seconds");
-
+            // --- Zeit-Inputs & Multi-Stempel-Logik ---
             const startHoursInput = document.getElementById("startHours");
             const startMinutesInput = document.getElementById("startMinutes");
             const startSecondsInput = document.getElementById("startSeconds");
@@ -1041,28 +6209,174 @@
             const endMinutesInput = document.getElementById("endMinutes");
             const endSecondsInput = document.getElementById("endSeconds");
 
-            function syncAndSaveStartTime() {
-                startHoursInput.value = hoursInput.value;
-                startMinutesInput.value = minutesInput.value;
-                startSecondsInput.value = secondsInput.value;
+            const sessionsBox = document.getElementById("sessions-box");
+            const sessionsList = document.getElementById("sessions-list");
+            const sessionsPresSum = document.getElementById("sessions-pres-sum");
+            const sessionsBreakInfo = document.getElementById("sessions-break-info");
+            const sessionsGapSum = document.getElementById("sessions-gap-sum");
 
-                const todayStr = getTodayStr();
-                if (hoursInput.value !== "") {
-                    localStorage.setItem("savedStartTime", JSON.stringify({
-                        date: todayStr,
-                        h: hoursInput.value,
-                        m: minutesInput.value,
-                        s: secondsInput.value
-                    }));
-                    let currentDay = getDayData(todayStr) || { status: 'work' };
-                    currentDay.startH = hoursInput.value;
-                    currentDay.startM = minutesInput.value;
-                    currentDay.endH = endHoursInput.value;
-                    currentDay.endM = endMinutesInput.value;
-                    saveDayData(todayStr, currentDay);
-                } else {
-                    localStorage.removeItem("savedStartTime");
+            let todaySessions = [];
+
+            function timeObjToSecs(t) {
+                if (!t || t.h === "" || isNaN(parseInt(t.h, 10))) return null;
+                return (parseInt(t.h, 10) * 3600) + ((parseInt(t.m, 10) || 0) * 60) + (parseInt(t.s, 10) || 0);
+            }
+
+            function formatTimeObj(t) {
+                if (!t || t.h === "") return "--:--";
+                return `${format2(parseInt(t.h, 10))}:${format2(parseInt(t.m, 10) || 0)}:${format2(parseInt(t.s, 10) || 0)}`;
+            }
+
+            function getSessionMetrics() {
+                let totalPresSecs = 0;
+                let totalGapSecs = 0;
+
+                for (let i = 0; i < todaySessions.length; i++) {
+                    const sSecs = timeObjToSecs(todaySessions[i].start);
+                    const eSecs = timeObjToSecs(todaySessions[i].end);
+                    if (sSecs !== null && eSecs !== null && eSecs > sSecs) {
+                        totalPresSecs += (eSecs - sSecs);
+                    }
+                    if (i > 0) {
+                        const prevEndSecs = timeObjToSecs(todaySessions[i - 1].end);
+                        if (prevEndSecs !== null && sSecs !== null && sSecs > prevEndSecs) {
+                            totalGapSecs += (sSecs - prevEndSecs);
+                        }
+                    }
                 }
+                return { totalPresSecs, totalGapSecs };
+            }
+
+            function renderSessionsBox() {
+                if (todaySessions.length <= 1) {
+                    sessionsBox.style.display = "none";
+                    return;
+                }
+                sessionsBox.style.display = "block";
+                sessionsList.innerHTML = "";
+
+                const { totalPresSecs, totalGapSecs } = getSessionMetrics();
+                const presH = Math.floor(totalPresSecs / 3600);
+                const presM = Math.floor((totalPresSecs % 3600) / 60);
+                sessionsPresSum.textContent = `Anwesenheit: ${format2(presH)}:${format2(presM)} h`;
+
+                todaySessions.forEach((sess, idx) => {
+                    const row = document.createElement("div");
+                    row.className = "session-item";
+                    const endStr = sess.end ? formatTimeObj(sess.end) : "läuft...";
+                    row.innerHTML = `
+                        <span><strong>#${idx + 1}:</strong> ${formatTimeObj(sess.start)} – ${endStr}</span>
+                        <button type="button" class="session-del-btn" data-idx="${idx}" title="Block entfernen">×</button>
+                    `;
+                    sessionsList.appendChild(row);
+                });
+
+                sessionsList.querySelectorAll(".session-del-btn").forEach(btn => {
+                    btn.addEventListener("click", (e) => {
+                        const idx = parseInt(e.target.getAttribute("data-idx"), 10);
+                        todaySessions.splice(idx, 1);
+                        syncInputsFromSessions();
+                        saveSessionsAndDay();
+                        calculateAllTimes();
+                    });
+                });
+
+                if (totalGapSecs > 0) {
+                    sessionsBreakInfo.style.display = "flex";
+                    const gapMins = Math.round(totalGapSecs / 60);
+                    sessionsGapSum.textContent = `${gapMins} min`;
+                } else {
+                    sessionsBreakInfo.style.display = "none";
+                }
+            }
+
+            function syncInputsFromSessions() {
+                if (todaySessions.length === 0) {
+                    startHoursInput.value = "";
+                    startMinutesInput.value = "";
+                    startSecondsInput.value = "";
+                    endHoursInput.value = "";
+                    endMinutesInput.value = "";
+                    endSecondsInput.value = "";
+                    return;
+                }
+                const firstStart = todaySessions[0].start;
+                startHoursInput.value = firstStart.h;
+                startMinutesInput.value = firstStart.m;
+                startSecondsInput.value = firstStart.s;
+
+                const lastSession = todaySessions[todaySessions.length - 1];
+                if (lastSession.end) {
+                    endHoursInput.value = lastSession.end.h;
+                    endMinutesInput.value = lastSession.end.m;
+                    endSecondsInput.value = lastSession.end.s;
+                } else {
+                    endHoursInput.value = "";
+                    endMinutesInput.value = "";
+                    endSecondsInput.value = "";
+                }
+            }
+
+            function saveSessionsAndDay() {
+                const todayStr = getTodayStr();
+                renderSessionsBox();
+
+                if (todaySessions.length > 0) {
+                    localStorage.setItem("savedTodaySessions", JSON.stringify({
+                        date: todayStr,
+                        sessions: todaySessions
+                    }));
+                } else {
+                    localStorage.removeItem("savedTodaySessions");
+                }
+
+                const { totalPresSecs } = getSessionMetrics();
+                let currentDay = getDayData(todayStr) || { status: 'work' };
+                if (todaySessions.length > 0 && currentDay.status === 'free') {
+                    currentDay.status = 'work';
+                }
+                currentDay.startH = startHoursInput.value;
+                currentDay.startM = startMinutesInput.value;
+                currentDay.endH = endHoursInput.value;
+                currentDay.endM = endMinutesInput.value;
+                currentDay.sessions = todaySessions;
+                currentDay.customPresSecs = totalPresSecs > 0 ? totalPresSecs : null;
+                saveDayData(todayStr, currentDay);
+            }
+
+            function onManualTimeInputChange() {
+                const stH = startHoursInput.value;
+                const enH = endHoursInput.value;
+
+                if (stH === "" && enH === "") {
+                    todaySessions = [];
+                    saveSessionsAndDay();
+                    return;
+                }
+
+                const startObj = stH !== "" ? {
+                    h: format2(parseInt(stH, 10) || 0),
+                    m: format2(parseInt(startMinutesInput.value, 10) || 0),
+                    s: format2(parseInt(startSecondsInput.value, 10) || 0)
+                } : null;
+
+                const endObj = enH !== "" ? {
+                    h: format2(parseInt(enH, 10) || 0),
+                    m: format2(parseInt(endMinutesInput.value, 10) || 0),
+                    s: format2(parseInt(endSecondsInput.value, 10) || 0)
+                } : null;
+
+                if (todaySessions.length === 0) {
+                    if (startObj) {
+                        todaySessions.push({ start: startObj, end: endObj });
+                    }
+                } else {
+                    if (startObj) {
+                        todaySessions[0].start = startObj;
+                    }
+                    todaySessions[todaySessions.length - 1].end = endObj;
+                }
+                saveSessionsAndDay();
             }
 
             function clampInput(input) {
@@ -1095,45 +6409,72 @@
                 });
             }
 
-            setupInput(hoursInput, minutesInput, syncAndSaveStartTime);
-            setupInput(minutesInput, secondsInput, syncAndSaveStartTime);
-            setupInput(secondsInput, null, syncAndSaveStartTime);
-
-            setupInput(startHoursInput, startMinutesInput);
-            setupInput(startMinutesInput, startSecondsInput);
-            setupInput(startSecondsInput, endHoursInput);
-            setupInput(endHoursInput, endMinutesInput);
-            setupInput(endMinutesInput, endSecondsInput);
-            setupInput(endSecondsInput, null);
+            setupInput(startHoursInput, startMinutesInput, onManualTimeInputChange);
+            setupInput(startMinutesInput, startSecondsInput, onManualTimeInputChange);
+            setupInput(startSecondsInput, endHoursInput, onManualTimeInputChange);
+            setupInput(endHoursInput, endMinutesInput, onManualTimeInputChange);
+            setupInput(endMinutesInput, endSecondsInput, onManualTimeInputChange);
+            setupInput(endSecondsInput, null, onManualTimeInputChange);
 
             document.getElementById("btn-now-start").addEventListener("click", () => {
                 const now = new Date();
-                hoursInput.value = format2(now.getHours());
-                minutesInput.value = format2(now.getMinutes());
-                secondsInput.value = format2(now.getSeconds());
-                syncAndSaveStartTime();
+                const tObj = {
+                    h: format2(now.getHours()),
+                    m: format2(now.getMinutes()),
+                    s: format2(now.getSeconds())
+                };
+
+                if (todaySessions.length === 0) {
+                    todaySessions.push({ start: tObj, end: null });
+                } else {
+                    const last = todaySessions[todaySessions.length - 1];
+                    if (last.end !== null) {
+                        todaySessions.push({ start: tObj, end: null });
+                    } else {
+                        last.start = tObj;
+                    }
+                }
+
+                syncInputsFromSessions();
+                saveSessionsAndDay();
                 calculateAllTimes();
             });
 
             document.getElementById("btn-now-end").addEventListener("click", () => {
                 const now = new Date();
-                endHoursInput.value = format2(now.getHours());
-                endMinutesInput.value = format2(now.getMinutes());
-                endSecondsInput.value = format2(now.getSeconds());
-                calculateWorkingTime();
-                
-                const todayStr = getTodayStr();
-                let currentDay = getDayData(todayStr) || { status: 'work' };
-                currentDay.startH = startHoursInput.value;
-                currentDay.startM = startMinutesInput.value;
-                currentDay.endH = endHoursInput.value;
-                currentDay.endM = endMinutesInput.value;
-                saveDayData(todayStr, currentDay);
+                const tObj = {
+                    h: format2(now.getHours()),
+                    m: format2(now.getMinutes()),
+                    s: format2(now.getSeconds())
+                };
+
+                if (todaySessions.length === 0) {
+                    todaySessions.push({ start: { h: "00", m: "00", s: "00" }, end: tObj });
+                } else {
+                    todaySessions[todaySessions.length - 1].end = tObj;
+                }
+
+                syncInputsFromSessions();
+                saveSessionsAndDay();
+                calculateAllTimes();
             });
 
             function getTodaySmokeSecs() {
                 if (!isSmoker) return 0;
                 return todaySmokeCount * smokeMinutesPerBreak * 60;
+            }
+
+            // Zentrale Pausen-Berechnung nach Gesamtanwesenheit (Variante A):
+            // Raucherpausen werden auf die gesetzliche Pause angerechnet (Maximum-Prinzip).
+            function calcNetWorkSecs(totalPresSecs, smokeSecs) {
+                let legalPauseSecs = 0;
+                if (totalPresSecs >= 35100) {      // >= 09:45:00 Gesamtanwesenheit -> 45 Min Pause
+                    legalPauseSecs = 45 * 60;
+                } else if (totalPresSecs >= 23400) { // >= 06:30:00 Gesamtanwesenheit -> 30 Min Pause
+                    legalPauseSecs = 30 * 60;
+                }
+                const totalDeductSecs = Math.max(legalPauseSecs, smokeSecs);
+                return Math.max(0, totalPresSecs - totalDeductSecs);
             }
 
             function calculateAllTimes() {
@@ -1142,9 +6483,9 @@
             }
 
             function calculateEndTimes() {
-                const hours = parseInt(hoursInput.value, 10);
-                const minutes = parseInt(minutesInput.value, 10) || 0;
-                const seconds = parseInt(secondsInput.value, 10) || 0;
+                const hours = parseInt(startHoursInput.value, 10);
+                const minutes = parseInt(startMinutesInput.value, 10) || 0;
+                const seconds = parseInt(startSecondsInput.value, 10) || 0;
                 
                 if (isNaN(hours)) {
                     document.getElementById("output-no-pause").textContent = "-";
@@ -1153,20 +6494,21 @@
                     return;
                 }
 
-                const smokeSecs = getTodaySmokeSecs();
+                const { totalGapSecs } = getSessionMetrics();
+
                 const startTime = new Date();
                 startTime.setHours(hours, minutes, seconds, 0);
 
-                const noPauseSecs = (6 * 3600) + (29 * 60) + 59 + smokeSecs;
+                const noPauseSecs = (6 * 3600) + (29 * 60) + 59 + totalGapSecs;
                 const endNoPause = new Date(startTime.getTime() + noPauseSecs * 1000);
 
-                const p30StartSecs = (6 * 3600) + (30 * 60) + smokeSecs;
+                const p30StartSecs = (6 * 3600) + (30 * 60) + totalGapSecs;
                 const end30Start = new Date(startTime.getTime() + p30StartSecs * 1000);
 
-                const p30EndSecs = (9 * 3600) + (44 * 60) + 59 + smokeSecs;
+                const p30EndSecs = (9 * 3600) + (44 * 60) + 59 + totalGapSecs;
                 const end30End = new Date(startTime.getTime() + p30EndSecs * 1000);
 
-                const p45Secs = (9 * 3600) + (45 * 60) + smokeSecs;
+                const p45Secs = (9 * 3600) + (45 * 60) + totalGapSecs;
                 const end45 = new Date(startTime.getTime() + p45Secs * 1000);
 
                 const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
@@ -1199,16 +6541,16 @@
                     return;
                 }
 
+                let totalPresSecs = endSecs - startSecs;
+                if (todaySessions.length > 1) {
+                    const metrics = getSessionMetrics();
+                    if (metrics.totalPresSecs > 0) {
+                        totalPresSecs = metrics.totalPresSecs;
+                    }
+                }
+
                 const smokeSecs = getTodaySmokeSecs();
-                const totalPresSecs = endSecs - startSecs;
-                const netPresSecs = Math.max(0, totalPresSecs - smokeSecs);
-                const presHours = netPresSecs / 3600;
-                let pauseSecs = 0;
-
-                if (presHours >= 6.5) pauseSecs = 30 * 60;
-                if (presHours >= 9.75) pauseSecs = 45 * 60;
-
-                const workSecs = Math.max(0, netPresSecs - pauseSecs);
+                const workSecs = calcNetWorkSecs(totalPresSecs, smokeSecs);
                 const workDec = workSecs / 3600;
                 
                 const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
@@ -1244,7 +6586,7 @@
                 return { h: '', m: '' };
             }
 
-            // --- Wochenbilanz Speicher & Generator (1-Zeilen-Layout + History) ---
+            // --- Wochenbilanz Speicher & Generator (Mo-Sa + History) ---
             function getMonday(d) {
                 d = new Date(d);
                 let day = d.getDay(),
@@ -1253,20 +6595,27 @@
             }
 
             function calcWorkedSecsFromDay(saved) {
-                if (!saved || !saved.startH || !saved.endH) return 0;
-                const sh = parseInt(saved.startH, 10);
-                const sm = parseInt(saved.startM, 10) || 0;
-                const eh = parseInt(saved.endH, 10);
-                const em = parseInt(saved.endM, 10) || 0;
-                if (isNaN(sh) || isNaN(eh)) return 0;
-                const sSecs = sh * 3600 + sm * 60;
-                const eSecs = eh * 3600 + em * 60;
-                if (eSecs <= sSecs) return 0;
+                if (!saved) return 0;
+                let totalPresSecs = 0;
+
+                if (saved.customPresSecs && saved.customPresSecs > 0) {
+                    totalPresSecs = saved.customPresSecs;
+                } else if (saved.startH && saved.endH) {
+                    const sh = parseInt(saved.startH, 10);
+                    const sm = parseInt(saved.startM, 10) || 0;
+                    const eh = parseInt(saved.endH, 10);
+                    const em = parseInt(saved.endM, 10) || 0;
+                    if (isNaN(sh) || isNaN(eh)) return 0;
+                    const sSecs = sh * 3600 + sm * 60;
+                    const eSecs = eh * 3600 + em * 60;
+                    if (eSecs <= sSecs) return 0;
+                    totalPresSecs = eSecs - sSecs;
+                } else {
+                    return 0;
+                }
 
                 const smokeSecs = (saved.smokeTotalMins || 0) * 60;
-                const netPres = Math.max(0, (eSecs - sSecs) - smokeSecs);
-                const pause = netPres >= 35100 ? 2700 : (netPres >= 23400 ? 1800 : 0);
-                return Math.max(0, netPres - pause);
+                return calcNetWorkSecs(totalPresSecs, smokeSecs);
             }
 
             function buildWeekView() {
@@ -1286,17 +6635,21 @@
                 const totalSollSecs = sollSecsPerDay * 5;
                 let totalCreditedSecs = 0;
 
-                const dayShort = ["Mo", "Di", "Mi", "Do", "Fr"];
+                const dayShort = ["Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 6; i++) {
                     const currDate = new Date(monday);
                     currDate.setDate(monday.getDate() + i);
                     const dateStr = `${currDate.getFullYear()}-${format2(currDate.getMonth() + 1)}-${format2(currDate.getDate())}`;
                     const dateShort = `${format2(currDate.getDate())}.${format2(currDate.getMonth() + 1)}.`;
                     const holidayName = getHolidayName(dateStr);
 
-                    let saved = getDayData(dateStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
-                    if (holidayName && !localStorage.getItem("day_" + dateStr)) {
+                    const rawSaved = localStorage.getItem("day_" + dateStr);
+                    let saved = getDayData(dateStr) || {
+                        status: (i === 5) ? 'free' : 'work',
+                        startH: '', startM: '', endH: '', endM: ''
+                    };
+                    if (holidayName && !rawSaved) {
                         saved.status = 'holiday';
                     }
 
@@ -1306,6 +6659,7 @@
                     const startFormatted = (saved.startH !== '' && saved.startM !== undefined) ? `${saved.startH}:${saved.startM}` : '';
                     const endFormatted = (saved.endH !== '' && saved.endM !== undefined) ? `${saved.endH}:${saved.endM}` : '';
                     const smokeSub = (saved.smokeCount && saved.smokeCount > 0) ? ` · 🚬${saved.smokeCount}` : '';
+                    const splitSub = (saved.sessions && saved.sessions.length > 1) ? ` · ⏸️${saved.sessions.length}` : '';
 
                     let middleHtml = "";
                     if (saved.status === 'work') {
@@ -1321,13 +6675,13 @@
                     } else if (saved.status === 'vacation' || saved.status === 'sick') {
                         middleHtml = `<div class="day-status-note">Soll gutgeschrieben</div>`;
                     } else {
-                        middleHtml = `<div class="day-status-note">Gleitzeitabbau</div>`;
+                        middleHtml = `<div class="day-status-note">${i === 5 ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
                     }
 
                     row.innerHTML = `
                         <div class="day-label">
                             <strong>${dayShort[i]}</strong>
-                            <span>${dateShort}${smokeSub}</span>
+                            <span>${dateShort}${smokeSub}${splitSub}</span>
                         </div>
                         ${middleHtml}
                         <select class="status-pill" data-date="${dateStr}" data-status="${saved.status}" aria-label="Status">
@@ -1348,7 +6702,6 @@
                     }
                 }
 
-                // Event-Listener für Status-Pill
                 container.querySelectorAll('.status-pill').forEach(sel => {
                     sel.addEventListener('change', (e) => {
                         const dStr = e.target.getAttribute('data-date');
@@ -1359,7 +6712,6 @@
                     });
                 });
 
-                // Event-Listener für Start- und End-Eingaben
                 container.querySelectorAll('.day-start, .day-end').forEach(inp => {
                     inp.addEventListener('focus', () => { inp.select(); });
                     inp.addEventListener('blur', (e) => {
@@ -1369,6 +6721,7 @@
                         const endValRaw = rowEl.querySelector('.day-end').value;
                         
                         const current = getDayData(dStr) || { status: 'work' };
+                        current.customPresSecs = null;
 
                         const parsedStart = parseTimeString(startValRaw);
                         if (parsedStart.h !== '') {
@@ -1391,7 +6744,6 @@
                     });
                 });
 
-                // Ausgabe: Geleistet (Ist) vs. Soll & Wochen-Saldo
                 const fmtHM = (secs) => {
                     const aSecs = Math.abs(secs);
                     const h = Math.floor(aSecs / 3600);
@@ -1411,22 +6763,36 @@
 
             // Startup Check für Heute
             try {
-                const savedRaw = localStorage.getItem("savedStartTime");
-                if (savedRaw) {
-                    const saved = JSON.parse(savedRaw);
-                    if (saved.date === getTodayStr() && saved.h !== "") {
-                        hoursInput.value = saved.h;
-                        minutesInput.value = saved.m || "";
-                        secondsInput.value = saved.s || "";
-                        startHoursInput.value = saved.h;
-                        startMinutesInput.value = saved.m || "";
-                        startSecondsInput.value = saved.s || "";
+                const todayStr = getTodayStr();
+                const savedSessionsRaw = localStorage.getItem("savedTodaySessions");
+                if (savedSessionsRaw) {
+                    const parsed = JSON.parse(savedSessionsRaw);
+                    if (parsed.date === todayStr && Array.isArray(parsed.sessions)) {
+                        todaySessions = parsed.sessions;
+                        syncInputsFromSessions();
+                        renderSessionsBox();
                         calculateAllTimes();
-                    } else if (saved.date !== getTodayStr()) {
+                    } else {
+                        localStorage.removeItem("savedTodaySessions");
+                    }
+                } else {
+                    const savedRaw = localStorage.getItem("savedStartTime");
+                    if (savedRaw) {
+                        const saved = JSON.parse(savedRaw);
+                        if (saved.date === todayStr && saved.h !== "") {
+                            todaySessions = [{
+                                start: { h: saved.h, m: saved.m || "00", s: saved.s || "00" },
+                                end: null
+                            }];
+                            syncInputsFromSessions();
+                            saveSessionsAndDay();
+                            calculateAllTimes();
+                        }
                         localStorage.removeItem("savedStartTime");
                     }
                 }
             } catch (e) {
+                localStorage.removeItem("savedTodaySessions");
                 localStorage.removeItem("savedStartTime");
             }
         });
@@ -1438,3 +6804,6 @@
     </script>
 </body>
 </html>
+
+index-v6.html
+index-v6.html wird angezeigt.
