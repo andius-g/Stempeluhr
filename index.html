@@ -16,6 +16,9 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
     
+    <!-- jsPDF für direkten PDF-Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    
     <style>
         :root {
             --hue: 195;
@@ -38,6 +41,7 @@
         html, body {
             overscroll-behavior-y: none;
             background-color: var(--bg-color);
+            transition: background-color 0.3s;
         }
 
         body {
@@ -49,7 +53,6 @@
             min-height: 100dvh;
             padding: 14px 18px 20px;
             overflow-x: hidden;
-            transition: background-color 0.3s;
         }
 
         .container {
@@ -324,7 +327,7 @@
             margin: 14px 0;
         }
 
-        /* [ K ] [ hh ] [ mm ] & [ G ] [ hh ] [ mm ] – extra groß & griffig */
+        /* [ K ] [ hh ] [ mm ] & [ G ] [ hh ] [ mm ] */
         .dual-manual-times {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -369,7 +372,7 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], input[type="month"] {
             width: 54px;
             padding: 10px 2px;
             font-size: 1.12em;
@@ -381,7 +384,7 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus, input[type="month"]:focus {
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 8px rgba(0,0,0,0.12);
@@ -405,7 +408,7 @@
             flex: 1;
         }
 
-        /* Stempel-Blöcke (bei Unterbrechungen / Zwischen-Gehen) */
+        /* Stempel-Blöcke */
         .sessions-box {
             background: var(--white);
             border: 1px solid var(--border-color);
@@ -458,16 +461,76 @@
             justify-content: space-between;
         }
 
-        /* --- WOCHENBILANZ MIT VERTIKALER KW-NAVIGATION & GROSSER ANZEIGE --- */
+        /* --- WOCHENBILANZ MIT KW-NAVIGATION, DATUM-SPRUNG & HEUTE-BUTTON --- */
         .week-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 6px;
             margin-bottom: 12px;
         }
+        .week-title-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
         .week-header h2 {
-            font-size: 1.1em;
+            font-size: 1.08em;
             color: var(--text-color);
+        }
+
+        .week-nav-cluster {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-jump-today {
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 7px;
+            padding: 5px 9px;
+            font-size: 0.76em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+            display: none;
+        }
+        .btn-jump-today.visible {
+            display: inline-block;
+        }
+        .btn-jump-today:active {
+            transform: scale(0.95);
+        }
+
+        .date-jump-wrap {
+            position: relative;
+            width: 36px;
+            height: 46px;
+        }
+        .btn-date-jump {
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .hidden-date-picker {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            border: none;
         }
 
         .kw-vertical-nav {
@@ -478,7 +541,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow: hidden;
-            min-width: 96px;
+            min-width: 92px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
@@ -500,11 +563,11 @@
 
         .kw-badge {
             width: 100%;
-            font-size: 0.8em;
+            font-size: 0.78em;
             font-weight: bold;
             background: var(--primary-color);
             color: var(--white);
-            padding: 4px 10px;
+            padding: 4px 8px;
             cursor: pointer;
             user-select: none;
             text-align: center;
@@ -610,7 +673,29 @@
             margin-top: 2px;
         }
 
-        /* --- MODALS (Einstellungen & Großer Tages-Editor) --- */
+        .btn-open-pdf-export {
+            width: 100%;
+            margin-top: 12px;
+            padding: 11px 12px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 0.92em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.15s;
+        }
+        .btn-open-pdf-export:active {
+            transform: scale(0.97);
+        }
+
+        /* --- MODALS (Einstellungen, PDF-Export & Großer Tages-Editor) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -815,14 +900,21 @@
 
         /* Einstellungen Styles */
         .settings-group {
-            margin-bottom: 14px;
+            margin-bottom: 13px;
             text-align: left;
         }
         .settings-group label {
             display: block;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             color: var(--text-color);
+            font-size: 0.92em;
+        }
+        .text-input-full {
+            width: 100% !important;
+            text-align: left !important;
+            padding: 9px 11px !important;
+            font-size: 0.98em !important;
         }
         .soll-pair {
             display: flex;
@@ -884,10 +976,10 @@
         .color-preview {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .color-dot {
-            width: 28px; height: 28px;
+            width: 26px; height: 26px;
             border-radius: 50%;
             border: 2px solid #ccc;
         }
@@ -897,12 +989,12 @@
 
         .slider-control {
             width: 100%;
-            margin-top: 12px;
+            margin-top: 10px;
             text-align: left;
         }
         .slider-control label {
-            font-size: 0.85em;
-            margin-bottom: 4px;
+            font-size: 0.84em;
+            margin-bottom: 3px;
             display: flex;
             justify-content: space-between;
         }
@@ -919,7 +1011,34 @@
             background: var(--white);
             color: var(--text-color);
             font-size: 0.92em;
-            margin-top: 4px;
+            margin-top: 3px;
+        }
+
+        .version-update-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 11px;
+            margin-bottom: 12px;
+            font-size: 0.84em;
+        }
+        .btn-force-update {
+            background: var(--white);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.86em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-force-update:active {
+            background: var(--primary-color);
+            color: var(--white);
         }
 
         .settings-save {
@@ -932,7 +1051,7 @@
             font-size: 1.05em;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 4px;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -1022,7 +1141,7 @@
                         </div>
                     </div>
 
-                    <!-- 4. Stempel-Blöcke (erscheint automatisch bei Unterbrechungen / mehreren Blöcken) -->
+                    <!-- 4. Stempel-Blöcke -->
                     <div class="sessions-box" id="sessions-box" style="display: none;">
                         <div class="sessions-header">
                             <span>Stempel-Blöcke heute</span>
@@ -1049,20 +1168,36 @@
                 </div>
             </div>
 
-            <!-- ANSICHT 2: WOCHENBILANZ (Mo-Sa + Vertikale KW-Steuerung + Großer Tages-Editor) -->
+            <!-- ANSICHT 2: WOCHENBILANZ -->
             <div id="view-week" class="view-section">
                 <div class="feature-section">
                     <div class="week-header">
-                        <h2>Wochenbilanz</h2>
-                        <div class="kw-vertical-nav">
-                            <button type="button" class="kw-v-btn" id="btn-prev-week" title="Vorherige Woche">▲</button>
-                            <span class="kw-badge" id="week-kw-badge" title="Zur aktuellen Woche">KW -</span>
-                            <button type="button" class="kw-v-btn" id="btn-next-week" title="Nächste Woche">▼</button>
+                        <div class="week-title-col">
+                            <h2>Wochenbilanz</h2>
+                            <button type="button" class="btn-jump-today" id="btn-jump-today">↺ Heute</button>
+                        </div>
+                        <div class="week-nav-cluster">
+                            <div class="date-jump-wrap" title="Zu Datum springen">
+                                <div class="btn-date-jump">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                </div>
+                                <input type="date" class="hidden-date-picker" id="week-date-picker" aria-label="Datum auswählen">
+                            </div>
+                            <div class="kw-vertical-nav">
+                                <button type="button" class="kw-v-btn" id="btn-prev-week" title="Vorherige Woche">▲</button>
+                                <span class="kw-badge" id="week-kw-badge" title="Zur aktuellen Woche">KW -</span>
+                                <button type="button" class="kw-v-btn" id="btn-next-week" title="Nächste Woche">▼</button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="week-list-card" id="week-days-container">
-                        <!-- 6 gut lesbare Zeilen (Mo-Sa) -> antippen öffnet den großen Tages-Editor -->
+                        <!-- 6 gut lesbare Zeilen (Mo-Sa) -->
                     </div>
 
                     <div class="output-decimal-container">
@@ -1077,8 +1212,42 @@
                             <div class="balance-sub" id="output-week-decimal">0,00 h</div>
                         </div>
                     </div>
+
+                    <button type="button" class="btn-open-pdf-export" id="btn-open-pdf-modal">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <polyline points="9 15 12 18 15 15"></polyline>
+                        </svg>
+                        <span>Monatsübersicht als PDF</span>
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Monats-PDF Export -->
+    <div class="modal-overlay" id="pdf-export-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="btn-close-pdf-modal">&times;</button>
+            <h2>Monats-PDF Export</h2>
+
+            <div class="settings-group">
+                <label for="pdfMonthSelect">Monat auswählen</label>
+                <input type="month" id="pdfMonthSelect" class="text-input-full">
+            </div>
+
+            <div class="settings-group">
+                <label for="pdfUserNamePreview">Name auf dem Stundenzettel</label>
+                <input type="text" id="pdfUserNamePreview" class="text-input-full" placeholder="Vor- und Nachname">
+            </div>
+
+            <div style="background:var(--bg-color); padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.84em; margin-bottom:14px; line-height:1.4;">
+                Erstellt eine druckfertige DIN-A4-PDF-Datei mit allen Tagen des Monats, Kommen/Gehen-Zeiten, Pausen, Status (Urlaub/Krank/Feiertag), Gesamtsaldo sowie Unterschriftszeile.
+            </div>
+
+            <button class="settings-save" id="btn-download-month-pdf">PDF jetzt herunterladen</button>
         </div>
     </div>
 
@@ -1126,6 +1295,11 @@
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
             <h2>Einstellungen</h2>
+
+            <div class="settings-group">
+                <label for="userNameInput">Name (für PDF-Stundenzettel)</label>
+                <input type="text" id="userNameInput" class="text-input-full" placeholder="z. B. Max Mustermann">
+            </div>
             
             <div class="settings-group">
                 <label>Sollarbeitszeit (Std : Min)</label>
@@ -1160,7 +1334,7 @@
 
             <div class="settings-group color-wheel-container">
                 <label>Farbharmonie</label>
-                <canvas id="colorWheel" width="175" height="175"></canvas>
+                <canvas id="colorWheel" width="165" height="165"></canvas>
                 <div class="color-preview">
                     <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
                     <div class="color-dot dot-2" title="Primär (Buttons)"></div>
@@ -1186,17 +1360,26 @@
                 </div>
             </div>
 
+            <div class="version-update-bar">
+                <span id="app-version-label" style="font-weight:bold;">Version 1.05</span>
+                <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
+            </div>
+
             <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
         </div>
     </div>
 
     <script>
+        const APP_VERSION = "1.05";
+
         document.addEventListener("DOMContentLoaded", () => {
             const format2 = (val) => String(val).padStart(2, '0');
             const getTodayStr = () => {
                 const now = new Date();
                 return `${now.getFullYear()}-${format2(now.getMonth() + 1)}-${format2(now.getDate())}`;
             };
+
+            document.getElementById("app-version-label").textContent = `Version ${APP_VERSION}`;
 
             // --- Live-Uhr & Wochentag im Kopfbereich ---
             const liveTimeEl = document.getElementById("live-clock-time");
@@ -1221,7 +1404,7 @@
                 return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
-            // --- HSL zu HEX für Live-Anpassung der Android-Systemleiste ---
+            // --- HSL zu HEX für Live-Anpassung der oberen & unteren Android-Leiste ---
             function hslToHex(h, s, l) {
                 h = ((h % 360) + 360) % 360;
                 s /= 100;
@@ -1243,6 +1426,10 @@
                 const bgHex = hslToHex(hue + spread, 50, 95);
                 if (metaThemeColor) {
                     metaThemeColor.setAttribute("content", bgHex);
+                }
+                document.documentElement.style.backgroundColor = bgHex;
+                if (document.body) {
+                    document.body.style.backgroundColor = bgHex;
                 }
             }
 
@@ -1282,6 +1469,8 @@
             const toggleViewBtn = document.getElementById("btn-toggle-view");
             const iconViewWeek = document.getElementById("icon-view-week");
             const iconViewClock = document.getElementById("icon-view-clock");
+            const btnJumpToday = document.getElementById("btn-jump-today");
+            const weekDatePicker = document.getElementById("week-date-picker");
             let weekOffset = 0;
 
             function playViewAnim(el, animClass) {
@@ -1328,16 +1517,34 @@
                 buildWeekView(delta > 0 ? "next" : "prev");
             }
 
-            document.getElementById("btn-prev-week").addEventListener("click", () => changeWeek(-1));
-            document.getElementById("btn-next-week").addEventListener("click", () => changeWeek(1));
-            document.getElementById("week-kw-badge").addEventListener("click", () => {
+            function jumpToCurrentWeek() {
                 if (weekOffset === 0) return;
                 const dir = weekOffset > 0 ? "prev" : "next";
                 weekOffset = 0;
                 buildWeekView(dir);
+            }
+
+            document.getElementById("btn-prev-week").addEventListener("click", () => changeWeek(-1));
+            document.getElementById("btn-next-week").addEventListener("click", () => changeWeek(1));
+            document.getElementById("week-kw-badge").addEventListener("click", jumpToCurrentWeek);
+            btnJumpToday.addEventListener("click", jumpToCurrentWeek);
+
+            weekDatePicker.addEventListener("change", () => {
+                if (!weekDatePicker.value) return;
+                const parts = weekDatePicker.value.split("-").map(Number);
+                const targetDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                const todayMonday = getMonday(new Date());
+                const targetMonday = getMonday(targetDate);
+                todayMonday.setHours(12, 0, 0, 0);
+                targetMonday.setHours(12, 0, 0, 0);
+                const diffWeeks = Math.round((targetMonday - todayMonday) / (7 * 86400000));
+                const dir = diffWeeks > weekOffset ? "next" : (diffWeeks < weekOffset ? "prev" : null);
+                weekOffset = diffWeeks;
+                buildWeekView(dir);
             });
 
-            // --- Einstellungen, Farben, Raucher-Modus & Gesten-Schalter ---
+            // --- Einstellungen, Name, Farben, Raucher-Modus & Gesten-Schalter ---
+            let userName = localStorage.getItem("userName") || "";
             let appHue = parseInt(localStorage.getItem("appHue"));
             if (isNaN(appHue)) appHue = 195;
 
@@ -1366,8 +1573,10 @@
             
             applyThemeColors(appHue, appLightness, appSpread);
 
+            const userNameInput = document.getElementById("userNameInput");
             const sollHoursInput = document.getElementById("sollHours");
             const sollMinutesInput = document.getElementById("sollMinutes");
+            userNameInput.value = userName;
             sollHoursInput.value = sollHours;
             sollMinutesInput.value = sollMinutes;
 
@@ -1513,6 +1722,7 @@
 
             const settingsModal = document.getElementById("settings-modal");
             function openSettings() {
+                userNameInput.value = userName;
                 settingsModal.classList.add("active");
                 drawColorWheel();
             }
@@ -1521,6 +1731,7 @@
 
             function closeSettings() {
                 settingsModal.classList.remove("active");
+                userName = userNameInput.value.trim();
                 sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value) || 0));
                 sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value) || 0));
                 sollHoursInput.value = sollHours;
@@ -1532,6 +1743,7 @@
 
                 gesturesEnabled = gesturesEnabledCheck.checked;
                 
+                localStorage.setItem("userName", userName);
                 localStorage.setItem("sollHours", sollHours);
                 localStorage.setItem("sollMinutes", sollMinutes);
                 localStorage.setItem("isSmoker", isSmoker);
@@ -1551,6 +1763,32 @@
 
             document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
             document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
+
+            // --- Update erzwingen (Service Worker & Cache leeren, localStorage behalten) ---
+            document.getElementById("btn-force-update").addEventListener("click", async () => {
+                const btn = document.getElementById("btn-force-update");
+                btn.textContent = "Suche...";
+                btn.disabled = true;
+
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (const reg of registrations) {
+                            await reg.update();
+                        }
+                    }
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    }
+                } catch (err) {
+                    console.warn("Update-Check Hinweis:", err);
+                }
+
+                // Cache-Busting Reload ohne Verlust der gespeicherten Zeiten
+                const baseUrl = window.location.href.split('?')[0];
+                window.location.replace(`${baseUrl}?v=${Date.now()}`);
+            });
 
             // --- Zeit-Inputs ([K][hh][mm] & [G][hh][mm]), Sekundengenauigkeit & Undo-Stapel ---
             const startHoursInput = document.getElementById("startHours");
@@ -1859,15 +2097,20 @@
                 return todaySmokeCount * smokeMinutesPerBreak * 60;
             }
 
-            function calcNetWorkSecs(totalPresSecs, smokeSecs) {
+            function getDeductionDetails(totalPresSecs, smokeSecs) {
                 let legalPauseSecs = 0;
-                if (totalPresSecs >= 35100) {      // >= 09:45:00 Gesamtanwesenheit -> 45 Min Pause
+                if (totalPresSecs >= 35100) {
                     legalPauseSecs = 45 * 60;
-                } else if (totalPresSecs >= 23400) { // >= 06:30:00 Gesamtanwesenheit -> 30 Min Pause
+                } else if (totalPresSecs >= 23400) {
                     legalPauseSecs = 30 * 60;
                 }
                 const totalDeductSecs = Math.max(legalPauseSecs, smokeSecs);
-                return Math.max(0, totalPresSecs - totalDeductSecs);
+                const netSecs = Math.max(0, totalPresSecs - totalDeductSecs);
+                return { netSecs, totalDeductSecs };
+            }
+
+            function calcNetWorkSecs(totalPresSecs, smokeSecs) {
+                return getDeductionDetails(totalPresSecs, smokeSecs).netSecs;
             }
 
             function calculateAllTimes() {
@@ -1978,8 +2221,8 @@
                 return new Date(d.setDate(diff));
             }
 
-            function calcWorkedSecsFromDay(saved) {
-                if (!saved) return 0;
+            function getDayBreakdown(saved) {
+                if (!saved) return { presSecs: 0, deductSecs: 0, netSecs: 0 };
                 let totalPresSecs = 0;
 
                 if (saved.customPresSecs && saved.customPresSecs > 0) {
@@ -1989,17 +2232,22 @@
                     const sm = parseInt(saved.startM, 10) || 0;
                     const eh = parseInt(saved.endH, 10);
                     const em = parseInt(saved.endM, 10) || 0;
-                    if (isNaN(sh) || isNaN(eh)) return 0;
+                    if (isNaN(sh) || isNaN(eh)) return { presSecs: 0, deductSecs: 0, netSecs: 0 };
                     const sSecs = sh * 3600 + sm * 60;
                     const eSecs = eh * 3600 + em * 60;
-                    if (eSecs <= sSecs) return 0;
+                    if (eSecs <= sSecs) return { presSecs: 0, deductSecs: 0, netSecs: 0 };
                     totalPresSecs = eSecs - sSecs;
                 } else {
-                    return 0;
+                    return { presSecs: 0, deductSecs: 0, netSecs: 0 };
                 }
 
                 const smokeSecs = (saved.smokeTotalMins || 0) * 60;
-                return calcNetWorkSecs(totalPresSecs, smokeSecs);
+                const { netSecs, totalDeductSecs } = getDeductionDetails(totalPresSecs, smokeSecs);
+                return { presSecs: totalPresSecs, deductSecs: totalDeductSecs, netSecs };
+            }
+
+            function calcWorkedSecsFromDay(saved) {
+                return getDayBreakdown(saved).netSecs;
             }
 
             const statusLabels = {
@@ -2077,7 +2325,6 @@
             function renderDayEditor() {
                 if (!editingDraft) return;
 
-                // Status-Chips markieren
                 document.querySelectorAll("#day-status-chips .day-status-chip").forEach(chip => {
                     chip.classList.toggle("selected", chip.getAttribute("data-status") === editingDraft.status);
                 });
@@ -2147,7 +2394,6 @@
                     dayEditorBlocksList.appendChild(card);
                 });
 
-                // Block löschen
                 dayEditorBlocksList.querySelectorAll("[data-del-idx]").forEach(btn => {
                     btn.addEventListener("click", (e) => {
                         const i = parseInt(e.target.getAttribute("data-del-idx"), 10);
@@ -2156,7 +2402,6 @@
                     });
                 });
 
-                // Nudge Buttons (-5 / -1 / +1 / +5 Min)
                 dayEditorBlocksList.querySelectorAll(".nudge-btn").forEach(btn => {
                     btn.addEventListener("click", (e) => {
                         const i = parseInt(e.target.getAttribute("data-idx"), 10);
@@ -2174,14 +2419,13 @@
                     });
                 });
 
-                // Auto-Sprung bei den großen hh:mm Feldern im Editor
                 dayEditorBlocksList.querySelectorAll(".editor-block-card").forEach((card, idx) => {
                     const shInp = card.querySelector(".ed-sh");
                     const smInp = card.querySelector(".ed-sm");
                     const ehInp = card.querySelector(".ed-eh");
                     const emInp = card.querySelector(".ed-em");
 
-                    const bindEdInput = (inp, nextInp, side, part) => {
+                    const bindEdInput = (inp, nextInp, side) => {
                         inp.addEventListener("focus", () => inp.select());
                         inp.addEventListener("input", () => {
                             if (inp.value.length > 2) inp.value = inp.value.slice(0, 2);
@@ -2214,10 +2458,10 @@
                         });
                     };
 
-                    bindEdInput(shInp, smInp, "start", "h");
-                    bindEdInput(smInp, ehInp, "start", "m");
-                    bindEdInput(ehInp, emInp, "end", "h");
-                    bindEdInput(emInp, null, "end", "m");
+                    bindEdInput(shInp, smInp, "start");
+                    bindEdInput(smInp, ehInp, "start");
+                    bindEdInput(ehInp, emInp, "end");
+                    bindEdInput(emInp, null, "end");
                 });
             }
 
@@ -2255,7 +2499,6 @@
             document.getElementById("btn-save-day-editor").addEventListener("click", () => {
                 if (!editingDateStr || !editingDraft) return;
 
-                // Bereinigte Sessions übernehmen
                 const validSessions = (editingDraft.sessions || []).filter(b => b.start && b.start.h !== "");
                 editingDraft.sessions = validSessions;
 
@@ -2283,7 +2526,6 @@
                 editingDraft.smokeTotalMins = (editingDraft.smokeCount || 0) * smokeMinutesPerBreak;
                 saveDayData(editingDateStr, editingDraft);
 
-                // Wenn Heute editiert wurde, Stempeluhr live aktualisieren
                 if (editingDateStr === getTodayStr()) {
                     pushUndoSnapshot();
                     todaySessions = JSON.parse(JSON.stringify(validSessions));
@@ -2316,9 +2558,13 @@
                     container.classList.add(animDir === "next" ? "anim-kw-next" : "anim-kw-prev");
                 }
 
+                btnJumpToday.classList.toggle("visible", weekOffset !== 0);
+
                 const todayStr = getTodayStr();
                 const refDate = new Date();
                 refDate.setDate(refDate.getDate() + (weekOffset * 7));
+
+                weekDatePicker.value = `${refDate.getFullYear()}-${format2(refDate.getMonth() + 1)}-${format2(refDate.getDate())}`;
 
                 const kwNum = getCalendarWeek(refDate);
                 const kwBadge = document.getElementById("week-kw-badge");
@@ -2413,14 +2659,221 @@
                 document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
             }
 
-            // --- Interaktive Finger-Folge-Animation beim Wischen (nur Stempeluhr <-> Wochenbilanz + KW hoch/runter in Woche) ---
+            // --- Monats-PDF Export (Direkter Download via jsPDF) ---
+            const pdfExportModal = document.getElementById("pdf-export-modal");
+            const pdfMonthSelect = document.getElementById("pdfMonthSelect");
+            const pdfUserNamePreview = document.getElementById("pdfUserNamePreview");
+
+            document.getElementById("btn-open-pdf-modal").addEventListener("click", () => {
+                const refDate = new Date();
+                refDate.setDate(refDate.getDate() + (weekOffset * 7));
+                pdfMonthSelect.value = `${refDate.getFullYear()}-${format2(refDate.getMonth() + 1)}`;
+                pdfUserNamePreview.value = userName;
+                pdfExportModal.classList.add("active");
+            });
+
+            document.getElementById("btn-close-pdf-modal").addEventListener("click", () => {
+                pdfExportModal.classList.remove("active");
+            });
+
+            document.getElementById("btn-download-month-pdf").addEventListener("click", () => {
+                if (!pdfMonthSelect.value) return;
+
+                // Name ggf. gleich mit speichern
+                const enteredName = pdfUserNamePreview.value.trim();
+                if (enteredName !== userName) {
+                    userName = enteredName;
+                    userNameInput.value = userName;
+                    localStorage.setItem("userName", userName);
+                }
+
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    alert("PDF-Bibliothek konnte offline nicht geladen werden. Bitte einmal kurz mit Internet öffnen.");
+                    return;
+                }
+
+                const [yearNum, monthNum] = pdfMonthSelect.value.split("-").map(Number);
+                const monthNames = [
+                    "Januar", "Februar", "März", "April", "Mai", "Juni",
+                    "Juli", "August", "September", "Oktober", "November", "Dezember"
+                ];
+                const dayShortNames = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+                const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+                const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+                // Kopfbereich
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(16);
+                doc.text(`Arbeitszeitnachweis – ${monthNames[monthNum - 1]} ${yearNum}`, 14, 17);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                const displayName = userName || "__________________________";
+                doc.text(`Mitarbeiter: ${displayName}`, 14, 24);
+                doc.text(`Tagessoll (Mo–Fr): ${format2(sollHours)}:${format2(sollMinutes)} h`, 135, 24);
+
+                doc.setDrawColor(120, 120, 120);
+                doc.setLineWidth(0.3);
+                doc.line(14, 27, 196, 27);
+
+                // Tabellenkopf
+                let y = 33;
+                const rowH = 6.2;
+                const cols = [
+                    { label: "Datum", x: 15 },
+                    { label: "Tag", x: 36 },
+                    { label: "Status", x: 48 },
+                    { label: "Kommen", x: 78 },
+                    { label: "Gehen", x: 98 },
+                    { label: "Pause", x: 118 },
+                    { label: "Ist (Std)", x: 142 },
+                    { label: "Saldo", x: 168 }
+                ];
+
+                doc.setFillColor(235, 240, 245);
+                doc.rect(14, y - 4.3, 182, rowH, "F");
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.8);
+                cols.forEach(c => doc.text(c.label, c.x, y));
+                y += rowH;
+
+                const fmtSignedHM = (secs) => {
+                    const sign = secs < 0 ? "-" : "+";
+                    const a = Math.abs(secs);
+                    const h = Math.floor(a / 3600);
+                    const m = Math.floor((a % 3600) / 60);
+                    return `${sign}${format2(h)}:${format2(m)}`;
+                };
+                const fmtHM = (secs) => {
+                    const a = Math.abs(secs);
+                    const h = Math.floor(a / 3600);
+                    const m = Math.floor((a % 3600) / 60);
+                    return `${format2(h)}:${format2(m)}`;
+                };
+
+                let monthSollSecs = 0;
+                let monthCreditedSecs = 0;
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8.5);
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dt = new Date(yearNum, monthNum - 1, d);
+                    const dow = dt.getDay(); // 0=So, 6=Sa
+                    const isWeekend = (dow === 0 || dow === 6);
+                    const dateStr = `${yearNum}-${format2(monthNum)}-${format2(d)}`;
+                    const dateDe = `${format2(d)}.${format2(monthNum)}.${yearNum}`;
+                    const holidayName = getHolidayName(dateStr);
+
+                    const rawSaved = localStorage.getItem("day_" + dateStr);
+                    const defaultStatus = holidayName ? "holiday" : (isWeekend ? "free" : "work");
+                    const saved = getDayData(dateStr) || {
+                        status: defaultStatus,
+                        startH: "", startM: "", endH: "", endM: ""
+                    };
+                    if (holidayName && !rawSaved) {
+                        saved.status = "holiday";
+                    }
+
+                    // Zebra / Wochenend-Hintergrund
+                    if (isWeekend) {
+                        doc.setFillColor(246, 246, 246);
+                        doc.rect(14, y - 4.3, 182, rowH, "F");
+                    }
+
+                    const daySoll = isWeekend ? 0 : sollSecsPerDay;
+                    monthSollSecs += daySoll;
+
+                    let statusText = statusLabels[saved.status] || "Arbeit";
+                    if (saved.status === "holiday" && holidayName) {
+                        statusText = holidayName.length > 15 ? holidayName.slice(0, 14) + "." : holidayName;
+                    }
+
+                    let startTxt = "-";
+                    let endTxt = "-";
+                    let pauseTxt = "-";
+                    let istTxt = "00:00";
+                    let dayCredited = 0;
+
+                    if (saved.status === "work") {
+                        const hasS = saved.startH !== "" && saved.startH !== undefined;
+                        const hasE = saved.endH !== "" && saved.endH !== undefined;
+                        if (hasS) startTxt = `${saved.startH}:${saved.startM || "00"}`;
+                        if (hasE) endTxt = `${saved.endH}:${saved.endM || "00"}`;
+                        if (saved.sessions && saved.sessions.length > 1) {
+                            endTxt += ` (${saved.sessions.length}×)`;
+                        }
+
+                        const breakdown = getDayBreakdown(saved);
+                        if (breakdown.presSecs > 0) {
+                            pauseTxt = `${Math.round(breakdown.deductSecs / 60)} min`;
+                            istTxt = fmtHM(breakdown.netSecs);
+                            dayCredited = breakdown.netSecs;
+                        }
+                    } else if (saved.status === "vacation" || saved.status === "sick" || saved.status === "holiday") {
+                        dayCredited = daySoll;
+                        istTxt = fmtHM(dayCredited);
+                    }
+
+                    monthCreditedSecs += dayCredited;
+                    const daySaldo = dayCredited - daySoll;
+                    const saldoTxt = (daySoll === 0 && dayCredited === 0) ? "-" : fmtSignedHM(daySaldo);
+
+                    doc.text(dateDe, cols[0].x, y);
+                    doc.text(dayShortNames[dow], cols[1].x, y);
+                    doc.text(statusText, cols[2].x, y);
+                    doc.text(startTxt, cols[3].x, y);
+                    doc.text(endTxt, cols[4].x, y);
+                    doc.text(pauseTxt, cols[5].x, y);
+                    doc.text(istTxt, cols[6].x, y);
+                    doc.text(saldoTxt, cols[7].x, y);
+
+                    doc.setDrawColor(225, 225, 225);
+                    doc.line(14, y + 1.5, 196, y + 1.5);
+                    y += rowH;
+                }
+
+                // Summenzeile
+                y += 2;
+                const monthSaldoSecs = monthCreditedSecs - monthSollSecs;
+                const monthDec = (monthCreditedSecs / 3600).toFixed(2).replace(".", ",");
+                const saldoDec = (monthSaldoSecs / 3600).toFixed(2).replace(".", ",");
+
+                doc.setFillColor(235, 240, 245);
+                doc.rect(14, y - 4.5, 182, 8, "F");
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9.5);
+                doc.text(`Monatssumme:   Soll: ${fmtHM(monthSollSecs)} h   |   Ist: ${fmtHM(monthCreditedSecs)} h (${monthDec} dez.)   |   Saldo: ${fmtSignedHM(monthSaldoSecs)} h (${saldoDec})`, 16, y + 0.5);
+
+                // Unterschriftszeile
+                y += 16;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.line(14, y, 85, y);
+                doc.text("Datum, Unterschrift Mitarbeiter", 14, y + 4.5);
+
+                doc.line(120, y, 196, y);
+                doc.text("Datum, Unterschrift Vorgesetzter", 120, y + 4.5);
+
+                const safeName = (userName || "Stundenzettel").replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, "_");
+                const fileName = `Stundenzettel_${yearNum}-${format2(monthNum)}_${safeName}.pdf`;
+                doc.save(fileName);
+                pdfExportModal.classList.remove("active");
+            });
+
+            // --- Interaktive Finger-Folge-Animation beim Wischen ---
             let touchStartX = 0;
             let touchStartY = 0;
             let touchBlocked = false;
-            let gestureAxis = null; // 'x' oder 'y'
+            let gestureAxis = null;
 
             document.addEventListener("touchstart", (e) => {
-                const anyModalOpen = settingsModal.classList.contains("active") || dayEditorModal.classList.contains("active");
+                const anyModalOpen = settingsModal.classList.contains("active")
+                    || dayEditorModal.classList.contains("active")
+                    || pdfExportModal.classList.contains("active");
                 if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1) {
                     touchBlocked = true;
                     return;
@@ -2452,11 +2905,10 @@
                 const isWeekActive = viewWeek.classList.contains("active");
 
                 if (gestureAxis === 'x') {
-                    // Live-Mitziehen der aktiven Ansicht in erlaubter Richtung
                     const activeEl = isClockActive ? viewClock : viewWeek;
                     let allowedDx = 0;
-                    if (isClockActive && dx < 0) allowedDx = dx; // links -> Woche
-                    if (isWeekActive && dx > 0) allowedDx = dx;  // rechts -> Uhr
+                    if (isClockActive && dx < 0) allowedDx = dx;
+                    if (isWeekActive && dx > 0) allowedDx = dx;
 
                     if (allowedDx !== 0) {
                         const dampedX = Math.max(-130, Math.min(130, allowedDx * 0.65));
@@ -2466,7 +2918,6 @@
                         activeEl.style.opacity = String(fade);
                     }
                 } else if (gestureAxis === 'y' && isWeekActive) {
-                    // Nur in Wochenbilanz: vertikales Ziehen abfangen, damit Seite nicht mitscrollt
                     if (e.cancelable) e.preventDefault();
                     const listCard = document.getElementById("week-days-container");
                     if (listCard) {
