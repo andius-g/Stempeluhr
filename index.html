@@ -1,10 +1,44 @@
 <!DOCTYPE html>
+<!-- =========================================================
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.07
+     ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" id="meta-theme-color" content="#edf7fa">
-    <title>Stempeluhr & Wochenübersicht</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" id="meta-theme-color" content="#f5f5f5">
+    <title>Stempeluhr & Wochenübersicht (v1.07)</title>
+
+    <script>
+        const APP_VERSION = "1.07";
+        // Farben sofort vor dem ersten Rendern aus localStorage laden (verhindert blauen Farbstich)
+        (function() {
+            function hslToHexInit(h, s, l) {
+                h = ((h % 360) + 360) % 360;
+                s /= 100; l /= 100;
+                const a = s * Math.min(l, 1 - l);
+                const f = n => {
+                    const k = (n + h / 30) % 12;
+                    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                    return Math.round(255 * color).toString(16).padStart(2, '0');
+                };
+                return `#${f(0)}${f(8)}${f(4)}`;
+            }
+            const h = parseInt(localStorage.getItem("appHue"), 10);
+            const l = parseInt(localStorage.getItem("appLightness"), 10);
+            const sp = parseInt(localStorage.getItem("appSpread"), 10);
+            const hue = isNaN(h) ? 195 : h;
+            const light = isNaN(l) ? 50 : l;
+            const spread = isNaN(sp) ? 120 : sp;
+            const bgHex = hslToHexInit(hue + spread, 50, 95);
+            document.documentElement.style.setProperty('--hue', hue);
+            document.documentElement.style.setProperty('--lightness', light + '%');
+            document.documentElement.style.setProperty('--spread', spread);
+            document.documentElement.style.backgroundColor = bgHex;
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) meta.setAttribute("content", bgHex);
+        })();
+    </script>
     
     <!-- PWA Meta-Tags -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -12,7 +46,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
     <!-- Verknüpfungen -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
     
@@ -38,21 +72,26 @@
             box-sizing: border-box;
         }
 
-        html, body {
-            overscroll-behavior-y: none;
+        html {
+            min-height: 100%;
             background-color: var(--bg-color);
+            overscroll-behavior-y: none;
             transition: background-color 0.3s;
         }
 
         body {
             font-family: Arial, sans-serif;
             color: var(--text-color);
+            background-color: var(--bg-color);
             display: flex;
             align-items: flex-start;
             justify-content: center;
+            min-height: 100vh;
             min-height: 100dvh;
-            padding: 14px 18px 20px;
+            padding: calc(14px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
             overflow-x: hidden;
+            overscroll-behavior-y: none;
+            transition: background-color 0.3s;
         }
 
         .container {
@@ -372,7 +411,7 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        input[type="text"], input[type="number"], input[type="month"] {
+        input[type="text"], input[type="number"], input[type="month"], input[type="date"] {
             width: 54px;
             padding: 10px 2px;
             font-size: 1.12em;
@@ -384,7 +423,7 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus, input[type="month"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus, input[type="month"]:focus, input[type="date"]:focus {
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 8px rgba(0,0,0,0.12);
@@ -578,7 +617,7 @@
             border-radius: 10px;
             border: 1px solid var(--border-color);
             overflow: hidden;
-            margin-bottom: 14px;
+            margin-bottom: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
@@ -666,6 +705,28 @@
             opacity: 0.72;
         }
 
+        .btn-add-day-entry {
+            width: 100%;
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1.5px dashed var(--primary-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 0.89em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform 0.15s, background-color 0.15s;
+        }
+        .btn-add-day-entry:active {
+            transform: scale(0.98);
+            background: var(--bg-color);
+        }
+
         .balance-sub {
             font-size: 0.74em !important;
             font-weight: normal !important;
@@ -695,7 +756,7 @@
             transform: scale(0.97);
         }
 
-        /* --- MODALS (Einstellungen, PDF-Export & Großer Tages-Editor) --- */
+        /* --- MODALS (Einstellungen, PDF-Export, Tag nachtragen & Großer Tages-Editor) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -739,6 +800,31 @@
             font-size: 1.65em; color: var(--text-color);
             cursor: pointer;
             line-height: 1;
+        }
+
+        /* Quick-Wochenend-Buttons im Nachtragen-Dialog */
+        .weekend-quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .btn-weekend-quick {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 8px;
+            font-weight: bold;
+            font-size: 0.88em;
+            cursor: pointer;
+            text-align: center;
+            line-height: 1.25;
+        }
+        .btn-weekend-quick:active {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
         }
 
         /* Großer Tages-Editor Styles */
@@ -1217,6 +1303,11 @@
                         <!-- Mo-Fr immer sichtbar; Sa & So erscheinen automatisch sobald Zeiten gebucht wurden -->
                     </div>
 
+                    <!-- Button zum direkten Nachtragen eines beliebigen Tages (inkl. Sa / So) -->
+                    <button type="button" class="btn-add-day-entry" id="btn-open-backfill-modal">
+                        <span>+ Tag / Wochenende nachtragen</span>
+                    </button>
+
                     <div class="output-decimal-container">
                         <div class="output-decimal">
                             <h3>Geleistet (Ist)</h3>
@@ -1241,6 +1332,29 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tag / Wochenende nachtragen -->
+    <div class="modal-overlay" id="backfill-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="btn-close-backfill-modal">&times;</button>
+            <h2>Tag nachtragen</h2>
+
+            <div class="settings-group">
+                <label>Wochenende der angezeigten KW:</label>
+                <div class="weekend-quick-grid">
+                    <button type="button" class="btn-weekend-quick" id="btn-quick-sat">Samstag<br><span id="quick-sat-date" style="font-weight:normal; font-size:0.86em;">--.--.</span></button>
+                    <button type="button" class="btn-weekend-quick" id="btn-quick-sun">Sonntag<br><span id="quick-sun-date" style="font-weight:normal; font-size:0.86em;">--.--.</span></button>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label for="backfillDateInput">Oder beliebiges Datum wählen:</label>
+                <input type="date" id="backfillDateInput" class="text-input-full">
+            </div>
+
+            <button class="settings-save" id="btn-confirm-backfill">Zeiten für diesen Tag eintragen</button>
         </div>
     </div>
 
@@ -1379,7 +1493,7 @@
             </div>
 
             <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.06</span>
+                <span id="app-version-label" style="font-weight:bold;">Version 1.07</span>
                 <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
             </div>
 
@@ -1388,8 +1502,6 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.06";
-
         document.addEventListener("DOMContentLoaded", () => {
             const format2 = (val) => String(val).padStart(2, '0');
             const getTodayStr = () => {
@@ -1422,7 +1534,7 @@
                 return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
-            // --- HSL zu HEX für Live-Anpassung der oberen & unteren Android-Leiste ---
+            // --- HSL zu HEX & dynamisches Manifest/Theme-Color für obere & untere Android-Leiste ---
             function hslToHex(h, s, l) {
                 h = ((h % 360) + 360) % 360;
                 s /= 100;
@@ -1434,6 +1546,30 @@
                     return Math.round(255 * color).toString(16).padStart(2, '0');
                 };
                 return `#${f(0)}${f(8)}${f(4)}`;
+            }
+
+            let dynamicManifestUrl = null;
+            function updateDynamicManifest(bgHex) {
+                try {
+                    const baseHref = new URL(".", window.location.href).href;
+                    const manifestObj = {
+                        name: "Stempeluhr",
+                        short_name: "Stempeluhr",
+                        start_url: baseHref,
+                        display: "standalone",
+                        background_color: bgHex,
+                        theme_color: bgHex,
+                        icons: [
+                            { src: baseHref + "favicon.png", sizes: "192x192", type: "image/png" },
+                            { src: baseHref + "favicon.png", sizes: "512x512", type: "image/png" }
+                        ]
+                    };
+                    const blob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+                    if (dynamicManifestUrl) URL.revokeObjectURL(dynamicManifestUrl);
+                    dynamicManifestUrl = URL.createObjectURL(blob);
+                    const linkEl = document.getElementById("app-manifest-link");
+                    if (linkEl) linkEl.setAttribute("href", dynamicManifestUrl);
+                } catch (e) {}
             }
 
             const metaThemeColor = document.getElementById("meta-theme-color");
@@ -1449,6 +1585,7 @@
                 if (document.body) {
                     document.body.style.backgroundColor = bgHex;
                 }
+                updateDynamicManifest(bgHex);
             }
 
             // --- Feiertags-Logik Niedersachsen (2026-2028) ---
@@ -1553,14 +1690,9 @@
                 buildWeekView(dir);
             }
 
-            document.getElementById("btn-prev-week").addEventListener("click", () => changeWeek(-1));
-            document.getElementById("btn-next-week").addEventListener("click", () => changeWeek(1));
-            document.getElementById("week-kw-badge").addEventListener("click", jumpToCurrentWeek);
-            btnJumpToday.addEventListener("click", jumpToCurrentWeek);
-
-            weekDatePicker.addEventListener("change", () => {
-                if (!weekDatePicker.value) return;
-                const parts = weekDatePicker.value.split("-").map(Number);
+            function jumpToDateStr(dateStr) {
+                if (!dateStr) return;
+                const parts = dateStr.split("-").map(Number);
                 const targetDate = new Date(parts[0], parts[1] - 1, parts[2]);
                 const todayMonday = getMonday(new Date());
                 const targetMonday = getMonday(targetDate);
@@ -1570,6 +1702,15 @@
                 const dir = diffWeeks > weekOffset ? "next" : (diffWeeks < weekOffset ? "prev" : null);
                 weekOffset = diffWeeks;
                 buildWeekView(dir);
+            }
+
+            document.getElementById("btn-prev-week").addEventListener("click", () => changeWeek(-1));
+            document.getElementById("btn-next-week").addEventListener("click", () => changeWeek(1));
+            document.getElementById("week-kw-badge").addEventListener("click", jumpToCurrentWeek);
+            btnJumpToday.addEventListener("click", jumpToCurrentWeek);
+
+            weekDatePicker.addEventListener("change", () => {
+                jumpToDateStr(weekDatePicker.value);
             });
 
             // --- Einstellungen, Name, Farben, Raucher-Modus & Gesten-Schalter ---
@@ -1974,7 +2115,6 @@
                     localStorage.removeItem("savedTodaySessions");
                 }
 
-                // Falls gar nichts mehr gespeichert ist und es Wochenende ist, Tag sauber entfernen
                 const dow = new Date().getDay();
                 const isWeekendToday = (dow === 0 || dow === 6);
                 if (todaySessions.length === 0 && todaySmokeCount === 0 && isWeekendToday) {
@@ -2294,6 +2434,68 @@
                 free: "Frei"
             };
 
+            const dayFullNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+
+            // Hilfsfunktion: Öffnet direkt den Editor für ein beliebiges Datum (YYYY-MM-DD)
+            function openEditorForAnyDate(dateStr) {
+                if (!dateStr) return;
+                jumpToDateStr(dateStr);
+                const parts = dateStr.split("-").map(Number);
+                const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+                const dowIdx = (dt.getDay() + 6) % 7; // 0=Mo ... 6=So
+                const dateShort = `${format2(dt.getDate())}.${format2(dt.getMonth() + 1)}.`;
+                // Beim Nachtragen eines ungebuchten Tages direkt "work" (Arbeit) anbieten
+                openDayEditor(dateStr, `${dayFullNames[dowIdx]}, ${dateShort}${dt.getFullYear()}`, "work");
+            }
+
+            // --- Modal: Tag / Wochenende nachtragen ---
+            const backfillModal = document.getElementById("backfill-modal");
+            const backfillDateInput = document.getElementById("backfillDateInput");
+            const quickSatDateSpan = document.getElementById("quick-sat-date");
+            const quickSunDateSpan = document.getElementById("quick-sun-date");
+            let currentWeekSatStr = "";
+            let currentWeekSunStr = "";
+
+            document.getElementById("btn-open-backfill-modal").addEventListener("click", () => {
+                const refDate = new Date();
+                refDate.setDate(refDate.getDate() + (weekOffset * 7));
+                const monday = getMonday(refDate);
+
+                const satDate = new Date(monday);
+                satDate.setDate(monday.getDate() + 5);
+                currentWeekSatStr = `${satDate.getFullYear()}-${format2(satDate.getMonth() + 1)}-${format2(satDate.getDate())}`;
+                quickSatDateSpan.textContent = `${format2(satDate.getDate())}.${format2(satDate.getMonth() + 1)}.${satDate.getFullYear()}`;
+
+                const sunDate = new Date(monday);
+                sunDate.setDate(monday.getDate() + 6);
+                currentWeekSunStr = `${sunDate.getFullYear()}-${format2(sunDate.getMonth() + 1)}-${format2(sunDate.getDate())}`;
+                quickSunDateSpan.textContent = `${format2(sunDate.getDate())}.${format2(sunDate.getMonth() + 1)}.${sunDate.getFullYear()}`;
+
+                backfillDateInput.value = currentWeekSatStr;
+                backfillModal.classList.add("active");
+            });
+
+            document.getElementById("btn-close-backfill-modal").addEventListener("click", () => {
+                backfillModal.classList.remove("active");
+            });
+
+            document.getElementById("btn-quick-sat").addEventListener("click", () => {
+                backfillModal.classList.remove("active");
+                openEditorForAnyDate(currentWeekSatStr);
+            });
+
+            document.getElementById("btn-quick-sun").addEventListener("click", () => {
+                backfillModal.classList.remove("active");
+                openEditorForAnyDate(currentWeekSunStr);
+            });
+
+            document.getElementById("btn-confirm-backfill").addEventListener("click", () => {
+                if (!backfillDateInput.value) return;
+                const chosen = backfillDateInput.value;
+                backfillModal.classList.remove("active");
+                openEditorForAnyDate(chosen);
+            });
+
             // Tages-Editor State
             const dayEditorModal = document.getElementById("day-editor-modal");
             const dayEditorTitle = document.getElementById("day-editor-title");
@@ -2312,6 +2514,10 @@
                 const existing = getDayData(dateStr);
                 if (existing) {
                     editingDraft = JSON.parse(JSON.stringify(existing));
+                    // Falls ein Wochenendtag bisher nur als "free" ohne Zeiten angelegt war, beim Öffnen auf "work" schalten
+                    if (editingDraft.status === "free" && !hasWeekendBooking(editingDraft)) {
+                        editingDraft.status = "work";
+                    }
                 } else {
                     editingDraft = {
                         status: defaultStatus,
@@ -2582,7 +2788,6 @@
 
                 editingDraft.smokeTotalMins = (editingDraft.smokeCount || 0) * smokeMinutesPerBreak;
 
-                // Falls Wochenende und alles leer/frei, Eintrag entfernen statt leeres Objekt zu speichern
                 const parts = editingDateStr.split("-").map(Number);
                 const dow = new Date(parts[0], parts[1] - 1, parts[2]).getDay();
                 const isWeekend = (dow === 0 || dow === 6);
@@ -2642,7 +2847,6 @@
                 let totalCreditedSecs = 0;
 
                 const dayShort = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-                const dayFull = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 
                 for (let i = 0; i < 7; i++) {
                     const currDate = new Date(monday);
@@ -2702,7 +2906,7 @@
                     `;
 
                     row.addEventListener("click", () => {
-                        openDayEditor(dateStr, `${dayFull[i]}, ${dateShort}${currDate.getFullYear()}`, defaultStatus);
+                        openDayEditor(dateStr, `${dayFullNames[i]}, ${dateShort}${currDate.getFullYear()}`, defaultStatus);
                     });
 
                     container.appendChild(row);
@@ -2943,7 +3147,8 @@
             document.addEventListener("touchstart", (e) => {
                 const anyModalOpen = settingsModal.classList.contains("active")
                     || dayEditorModal.classList.contains("active")
-                    || pdfExportModal.classList.contains("active");
+                    || pdfExportModal.classList.contains("active")
+                    || backfillModal.classList.contains("active");
                 if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1) {
                     touchBlocked = true;
                     return;
