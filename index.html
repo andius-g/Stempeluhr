@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.09
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.10
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f5f5f5">
-    <title>Stempeluhr & Wochenübersicht (v1.09)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.10)</title>
 
     <script>
-        const APP_VERSION = "1.09";
+        const APP_VERSION = "1.10";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -468,6 +468,7 @@
         .output div, .output-decimal div {
             font-size: 1.26em;
             font-weight: bold;
+            font-variant-numeric: tabular-nums;
         }
 
         .section-divider {
@@ -557,6 +558,21 @@
 
         .output-decimal-container .output-decimal {
             flex: 1;
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #a8ffcf;
+            margin-right: 4px;
+            vertical-align: middle;
+            animation: livePulse 1.4s infinite ease-in-out;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.82); }
         }
 
         .sessions-box {
@@ -1359,11 +1375,11 @@
 
                     <div class="output-decimal-container">
                         <div class="output-decimal">
-                            <h3>Dezimal (h)</h3>
+                            <h3 id="label-decimal-time">Dezimal (h)</h3>
                             <div id="output-decimal-time">-</div>
                         </div>
                         <div class="output-decimal">
-                            <h3>+/-</h3>
+                            <h3 id="label-overtime">+/-</h3>
                             <div id="output-overtime">-</div>
                         </div>
                     </div>
@@ -1405,12 +1421,12 @@
 
                     <div class="output-decimal-container">
                         <div class="output-decimal">
-                            <h3>Geleistet (Ist)</h3>
+                            <h3 id="label-week-worked">Geleistet (Ist)</h3>
                             <div id="output-week-worked">-</div>
                             <div class="balance-sub" id="output-week-soll">von 40:00 h Soll</div>
                         </div>
                         <div class="output-decimal">
-                            <h3>Wochen-Saldo</h3>
+                            <h3 id="label-week-total">Wochen-Saldo</h3>
                             <div id="output-week-total">-</div>
                             <div class="balance-sub" id="output-week-decimal">0,00 h</div>
                         </div>
@@ -1589,7 +1605,7 @@
             </div>
 
             <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.09</span>
+                <span id="app-version-label" style="font-weight:bold;">Version 1.10</span>
                 <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
             </div>
 
@@ -1611,18 +1627,6 @@
             const liveDayEl = document.getElementById("live-clock-day");
             const bgHourWatermark = document.getElementById("bg-hour-watermark");
             const weekdaysFull = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-
-            function updateLiveClock() {
-                const now = new Date();
-                const hh = format2(now.getHours());
-                liveTimeEl.textContent = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
-                if (bgHourWatermark) bgHourWatermark.textContent = hh;
-                const dayName = weekdaysFull[now.getDay()];
-                const dateFormatted = `${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
-                liveDayEl.textContent = `${dayName}, ${dateFormatted}`;
-            }
-            updateLiveClock();
-            setInterval(updateLiveClock, 1000);
 
             function getCalendarWeek(date) {
                 const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -1753,6 +1757,7 @@
                 iconViewWeek.style.display = "block";
                 iconViewClock.style.display = "none";
                 toggleViewBtn.title = "Wochenbilanz";
+                calculateAllTimes();
             }
 
             function switchToWeekView() {
@@ -2145,12 +2150,20 @@
                 return `${format2(parseInt(t.h, 10))}:${format2(parseInt(t.m, 10) || 0)}:${format2(parseInt(t.s, 10) || 0)}`;
             }
 
-            function getSessionMetricsFromList(sessionsArr) {
+            function getNowSecsOfDay() {
+                const now = new Date();
+                return (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+            }
+
+            function getSessionMetricsFromList(sessionsArr, liveEndSecs = null) {
                 let totalPresSecs = 0;
                 let totalGapSecs = 0;
                 for (let i = 0; i < sessionsArr.length; i++) {
                     const sSecs = timeObjToSecs(sessionsArr[i].start);
-                    const eSecs = timeObjToSecs(sessionsArr[i].end);
+                    let eSecs = timeObjToSecs(sessionsArr[i].end);
+                    if (eSecs === null && liveEndSecs !== null && i === sessionsArr.length - 1) {
+                        eSecs = liveEndSecs;
+                    }
                     if (sSecs !== null && eSecs !== null && eSecs > sSecs) {
                         totalPresSecs += (eSecs - sSecs);
                     }
@@ -2164,8 +2177,8 @@
                 return { totalPresSecs, totalGapSecs };
             }
 
-            function getSessionMetrics() {
-                return getSessionMetricsFromList(todaySessions);
+            function getSessionMetrics(liveEndSecs = null) {
+                return getSessionMetricsFromList(todaySessions, liveEndSecs);
             }
 
             function renderSessionsBox() {
@@ -2176,7 +2189,8 @@
                 sessionsBox.style.display = "block";
                 sessionsList.innerHTML = "";
 
-                const { totalPresSecs, totalGapSecs } = getSessionMetrics();
+                const hasOpenLast = !todaySessions[todaySessions.length - 1].end;
+                const { totalPresSecs, totalGapSecs } = getSessionMetrics(hasOpenLast ? getNowSecsOfDay() : null);
                 const presH = Math.floor(totalPresSecs / 3600);
                 const presM = Math.floor((totalPresSecs % 3600) / 60);
                 sessionsPresSum.textContent = `Anwesenheit: ${format2(presH)}:${format2(presM)} h`;
@@ -2254,7 +2268,7 @@
                     return;
                 }
 
-                const { totalPresSecs } = getSessionMetrics();
+                const { totalPresSecs } = getSessionMetrics(null);
                 let currentDay = getDayData(todayStr) || { status: 'work' };
                 if (todaySessions.length > 0 && currentDay.status === 'free') {
                     currentDay.status = 'work';
@@ -2435,7 +2449,7 @@
                     return;
                 }
 
-                const { totalGapSecs } = getSessionMetrics();
+                const { totalGapSecs } = getSessionMetrics(null);
                 const startTime = new Date();
                 startTime.setHours(hours, minutes, seconds, 0);
 
@@ -2464,32 +2478,47 @@
                 const enH = parseInt(endHoursInput.value, 10);
                 const enM = parseInt(endMinutesInput.value, 10) || 0;
 
-                if (isNaN(stH) || isNaN(enH)) {
+                const labelDec = document.getElementById("label-decimal-time");
+                const labelOver = document.getElementById("label-overtime");
+
+                if (isNaN(stH)) {
+                    labelDec.textContent = "Dezimal (h)";
+                    labelOver.textContent = "+/-";
                     document.getElementById("output-decimal-time").textContent = "-";
                     document.getElementById("output-overtime").textContent = "-";
                     return;
                 }
 
+                const isLiveRunning = isNaN(enH);
                 const stS = (todaySessions.length > 0 && todaySessions[0].start)
                     ? (parseInt(todaySessions[0].start.s, 10) || 0)
                     : 0;
-                const lastSess = todaySessions[todaySessions.length - 1];
-                const enS = (lastSess && lastSess.end)
-                    ? (parseInt(lastSess.end.s, 10) || 0)
-                    : 0;
-
                 const startSecs = (stH * 3600) + (stM * 60) + stS;
-                const endSecs = (enH * 3600) + (enM * 60) + enS;
 
-                if (endSecs <= startSecs) {
-                    document.getElementById("output-decimal-time").textContent = "Ungültig";
+                let endSecs;
+                if (isLiveRunning) {
+                    endSecs = getNowSecsOfDay();
+                    labelDec.innerHTML = `<span class="live-dot"></span>Bisher (Dezimal)`;
+                    labelOver.innerHTML = `<span class="live-dot"></span>Bis Soll (+/-)`;
+                } else {
+                    const lastSess = todaySessions[todaySessions.length - 1];
+                    const enS = (lastSess && lastSess.end)
+                        ? (parseInt(lastSess.end.s, 10) || 0)
+                        : 0;
+                    endSecs = (enH * 3600) + (enM * 60) + enS;
+                    labelDec.textContent = "Dezimal (h)";
+                    labelOver.textContent = "+/-";
+                }
+
+                if (endSecs < startSecs) {
+                    document.getElementById("output-decimal-time").textContent = isLiveRunning ? "0.00" : "Ungültig";
                     document.getElementById("output-overtime").textContent = "-";
                     return;
                 }
 
                 let totalPresSecs = endSecs - startSecs;
                 if (todaySessions.length > 1) {
-                    const metrics = getSessionMetrics();
+                    const metrics = getSessionMetrics(isLiveRunning ? endSecs : null);
                     if (metrics.totalPresSecs > 0) {
                         totalPresSecs = metrics.totalPresSecs;
                     }
@@ -2522,33 +2551,53 @@
                 return new Date(d.setDate(diff));
             }
 
-            function getDayBreakdown(saved) {
-                if (!saved) return { presSecs: 0, deductSecs: 0, netSecs: 0 };
+            function getDayBreakdown(saved, liveEndSecs = null) {
+                if (!saved) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
                 let totalPresSecs = 0;
+                let isLive = false;
 
-                if (saved.customPresSecs && saved.customPresSecs > 0) {
+                if (Array.isArray(saved.sessions) && saved.sessions.length > 0) {
+                    const hasOpenLast = !saved.sessions[saved.sessions.length - 1].end || saved.sessions[saved.sessions.length - 1].end.h === "";
+                    if (hasOpenLast && liveEndSecs !== null) {
+                        isLive = true;
+                        totalPresSecs = getSessionMetricsFromList(saved.sessions, liveEndSecs).totalPresSecs;
+                    } else if (saved.customPresSecs && saved.customPresSecs > 0) {
+                        totalPresSecs = saved.customPresSecs;
+                    } else {
+                        totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
+                    }
+                } else if (saved.customPresSecs && saved.customPresSecs > 0) {
                     totalPresSecs = saved.customPresSecs;
-                } else if (saved.startH && saved.endH) {
+                } else if (saved.startH !== '' && saved.startH !== undefined) {
                     const sh = parseInt(saved.startH, 10);
                     const sm = parseInt(saved.startM, 10) || 0;
-                    const eh = parseInt(saved.endH, 10);
-                    const em = parseInt(saved.endM, 10) || 0;
-                    if (isNaN(sh) || isNaN(eh)) return { presSecs: 0, deductSecs: 0, netSecs: 0 };
+                    if (isNaN(sh)) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
                     const sSecs = sh * 3600 + sm * 60;
-                    const eSecs = eh * 3600 + em * 60;
-                    if (eSecs <= sSecs) return { presSecs: 0, deductSecs: 0, netSecs: 0 };
-                    totalPresSecs = eSecs - sSecs;
+
+                    if (saved.endH !== '' && saved.endH !== undefined) {
+                        const eh = parseInt(saved.endH, 10);
+                        const em = parseInt(saved.endM, 10) || 0;
+                        if (isNaN(eh)) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
+                        const eSecs = eh * 3600 + em * 60;
+                        if (eSecs <= sSecs) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
+                        totalPresSecs = eSecs - sSecs;
+                    } else if (liveEndSecs !== null && liveEndSecs > sSecs) {
+                        isLive = true;
+                        totalPresSecs = liveEndSecs - sSecs;
+                    } else {
+                        return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
+                    }
                 } else {
-                    return { presSecs: 0, deductSecs: 0, netSecs: 0 };
+                    return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
                 }
 
                 const smokeSecs = (saved.smokeTotalMins || 0) * 60;
                 const { netSecs, totalDeductSecs } = getDeductionDetails(totalPresSecs, smokeSecs);
-                return { presSecs: totalPresSecs, deductSecs: totalDeductSecs, netSecs };
+                return { presSecs: totalPresSecs, deductSecs: totalDeductSecs, netSecs, isLive };
             }
 
-            function calcWorkedSecsFromDay(saved) {
-                return getDayBreakdown(saved).netSecs;
+            function calcWorkedSecsFromDay(saved, liveEndSecs = null) {
+                return getDayBreakdown(saved, liveEndSecs).netSecs;
             }
 
             const statusLabels = {
@@ -2895,7 +2944,7 @@
                         editingDraft.endH = "";
                         editingDraft.endM = "";
                     }
-                    const { totalPresSecs } = getSessionMetricsFromList(validSessions);
+                    const { totalPresSecs } = getSessionMetricsFromList(validSessions, null);
                     editingDraft.customPresSecs = totalPresSecs > 0 ? totalPresSecs : null;
                 } else {
                     editingDraft.startH = "";
@@ -2938,6 +2987,64 @@
                 buildWeekView();
             });
 
+            let weekStaticCreditedSecs = 0;
+            let weekTotalSollSecs = 0;
+            let weekHasLiveToday = false;
+
+            function renderWeekSummaryLive() {
+                const todayStr = getTodayStr();
+                const nowSecs = getNowSecsOfDay();
+                let liveTodaySecs = 0;
+                let isLiveNow = false;
+
+                if (weekHasLiveToday) {
+                    const todaySaved = getDayData(todayStr);
+                    if (todaySaved && todaySaved.status === 'work') {
+                        const bd = getDayBreakdown(todaySaved, nowSecs);
+                        liveTodaySecs = bd.netSecs;
+                        isLiveNow = bd.isLive;
+                    }
+                }
+
+                const totalCreditedSecs = weekStaticCreditedSecs + liveTodaySecs;
+                const diffSecs = totalCreditedSecs - weekTotalSollSecs;
+                const sign = diffSecs < 0 ? "-" : "+";
+                const diffDec = (diffSecs / 3600).toFixed(2).replace('.', ',');
+
+                const fmtHM = (secs) => {
+                    const aSecs = Math.abs(secs);
+                    const h = Math.floor(aSecs / 3600);
+                    const m = Math.floor((aSecs % 3600) / 60);
+                    return `${format2(h)}:${format2(m)} h`;
+                };
+
+                const fmtHMS = (secs) => {
+                    const aSecs = Math.abs(secs);
+                    const h = Math.floor(aSecs / 3600);
+                    const m = Math.floor((aSecs % 3600) / 60);
+                    const s = aSecs % 60;
+                    return `${format2(h)}:${format2(m)}:${format2(s)}`;
+                };
+
+                const lblWorked = document.getElementById("label-week-worked");
+                const lblTotal = document.getElementById("label-week-total");
+
+                if (isLiveNow) {
+                    lblWorked.innerHTML = `<span class="live-dot"></span>Geleistet (Live)`;
+                    lblTotal.innerHTML = `<span class="live-dot"></span>Wochen-Saldo`;
+                    document.getElementById("output-week-worked").textContent = fmtHMS(totalCreditedSecs);
+                    document.getElementById("output-week-total").textContent = `${sign}${fmtHMS(diffSecs)}`;
+                } else {
+                    lblWorked.textContent = "Geleistet (Ist)";
+                    lblTotal.textContent = "Wochen-Saldo";
+                    document.getElementById("output-week-worked").textContent = fmtHM(totalCreditedSecs);
+                    document.getElementById("output-week-total").textContent = `${sign}${fmtHM(diffSecs)}`;
+                }
+
+                document.getElementById("output-week-soll").textContent = `von ${fmtHM(weekTotalSollSecs)} Soll`;
+                document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
+            }
+
             function buildWeekView(animDir) {
                 const container = document.getElementById("week-days-container");
                 container.innerHTML = "";
@@ -2962,8 +3069,9 @@
 
                 const monday = getMonday(refDate);
                 const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
-                const totalSollSecs = sollSecsPerDay * 5;
-                let totalCreditedSecs = 0;
+                weekTotalSollSecs = sollSecsPerDay * 5;
+                weekStaticCreditedSecs = 0;
+                weekHasLiveToday = false;
 
                 const dayShort = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
@@ -3030,27 +3138,17 @@
                     container.appendChild(row);
 
                     if (saved.status === 'work') {
-                        totalCreditedSecs += calcWorkedSecsFromDay(saved);
+                        if (dateStr === todayStr) {
+                            weekHasLiveToday = true;
+                        } else {
+                            weekStaticCreditedSecs += calcWorkedSecsFromDay(saved, null);
+                        }
                     } else if (saved.status === 'vacation' || saved.status === 'sick' || saved.status === 'holiday') {
-                        totalCreditedSecs += sollSecsPerDay;
+                        weekStaticCreditedSecs += sollSecsPerDay;
                     }
                 }
 
-                const fmtHM = (secs) => {
-                    const aSecs = Math.abs(secs);
-                    const h = Math.floor(aSecs / 3600);
-                    const m = Math.floor((aSecs % 3600) / 60);
-                    return `${format2(h)}:${format2(m)} h`;
-                };
-
-                const diffSecs = totalCreditedSecs - totalSollSecs;
-                const sign = diffSecs < 0 ? "-" : "+";
-                const diffDec = (diffSecs / 3600).toFixed(2).replace('.', ',');
-
-                document.getElementById("output-week-worked").textContent = fmtHM(totalCreditedSecs);
-                document.getElementById("output-week-soll").textContent = `von ${fmtHM(totalSollSecs)} Soll`;
-                document.getElementById("output-week-total").textContent = `${sign}${fmtHM(diffSecs)}`;
-                document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
+                renderWeekSummaryLive();
             }
 
             const pdfExportModal = document.getElementById("pdf-export-modal");
@@ -3196,7 +3294,7 @@
                             endTxt += ` (${saved.sessions.length}×)`;
                         }
 
-                        const breakdown = getDayBreakdown(saved);
+                        const breakdown = getDayBreakdown(saved, null);
                         if (breakdown.presSecs > 0) {
                             pauseTxt = `${Math.round(breakdown.deductSecs / 60)} min`;
                             istTxt = fmtHM(breakdown.netSecs);
@@ -3398,6 +3496,34 @@
                 localStorage.removeItem("savedTodaySessions");
                 localStorage.removeItem("savedStartTime");
             }
+
+            function tickLiveEngine() {
+                const now = new Date();
+                const hh = format2(now.getHours());
+                liveTimeEl.textContent = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                if (bgHourWatermark) bgHourWatermark.textContent = hh;
+                const dayName = weekdaysFull[now.getDay()];
+                const dateFormatted = `${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
+                liveDayEl.textContent = `${dayName}, ${dateFormatted}`;
+
+                if (viewClock.classList.contains("active")) {
+                    const hasOpenStart = startHoursInput.value !== "" && endHoursInput.value === "";
+                    if (hasOpenStart) {
+                        calculateWorkingTime();
+                        if (todaySessions.length > 1) {
+                            const { totalPresSecs } = getSessionMetrics(getNowSecsOfDay());
+                            const presH = Math.floor(totalPresSecs / 3600);
+                            const presM = Math.floor((totalPresSecs % 3600) / 60);
+                            sessionsPresSum.textContent = `Anwesenheit: ${format2(presH)}:${format2(presM)} h`;
+                        }
+                    }
+                } else if (viewWeek.classList.contains("active") && weekHasLiveToday) {
+                    renderWeekSummaryLive();
+                }
+            }
+
+            tickLiveEngine();
+            setInterval(tickLiveEngine, 1000);
         });
     </script>
     <script>
