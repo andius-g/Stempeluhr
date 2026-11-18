@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.15
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.16
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.15)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.16)</title>
 
     <script>
-        const APP_VERSION = "1.15";
+        const APP_VERSION = "1.16";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -52,9 +52,9 @@
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=116">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -163,7 +163,7 @@
         body {
             font-family: Arial, sans-serif;
             color: var(--text-color);
-            background-color: var(--bg-color);
+            background-color: transparent;
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -172,6 +172,17 @@
             padding: calc(14px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
             overflow-x: hidden;
             overscroll-behavior-y: none;
+        }
+
+        /* ECHTER EDGE-TO-EDGE HINTERGRUNDLAYER */
+        .edge-bg-layer {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100lvh;
+            background-color: var(--bg-color);
+            z-index: -1;
+            pointer-events: none;
             transition: background-color 0.3s;
         }
 
@@ -531,9 +542,6 @@
             z-index: 1;
         }
 
-        /* GESTAPELTER STEMPELBLOCK:
-           Zeile 1: Kommen über volle Breite
-           Zeile 2: Gehen (breit) + Rückgängig (kompakt rechts) */
         .stamp-btn-row {
             display: grid;
             grid-template-columns: 1fr 48px;
@@ -1666,6 +1674,8 @@
     </style>
 </head>
 <body>
+    <!-- Echter Edge-to-Edge Hintergrundlayer -->
+    <div class="edge-bg-layer" id="edge-bg-layer"></div>
 
     <!-- VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN) -->
     <section class="welcome-overlay" id="welcome-overlay" aria-label="Stempelbildschirm">
@@ -2021,7 +2031,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.15</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.16</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -2108,6 +2118,7 @@
             const liveTimeEl = document.getElementById("live-clock-time");
             const liveDayEl = document.getElementById("live-clock-day");
             const bgHourWatermark = document.getElementById("bg-hour-watermark");
+            const edgeBgLayer = document.getElementById("edge-bg-layer");
             const weekdaysFull = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
 
             function getCalendarWeek(date) {
@@ -2131,30 +2142,6 @@
                 return `#${f(0)}${f(8)}${f(4)}`;
             }
 
-            let dynamicManifestUrl = null;
-            function updateDynamicManifest(bgHex) {
-                try {
-                    const baseHref = new URL(".", window.location.href).href;
-                    const manifestObj = {
-                        name: "Stempeluhr & Wochenübersicht",
-                        short_name: "Stempeluhr",
-                        start_url: baseHref,
-                        display: "standalone",
-                        orientation: "portrait",
-                        background_color: bgHex,
-                        icons: [
-                            { src: baseHref + "favicon.png", sizes: "192x192", type: "image/png" },
-                            { src: baseHref + "favicon.png", sizes: "512x512", type: "image/png" }
-                        ]
-                    };
-                    const blob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
-                    if (dynamicManifestUrl) URL.revokeObjectURL(dynamicManifestUrl);
-                    dynamicManifestUrl = URL.createObjectURL(blob);
-                    const linkEl = document.getElementById("app-manifest-link");
-                    if (linkEl) linkEl.setAttribute("href", dynamicManifestUrl);
-                } catch (e) {}
-            }
-
             const metaThemeColor = document.getElementById("meta-theme-color");
             function applyThemeColors(hue, lightness, spread) {
                 document.documentElement.style.setProperty('--hue', hue);
@@ -2165,10 +2152,9 @@
                     metaThemeColor.setAttribute("content", bgHex);
                 }
                 document.documentElement.style.backgroundColor = bgHex;
-                if (document.body) {
-                    document.body.style.backgroundColor = bgHex;
+                if (edgeBgLayer) {
+                    edgeBgLayer.style.backgroundColor = bgHex;
                 }
-                updateDynamicManifest(bgHex);
             }
 
             function applyAsymIntensity(val) {
