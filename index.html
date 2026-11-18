@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.11
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.12
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#000000">
-    <title>Stempeluhr & Wochenübersicht (v1.11)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.12)</title>
 
     <script>
-        const APP_VERSION = "1.11";
+        const APP_VERSION = "1.12";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -176,108 +176,134 @@
         }
 
         /* =========================================================
-           MORGEN-STARTBILDSCHIRM (PIXEL OUTLINE LIVE-WALLPAPER)
+           MORGEN-STARTBILDSCHIRM (PIXEL SCRIBBLE SCATTER + MIKRO-ANIMATIONEN)
            ========================================================= */
         .welcome-overlay {
             position: fixed;
             inset: 0;
             z-index: 2000;
-            background: hsl(var(--hue), 44%, 24%);
+            background: hsl(var(--hue), 44%, 22%);
             color: #ffffff;
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: calc(28px + env(safe-area-inset-top)) 22px calc(30px + env(safe-area-inset-bottom));
+            padding: calc(34px + env(safe-area-inset-top)) 22px calc(32px + env(safe-area-inset-bottom));
             overflow: hidden;
-            touch-action: none;
             user-select: none;
         }
         .welcome-overlay.active {
             display: flex;
         }
 
-        .welcome-pattern-layer {
+        .welcome-scatter-field {
             position: absolute;
-            inset: -48px;
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 22px;
-            place-items: center;
-            opacity: 0.14;
-            pointer-events: none;
-            will-change: transform;
+            inset: 0;
+            overflow: hidden;
+            z-index: 1;
         }
 
-        .pixel-outline-glyph {
-            display: inline-block;
-            color: transparent;
-            -webkit-text-stroke: 1.7px #ffffff;
-            filter: grayscale(1) brightness(10);
-            line-height: 1;
-            user-select: none;
+        .scatter-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            padding: 10px;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .welcome-pattern-layer .pixel-outline-glyph {
-            font-size: 26px;
+        .scatter-rot-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(var(--base-rot, 0deg));
+        }
+
+        .scatter-anim-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform, opacity;
+        }
+
+        .scatter-anim-wrap svg {
+            width: var(--icon-size, 42px);
+            height: var(--icon-size, 42px);
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 2.3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: var(--icon-alpha, 0.34);
+            transition: opacity 0.25s;
+        }
+
+        .scatter-node.is-animating .scatter-anim-wrap svg {
+            opacity: 0.78;
+        }
+
+        @keyframes pixelIconSpin360 {
+            0% { transform: rotate(0deg) scale(1); }
+            22% { transform: rotate(-22deg) scale(0.92); }
+            72% { transform: rotate(382deg) scale(1.16); }
+            88% { transform: rotate(354deg) scale(0.98); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        @keyframes pixelIconPop {
+            0% { transform: scale(1) rotate(0deg); }
+            35% { transform: scale(1.32) rotate(12deg); }
+            65% { transform: scale(0.9) rotate(-8deg); }
+            85% { transform: scale(1.08) rotate(3deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes pixelIconWiggle {
+            0% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(-18deg) scale(1.12); }
+            45% { transform: rotate(16deg) scale(1.12); }
+            70% { transform: rotate(-10deg) scale(1.05); }
+            88% { transform: rotate(6deg) scale(1.02); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        .anim-pixel-spin {
+            animation: pixelIconSpin360 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .anim-pixel-pop {
+            animation: pixelIconPop 0.68s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .anim-pixel-wiggle {
+            animation: pixelIconWiggle 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .welcome-top-area {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             text-align: center;
-            margin-top: 8px;
+            margin-top: 10px;
             width: 100%;
             max-width: 390px;
-        }
-
-        .welcome-date-sub {
-            font-size: 0.92em;
-            opacity: 0.82;
-            letter-spacing: 0.4px;
-            margin-bottom: 6px;
-        }
-
-        .welcome-greeting {
-            font-size: 1.65em;
-            font-weight: bold;
-            line-height: 1.25;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-        }
-
-        .welcome-hero-stage {
-            position: relative;
-            z-index: 2;
-            width: 150px;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            perspective: 600px;
             pointer-events: none;
         }
 
-        .welcome-hero-badge {
-            width: 118px;
-            height: 118px;
-            border-radius: 34px;
-            background: rgba(0, 0, 0, 0.24);
-            border: 1.5px solid rgba(255, 255, 255, 0.24);
-            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            will-change: transform;
+        .welcome-date-sub {
+            font-size: 0.94em;
+            opacity: 0.88;
+            letter-spacing: 0.4px;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
         }
 
-        .welcome-hero-badge .pixel-outline-glyph {
-            font-size: 62px;
-            -webkit-text-stroke: 2.3px #ffffff;
+        .welcome-greeting {
+            font-size: 1.72em;
+            font-weight: bold;
+            line-height: 1.25;
+            text-shadow: 0 3px 14px rgba(0, 0, 0, 0.45);
         }
 
         .welcome-actions-stack {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             width: 100%;
             max-width: 390px;
             display: flex;
@@ -287,12 +313,12 @@
 
         .btn-welcome-come {
             width: 100%;
-            min-height: 82px;
+            min-height: 84px;
             border: none;
-            border-radius: 20px;
+            border-radius: 22px;
             background: var(--primary-color);
             color: #ffffff;
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -310,17 +336,17 @@
         }
         .btn-welcome-come span {
             font-size: 0.86em;
-            opacity: 0.9;
+            opacity: 0.92;
         }
 
         .btn-welcome-menu {
             width: 100%;
-            min-height: 98px;
-            border: 1.5px solid rgba(255, 255, 255, 0.28);
-            border-radius: 20px;
+            min-height: 100px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 22px;
             background: var(--secondary-action-color);
             color: #ffffff;
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -333,7 +359,7 @@
             transform: scale(0.97);
         }
         .welcome-big-clock {
-            font-size: 2.25em;
+            font-size: 2.3em;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             letter-spacing: 1px;
@@ -1332,21 +1358,35 @@
             gap: 8px;
         }
 
-        /* Pixel Outline Emoji Picker Grid in den Einstellungen */
-        .pixel-emoji-grid {
+        /* Scribble Multi-Select Picker Grid in den Einstellungen */
+        .scribble-picker-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .scribble-picker-head label {
+            margin-bottom: 0;
+        }
+        .scribble-count-tag {
+            font-size: 0.78em;
+            font-weight: bold;
+            opacity: 0.78;
+        }
+        .scribble-svg-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 6px;
-            background: hsl(var(--hue), 44%, 24%);
+            background: hsl(var(--hue), 44%, 22%);
             padding: 10px;
             border-radius: var(--radius-input);
             border: 1.5px solid var(--border-color);
         }
-        .pixel-emoji-chip {
+        .scribble-svg-chip {
             aspect-ratio: 1;
             border-radius: 10px;
             border: 1.5px solid rgba(255, 255, 255, 0.18);
-            background: rgba(0, 0, 0, 0.22);
+            background: rgba(0, 0, 0, 0.24);
             color: #ffffff;
             cursor: pointer;
             display: flex;
@@ -1354,23 +1394,22 @@
             justify-content: center;
             transition: transform 0.12s, border-color 0.15s, background-color 0.15s;
         }
-        .pixel-emoji-chip:active {
+        .scribble-svg-chip:active {
             transform: scale(0.92);
         }
-        .pixel-emoji-chip.selected {
+        .scribble-svg-chip.selected {
             border: 2px solid #ffffff;
-            background: rgba(255, 255, 255, 0.24);
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.26);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.24);
         }
-        .pixel-emoji-chip .pixel-outline-glyph {
-            font-size: 23px;
-            -webkit-text-stroke: 1.6px #ffffff;
-        }
-        .pixel-emoji-chip .none-lbl {
-            font-size: 0.72em;
-            font-weight: bold;
-            color: #ffffff;
-            opacity: 0.85;
+        .scribble-svg-chip svg {
+            width: 24px;
+            height: 24px;
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .setting-box-row {
@@ -1510,17 +1549,11 @@
 
     <!-- VORGESCHALTETER MORGEN-STARTBILDSCHIRM -->
     <section class="welcome-overlay" id="welcome-overlay" aria-label="Tagesstart">
-        <div class="welcome-pattern-layer" id="welcome-pattern-layer" aria-hidden="true"></div>
+        <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
         <div class="welcome-top-area">
             <div class="welcome-date-sub" id="welcome-date-sub">-</div>
             <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
-        </div>
-
-        <div class="welcome-hero-stage" id="welcome-hero-stage" aria-hidden="true">
-            <div class="welcome-hero-badge" id="welcome-hero-badge">
-                <span class="pixel-outline-glyph" id="welcome-hero-glyph">🐢</span>
-            </div>
         </div>
 
         <div class="welcome-actions-stack">
@@ -1784,8 +1817,18 @@
             </div>
 
             <div class="settings-group">
-                <label>Startbildschirm-Motiv (Pixel-Outline)</label>
-                <div class="pixel-emoji-grid" id="pixel-emoji-grid"></div>
+                <div class="scribble-picker-head">
+                    <label>Startbildschirm-Scribbles (1–5 wählbar)</label>
+                    <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
+                </div>
+                <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
+                <div class="slider-control" style="margin-top: 8px;">
+                    <label for="scribbleSizeSlider">
+                        <span>Symbolgröße & Präsenz:</span>
+                        <span><span id="scribbleSizeVal">50</span>%</span>
+                    </label>
+                    <input type="range" id="scribbleSizeSlider" min="15" max="100" value="50">
+                </div>
             </div>
 
             <div class="settings-group">
@@ -1863,7 +1906,7 @@
             </div>
 
             <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.11</span>
+                <span id="app-version-label" style="font-weight:bold;">Version 1.12</span>
                 <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
             </div>
 
@@ -1990,78 +2033,262 @@
             }
 
             /* =========================================================
-               PIXEL-OUTLINE EMOJI-AUSWAHL (NUR KURATIERTE MOTIVE)
+               HAND-DRAWN SCRIBBLE SVG-SET (12 KRITZEL-OUTLINES)
                ========================================================= */
-            const ALLOWED_PIXEL_EMOJIS = [
-                { id: "none", glyph: "", label: "Keins" },
-                { id: "turtle", glyph: "🐢", label: "Schildkröte" },
-                { id: "peace", glyph: "✌️", label: "Peace" },
-                { id: "snail", glyph: "🐌", label: "Schnecke" },
-                { id: "octopus", glyph: "🐙", label: "Oktopus" },
-                { id: "jellyfish", glyph: "🪼", label: "Qualle" },
-                { id: "bee", glyph: "🐝", label: "Biene" },
-                { id: "butterfly", glyph: "🦋", label: "Schmetterling" },
-                { id: "whale", glyph: "🐳", label: "Wal" },
-                { id: "coffee", glyph: "☕", label: "Kaffee" },
-                { id: "bolt", glyph: "⚡", label: "Energie" },
-                { id: "sprout", glyph: "🌱", label: "Neustart" }
+            const SCRIBBLE_ICONS = [
+                {
+                    id: "bolt",
+                    label: "Blitz",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/></svg>`
+                },
+                {
+                    id: "loop-arrow",
+                    label: "Schleifen-Pfeil",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M5 24 C10 26, 22 23, 21 15 C20 10, 13 11, 14 17 C15 23, 25 22, 30 13 M24 12.5 L30.5 12.5 L29.5 19"/></svg>`
+                },
+                {
+                    id: "star",
+                    label: "Kritzel-Stern",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M18 4 L21.4 13.4 L31.5 13.8 L23.5 19.8 L26.3 29.8 L18 23.8 L9.7 29.8 L12.5 19.8 L4.5 13.8 L14.6 13.4 Z"/></svg>`
+                },
+                {
+                    id: "spiral",
+                    label: "Spirale",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M18 18 C19.5 17, 21 19, 19.5 21 C17 23.5, 13 21.5, 13.5 18 C14 13, 20.5 11.5, 24 15.5 C28 20, 24.5 27.5, 18 28 C10 28.5, 6 21, 8.5 13.5 C11 6.5, 20.5 4.5, 27.5 9.5"/></svg>`
+                },
+                {
+                    id: "cloud",
+                    label: "Wolke",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M10 26.5 H26.5 C30 26.5, 32 24, 31.5 21 C31 18, 28.2 16.8, 26 17.2 C25.2 12.2, 20.2 9.8, 15.8 11.8 C12.5 13.2, 11.2 16.5, 11.5 18.8 C8 18.8, 5.2 21, 5.5 23.8 C5.8 25.8, 7.8 26.5, 10 26.5 Z"/></svg>`
+                },
+                {
+                    id: "coffee",
+                    label: "Kaffee",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M7 15 H24 V24 C24 28, 20.5 30, 15.5 30 C10.5 30, 7 28, 7 24 Z M24 17.5 H27.5 C29.8 17.5, 31 19.2, 30.8 21.5 C30.5 23.8, 28.5 25, 24 24.8 M11.5 11 C11 9, 13 8, 12.2 6 M17.5 11 C17 9, 19 8, 18.2 6"/></svg>`
+                },
+                {
+                    id: "crown",
+                    label: "Krone",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M6 25.5 L4.5 12 L12.5 18.5 L18 9.5 L23.5 18.5 L31.5 12 L30 25.5 Z M6.5 29 H29.5"/></svg>`
+                },
+                {
+                    id: "heart",
+                    label: "Herz",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M18 30 C18 30, 5.5 21.5, 5.5 13.2 C5.5 8.8, 9.2 6, 13.2 6.5 C15.8 6.8, 17.4 8.6, 18 10.4 C18.6 8.6, 20.2 6.8, 22.8 6.5 C26.8 6, 30.5 8.8, 30.5 13.2 C30.5 21.5, 18 30, 18 30 Z"/></svg>`
+                },
+                {
+                    id: "sun",
+                    label: "Sonne",
+                    svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="6.5"/><path d="M18 4.5 V8 M18 28 V31.5 M4.5 18 H8 M28 18 H31.5 M8.5 8.5 L11 11 M25 25 L27.5 27.5 M27.5 8.5 L25 11 M11 25 L8.5 27.5"/></svg>`
+                },
+                {
+                    id: "note",
+                    label: "Musiknote",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M14 26.5 V9.5 L27.5 6.5 V23.5 M14 14.5 L27.5 11.5"/><circle cx="10.8" cy="26.8" r="3.4"/><circle cx="24.3" cy="23.8" r="3.4"/></svg>`
+                },
+                {
+                    id: "clover",
+                    label: "Kleeblatt",
+                    svg: `<svg viewBox="0 0 36 36"><path d="M18 17.5 C13 15.5, 13.5 8.5, 18 8.5 C22.5 8.5, 23 15.5, 18 17.5 Z M18 17.5 C20 12.5, 27 13, 27 17.5 C27 22, 20 22.5, 18 17.5 Z M18 17.5 C16 12.5, 9 13, 9 17.5 C9 22, 16 22.5, 18 17.5 Z M18 17.5 C21 21, 19.5 28, 15.5 31.5"/></svg>`
+                },
+                {
+                    id: "planet",
+                    label: "Saturn",
+                    svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="7.5"/><path d="M5.5 22.5 C3.5 19.5, 8.5 15.5, 16.8 13.5 C25 11.5, 31.5 12, 30.8 15.2 C30 18.5, 24.5 22, 16.5 24 C10.5 25.5, 7 24.8, 5.5 22.5 Z"/></svg>`
+                }
             ];
 
-            let selectedWelcomeEmoji = localStorage.getItem("welcomeEmoji");
-            if (!ALLOWED_PIXEL_EMOJIS.some(item => item.glyph === selectedWelcomeEmoji)) {
-                selectedWelcomeEmoji = "🐢";
-            }
+            let selectedScribbles = ["bolt", "loop-arrow"];
+            try {
+                const rawArr = JSON.parse(localStorage.getItem("selectedScribbles"));
+                if (Array.isArray(rawArr)) {
+                    selectedScribbles = rawArr.filter(id => SCRIBBLE_ICONS.some(ic => ic.id === id)).slice(0, 5);
+                }
+            } catch (e) {}
 
-            const pixelEmojiGrid = document.getElementById("pixel-emoji-grid");
-            function renderPixelEmojiPicker() {
-                pixelEmojiGrid.innerHTML = "";
-                ALLOWED_PIXEL_EMOJIS.forEach(item => {
+            let scribbleSizePct = parseInt(localStorage.getItem("scribbleSizePct"), 10);
+            if (isNaN(scribbleSizePct)) scribbleSizePct = 50;
+            scribbleSizePct = Math.min(100, Math.max(15, scribbleSizePct));
+
+            const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
+            const scribbleCountTag = document.getElementById("scribble-count-tag");
+            const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
+            const scribbleSizeVal = document.getElementById("scribbleSizeVal");
+
+            scribbleSizeSlider.value = scribbleSizePct;
+            scribbleSizeVal.textContent = scribbleSizePct;
+
+            function renderScribblePicker() {
+                scribbleSvgGrid.innerHTML = "";
+                scribbleCountTag.textContent = `${selectedScribbles.length} / 5`;
+                SCRIBBLE_ICONS.forEach(item => {
+                    const isSel = selectedScribbles.includes(item.id);
                     const btn = document.createElement("button");
                     btn.type = "button";
-                    btn.className = "pixel-emoji-chip" + (item.glyph === selectedWelcomeEmoji ? " selected" : "");
+                    btn.className = "scribble-svg-chip" + (isSel ? " selected" : "");
                     btn.title = item.label;
-                    if (item.glyph === "") {
-                        btn.innerHTML = `<span class="none-lbl">Aus</span>`;
-                    } else {
-                        btn.innerHTML = `<span class="pixel-outline-glyph">${item.glyph}</span>`;
-                    }
+                    btn.innerHTML = item.svg;
                     btn.addEventListener("click", () => {
-                        selectedWelcomeEmoji = item.glyph;
-                        renderPixelEmojiPicker();
-                        applyWelcomeEmojiVisuals();
+                        const idx = selectedScribbles.indexOf(item.id);
+                        if (idx >= 0) {
+                            selectedScribbles.splice(idx, 1);
+                        } else {
+                            if (selectedScribbles.length >= 5) {
+                                selectedScribbles.shift();
+                            }
+                            selectedScribbles.push(item.id);
+                        }
+                        renderScribblePicker();
+                        if (welcomeOverlay.classList.contains("active")) {
+                            renderWelcomeScatter();
+                        }
                     });
-                    pixelEmojiGrid.appendChild(btn);
+                    scribbleSvgGrid.appendChild(btn);
                 });
             }
 
+            scribbleSizeSlider.addEventListener("input", () => {
+                scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
+                scribbleSizeVal.textContent = scribbleSizePct;
+                if (welcomeOverlay.classList.contains("active")) {
+                    renderWelcomeScatter();
+                }
+            });
+
+            /* =========================================================
+               ORGANISCHE POISSON-STREUUNG + PIXEL MIKRO-ANIMATIONEN
+               ========================================================= */
             const welcomeOverlay = document.getElementById("welcome-overlay");
-            const welcomePatternLayer = document.getElementById("welcome-pattern-layer");
-            const welcomeHeroStage = document.getElementById("welcome-hero-stage");
-            const welcomeHeroBadge = document.getElementById("welcome-hero-badge");
-            const welcomeHeroGlyph = document.getElementById("welcome-hero-glyph");
+            const welcomeScatterField = document.getElementById("welcome-scatter-field");
             const welcomeGreetingEl = document.getElementById("welcome-greeting");
             const welcomeDateSubEl = document.getElementById("welcome-date-sub");
             const welcomeBigClockEl = document.getElementById("welcome-big-clock");
+            let ambientAnimTimer = null;
 
-            function applyWelcomeEmojiVisuals() {
-                if (!selectedWelcomeEmoji) {
-                    welcomeHeroStage.style.display = "none";
-                    welcomePatternLayer.innerHTML = "";
-                    return;
+            function createSeededRng(seedNum) {
+                let s = seedNum % 2147483647;
+                if (s <= 0) s += 2147483646;
+                return function() {
+                    s = (s * 16807) % 2147483647;
+                    return (s - 1) / 2147483646;
+                };
+            }
+
+            function triggerNodeMicroAnim(nodeEl, animClass) {
+                if (!nodeEl) return;
+                const animWrap = nodeEl.querySelector(".scatter-anim-wrap");
+                if (!animWrap) return;
+                nodeEl.classList.add("is-animating");
+                animWrap.classList.remove("anim-pixel-spin", "anim-pixel-pop", "anim-pixel-wiggle");
+                void animWrap.offsetWidth;
+                animWrap.classList.add(animClass);
+                setTimeout(() => {
+                    nodeEl.classList.remove("is-animating");
+                    animWrap.classList.remove("anim-pixel-spin", "anim-pixel-pop", "anim-pixel-wiggle");
+                }, 900);
+            }
+
+            function renderWelcomeScatter() {
+                welcomeScatterField.innerHTML = "";
+                if (selectedScribbles.length === 0) return;
+
+                const activeIcons = selectedScribbles
+                    .map(id => SCRIBBLE_ICONS.find(ic => ic.id === id))
+                    .filter(Boolean);
+                if (activeIcons.length === 0) return;
+
+                const todaySeed = parseInt(getTodayStr().replace(/-/g, ""), 10) + selectedScribbles.join("").length * 131;
+                const rng = createSeededRng(todaySeed);
+
+                const scaleFactor = 0.62 + (scribbleSizePct / 100) * 0.98;
+                const basePx = Math.round(44 * scaleFactor);
+                const minDistPct = Math.max(13, 12 + (scribbleSizePct / 100) * 8);
+                const targetCount = Math.round(22 - (scribbleSizePct / 100) * 8);
+
+                const placed = [];
+                let attempts = 0;
+
+                while (placed.length < targetCount && attempts < 450) {
+                    attempts++;
+                    const x = 7 + rng() * 86;
+                    const y = 6 + rng() * 88;
+
+                    // Freiraum um Begrüßung oben und die zwei großen Buttons unten lassen
+                    const inGreetingZone = (y > 9 && y < 23 && x > 14 && x < 86);
+                    const inBottomButtonsZone = (y > 64 && y < 93 && x > 10 && x < 90);
+                    if (inGreetingZone || inBottomButtonsZone) continue;
+
+                    let tooClose = false;
+                    for (const pt of placed) {
+                        const dx = (pt.x - x) * 0.65;
+                        const dy = (pt.y - y);
+                        if (Math.hypot(dx, dy) < minDistPct) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    if (tooClose) continue;
+
+                    placed.push({ x, y });
                 }
-                welcomeHeroStage.style.display = "flex";
-                welcomeHeroGlyph.textContent = selectedWelcomeEmoji;
-                welcomePatternLayer.innerHTML = "";
-                const frag = document.createDocumentFragment();
-                for (let i = 0; i < 48; i++) {
-                    const span = document.createElement("span");
-                    span.className = "pixel-outline-glyph";
-                    span.textContent = selectedWelcomeEmoji;
-                    const rot = ((i * 37) % 50) - 25;
-                    span.style.transform = `rotate(${rot}deg)`;
-                    frag.appendChild(span);
+
+                placed.forEach((pt, idx) => {
+                    const iconObj = activeIcons[idx % activeIcons.length];
+                    const rotDeg = Math.round((rng() - 0.5) * 84);
+                    const sizeJitter = 0.78 + rng() * 0.48;
+                    const finalPx = Math.round(basePx * sizeJitter);
+                    const alpha = (0.24 + rng() * 0.24).toFixed(2);
+
+                    const node = document.createElement("div");
+                    node.className = "scatter-node";
+                    node.style.left = `${pt.x.toFixed(1)}%`;
+                    node.style.top = `${pt.y.toFixed(1)}%`;
+                    node.style.setProperty("--base-rot", `${rotDeg}deg`);
+                    node.style.setProperty("--icon-size", `${finalPx}px`);
+                    node.style.setProperty("--icon-alpha", alpha);
+
+                    node.innerHTML = `
+                        <div class="scatter-rot-wrap">
+                            <div class="scatter-anim-wrap">${iconObj.svg}</div>
+                        </div>
+                    `;
+
+                    node.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        const anims = ["anim-pixel-spin", "anim-pixel-pop", "anim-pixel-wiggle"];
+                        const pick = anims[Math.floor(Math.random() * anims.length)];
+                        triggerNodeMicroAnim(node, pick);
+                    });
+
+                    welcomeScatterField.appendChild(node);
+
+                    // Begrüßungs-Spin für einzelne Icons beim Start
+                    if (idx % 3 === 0) {
+                        setTimeout(() => {
+                            triggerNodeMicroAnim(node, "anim-pixel-spin");
+                        }, 180 + idx * 95);
+                    }
+                });
+            }
+
+            function startAmbientPixelAnimations() {
+                stopAmbientPixelAnimations();
+                ambientAnimTimer = setInterval(() => {
+                    if (!welcomeOverlay.classList.contains("active")) return;
+                    const nodes = welcomeScatterField.querySelectorAll(".scatter-node");
+                    if (nodes.length === 0) return;
+                    const rndNode = nodes[Math.floor(Math.random() * nodes.length)];
+                    const anims = ["anim-pixel-spin", "anim-pixel-spin", "anim-pixel-pop", "anim-pixel-wiggle"];
+                    const pick = anims[Math.floor(Math.random() * anims.length)];
+                    triggerNodeMicroAnim(rndNode, pick);
+                }, 2300);
+            }
+
+            function stopAmbientPixelAnimations() {
+                if (ambientAnimTimer) {
+                    clearInterval(ambientAnimTimer);
+                    ambientAnimTimer = null;
                 }
-                welcomePatternLayer.appendChild(frag);
             }
 
             function updateWelcomeGreetingText() {
@@ -2078,107 +2305,15 @@
                 welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
             }
 
-            /* =========================================================
-               WABBEL-PHYSIK (GYROSKOP + FINGER-GRAVITATION)
-               ========================================================= */
-            let wobbleRafId = null;
-            const spring = {
-                x: 0, y: 0, vx: 0, vy: 0,
-                targetX: 0, targetY: 0,
-                tiltX: 0, tiltY: 0,
-                pointerX: 0, pointerY: 0,
-                pointerActive: false
-            };
-
-            function handleWelcomeOrientation(e) {
-                if (!welcomeOverlay.classList.contains("active")) return;
-                if (typeof e.gamma === "number" && typeof e.beta === "number") {
-                    const clampedGamma = Math.max(-35, Math.min(35, e.gamma));
-                    const clampedBeta = Math.max(-35, Math.min(35, e.beta - 45));
-                    spring.tiltX = (clampedGamma / 35) * 26;
-                    spring.tiltY = (clampedBeta / 35) * 26;
-                }
-            }
-
-            function handleWelcomePointerMove(clientX, clientY) {
-                const cx = window.innerWidth / 2;
-                const cy = window.innerHeight * 0.42;
-                const dx = (clientX - cx) / Math.max(1, cx);
-                const dy = (clientY - cy) / Math.max(1, cy);
-                spring.pointerX = Math.max(-1.2, Math.min(1.2, dx)) * 30;
-                spring.pointerY = Math.max(-1.2, Math.min(1.2, dy)) * 30;
-                spring.pointerActive = true;
-            }
-
-            welcomeOverlay.addEventListener("pointerdown", (e) => {
-                if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
-                    DeviceOrientationEvent.requestPermission().catch(() => {});
-                }
-                handleWelcomePointerMove(e.clientX, e.clientY);
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("pointermove", (e) => {
-                handleWelcomePointerMove(e.clientX, e.clientY);
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("pointerup", () => {
-                spring.pointerActive = false;
-                spring.pointerX = 0;
-                spring.pointerY = 0;
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("pointercancel", () => {
-                spring.pointerActive = false;
-                spring.pointerX = 0;
-                spring.pointerY = 0;
-            }, { passive: true });
-
-            window.addEventListener("deviceorientation", handleWelcomeOrientation, { passive: true });
-
-            function stepWobbleLoop(ts) {
-                if (!welcomeOverlay.classList.contains("active")) {
-                    wobbleRafId = null;
-                    return;
-                }
-                const idleX = Math.sin(ts * 0.0017) * 4;
-                const idleY = Math.cos(ts * 0.0021) * 5;
-
-                spring.targetX = spring.tiltX + spring.pointerX + idleX;
-                spring.targetY = spring.tiltY + spring.pointerY + idleY;
-
-                const stiffness = 0.09;
-                const damping = 0.78;
-                spring.vx = (spring.vx + (spring.targetX - spring.x) * stiffness) * damping;
-                spring.vy = (spring.vy + (spring.targetY - spring.y) * stiffness) * damping;
-                spring.x += spring.vx;
-                spring.y += spring.vy;
-
-                const rotY = (spring.x * 0.45).toFixed(2);
-                const rotX = (-spring.y * 0.45).toFixed(2);
-                const scale = spring.pointerActive ? 1.06 : 1.0;
-
-                if (welcomeHeroBadge) {
-                    welcomeHeroBadge.style.transform =
-                        `translate3d(${spring.x.toFixed(2)}px, ${spring.y.toFixed(2)}px, 0) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
-                }
-                if (welcomePatternLayer) {
-                    welcomePatternLayer.style.transform =
-                        `translate3d(${(-spring.x * 0.42).toFixed(2)}px, ${(-spring.y * 0.42).toFixed(2)}px, 0)`;
-                }
-
-                wobbleRafId = requestAnimationFrame(stepWobbleLoop);
-            }
-
             function openWelcomeScreen() {
                 updateWelcomeGreetingText();
-                applyWelcomeEmojiVisuals();
+                renderWelcomeScatter();
                 welcomeOverlay.classList.add("active");
-                if (!wobbleRafId) {
-                    wobbleRafId = requestAnimationFrame(stepWobbleLoop);
-                }
+                startAmbientPixelAnimations();
             }
 
             function closeWelcomeScreen() {
+                stopAmbientPixelAnimations();
                 welcomeOverlay.classList.remove("active");
                 localStorage.setItem("welcomeDismissedDate", getTodayStr());
             }
@@ -2304,7 +2439,7 @@
             document.documentElement.setAttribute("data-style", appStyleMode);
             applyAsymIntensity(appAsymIntensity);
             applyThemeColors(appHue, appLightness, appSpread);
-            renderPixelEmojiPicker();
+            renderScribblePicker();
 
             const userNameInput = document.getElementById("userNameInput");
             const sollHoursInput = document.getElementById("sollHours");
@@ -2478,7 +2613,9 @@
             const settingsModal = document.getElementById("settings-modal");
             function openSettings() {
                 userNameInput.value = userName;
-                renderPixelEmojiPicker();
+                renderScribblePicker();
+                scribbleSizeSlider.value = scribbleSizePct;
+                scribbleSizeVal.textContent = scribbleSizePct;
                 styleModeSelect.value = appStyleMode;
                 asymIntensitySlider.value = appAsymIntensity;
                 asymIntensityVal.textContent = appAsymIntensity;
@@ -2508,7 +2645,8 @@
                 gesturesEnabled = gesturesEnabledCheck.checked;
 
                 localStorage.setItem("userName", userName);
-                localStorage.setItem("welcomeEmoji", selectedWelcomeEmoji);
+                localStorage.setItem("selectedScribbles", JSON.stringify(selectedScribbles));
+                localStorage.setItem("scribbleSizePct", scribbleSizePct);
                 localStorage.setItem("appStyleMode", appStyleMode);
                 localStorage.setItem("appAsymIntensity", appAsymIntensity);
                 localStorage.setItem("sollHours", sollHours);
@@ -4043,5 +4181,3 @@
     </script>
 </body>
 </html>
-
-```
