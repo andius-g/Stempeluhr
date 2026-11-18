@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.10
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.11
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" id="meta-theme-color" content="#f5f5f5">
-    <title>Stempeluhr & Wochenübersicht (v1.10)</title>
+    <meta name="theme-color" id="meta-theme-color" content="#000000">
+    <title>Stempeluhr & Wochenübersicht (v1.11)</title>
 
     <script>
-        const APP_VERSION = "1.10";
+        const APP_VERSION = "1.11";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -27,7 +27,7 @@
             const l = parseInt(localStorage.getItem("appLightness"), 10);
             const sp = parseInt(localStorage.getItem("appSpread"), 10);
             const hue = isNaN(h) ? 195 : h;
-            const light = isNaN(l) ? 50 : l;
+            const light = isNaN(l) ? 46 : Math.min(52, Math.max(25, l));
             const spread = isNaN(sp) ? 120 : sp;
             const bgHex = hslToHexInit(hue + spread, 50, 95);
 
@@ -45,13 +45,13 @@
             document.documentElement.style.setProperty('--asym-intensity', (intensity / 100).toFixed(3));
             document.documentElement.style.backgroundColor = bgHex;
             const meta = document.getElementById("meta-theme-color");
-            if (meta) meta.setAttribute("content", bgHex);
+            if (meta) meta.setAttribute("content", "#000000");
         })();
     </script>
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
     <link rel="manifest" id="app-manifest-link" href="manifest.json">
     <link rel="icon" href="favicon.png" type="image/png">
@@ -62,10 +62,11 @@
     <style>
         :root {
             --hue: 195;
-            --lightness: 50%;
+            --lightness: 46%;
             --spread: 120;
             --asym-intensity: 0.55;
-            --primary-color: hsl(var(--hue), 60%, var(--lightness));
+            --primary-color: hsl(var(--hue), 64%, var(--lightness));
+            --secondary-action-color: hsl(calc(var(--hue) + 150), 64%, var(--lightness));
             --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
             --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
             --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
@@ -174,6 +175,179 @@
             transition: background-color 0.3s;
         }
 
+        /* =========================================================
+           MORGEN-STARTBILDSCHIRM (PIXEL OUTLINE LIVE-WALLPAPER)
+           ========================================================= */
+        .welcome-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: hsl(var(--hue), 44%, 24%);
+            color: #ffffff;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: calc(28px + env(safe-area-inset-top)) 22px calc(30px + env(safe-area-inset-bottom));
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+        .welcome-overlay.active {
+            display: flex;
+        }
+
+        .welcome-pattern-layer {
+            position: absolute;
+            inset: -48px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 22px;
+            place-items: center;
+            opacity: 0.14;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .pixel-outline-glyph {
+            display: inline-block;
+            color: transparent;
+            -webkit-text-stroke: 1.7px #ffffff;
+            filter: grayscale(1) brightness(10);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .welcome-pattern-layer .pixel-outline-glyph {
+            font-size: 26px;
+        }
+
+        .welcome-top-area {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin-top: 8px;
+            width: 100%;
+            max-width: 390px;
+        }
+
+        .welcome-date-sub {
+            font-size: 0.92em;
+            opacity: 0.82;
+            letter-spacing: 0.4px;
+            margin-bottom: 6px;
+        }
+
+        .welcome-greeting {
+            font-size: 1.65em;
+            font-weight: bold;
+            line-height: 1.25;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .welcome-hero-stage {
+            position: relative;
+            z-index: 2;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 600px;
+            pointer-events: none;
+        }
+
+        .welcome-hero-badge {
+            width: 118px;
+            height: 118px;
+            border-radius: 34px;
+            background: rgba(0, 0, 0, 0.24);
+            border: 1.5px solid rgba(255, 255, 255, 0.24);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+        }
+
+        .welcome-hero-badge .pixel-outline-glyph {
+            font-size: 62px;
+            -webkit-text-stroke: 2.3px #ffffff;
+        }
+
+        .welcome-actions-stack {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 390px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .btn-welcome-come {
+            width: 100%;
+            min-height: 82px;
+            border: none;
+            border-radius: 20px;
+            background: var(--primary-color);
+            color: #ffffff;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: transform 0.14s;
+        }
+        .btn-welcome-come:active {
+            transform: scale(0.97);
+        }
+        .btn-welcome-come strong {
+            font-size: 1.55em;
+            letter-spacing: 0.5px;
+        }
+        .btn-welcome-come span {
+            font-size: 0.86em;
+            opacity: 0.9;
+        }
+
+        .btn-welcome-menu {
+            width: 100%;
+            min-height: 98px;
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            border-radius: 20px;
+            background: var(--secondary-action-color);
+            color: #ffffff;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: transform 0.14s;
+        }
+        .btn-welcome-menu:active {
+            transform: scale(0.97);
+        }
+        .welcome-big-clock {
+            font-size: 2.25em;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
+            line-height: 1.05;
+        }
+        .welcome-menu-hint {
+            font-size: 0.88em;
+            font-weight: bold;
+            opacity: 0.92;
+        }
+
+        /* =========================================================
+           HAUPTAPP
+           ========================================================= */
         .container {
             max-width: 390px;
             width: 100%;
@@ -339,15 +513,17 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 1.05em;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-            transition: transform 0.15s, opacity 0.2s, border-radius 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
+            transition: transform 0.15s, opacity 0.2s, border-radius 0.2s, background-color 0.3s;
         }
 
         #btn-now-start {
+            background-color: var(--primary-color);
             border-radius: var(--btn-come-radius);
         }
 
         #btn-now-end {
+            background-color: var(--secondary-action-color);
             border-radius: var(--btn-go-radius);
         }
 
@@ -451,7 +627,7 @@
         .output, .output-decimal {
             background-color: var(--primary-color);
             color: var(--white);
-            padding: 11px 16px;
+            padding: 11px 14px;
             border-radius: var(--output-radius);
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             text-align: center;
@@ -466,9 +642,16 @@
         }
 
         .output div, .output-decimal div {
-            font-size: 1.26em;
+            font-size: 1.24em;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
+        }
+
+        .output-sub-hint {
+            font-size: 0.72em !important;
+            font-weight: normal !important;
+            opacity: 0.92;
+            margin-top: 2px;
         }
 
         .section-divider {
@@ -1149,6 +1332,47 @@
             gap: 8px;
         }
 
+        /* Pixel Outline Emoji Picker Grid in den Einstellungen */
+        .pixel-emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            background: hsl(var(--hue), 44%, 24%);
+            padding: 10px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+        }
+        .pixel-emoji-chip {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            background: rgba(0, 0, 0, 0.22);
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.12s, border-color 0.15s, background-color 0.15s;
+        }
+        .pixel-emoji-chip:active {
+            transform: scale(0.92);
+        }
+        .pixel-emoji-chip.selected {
+            border: 2px solid #ffffff;
+            background: rgba(255, 255, 255, 0.24);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+        }
+        .pixel-emoji-chip .pixel-outline-glyph {
+            font-size: 23px;
+            -webkit-text-stroke: 1.6px #ffffff;
+        }
+        .pixel-emoji-chip .none-lbl {
+            font-size: 0.72em;
+            font-weight: bold;
+            color: #ffffff;
+            opacity: 0.85;
+        }
+
         .setting-box-row {
             display: flex;
             align-items: center;
@@ -1212,7 +1436,7 @@
         }
         .dot-1 { background: var(--text-color); }
         .dot-2 { background: var(--primary-color); }
-        .dot-3 { background: var(--bg-color); }
+        .dot-3 { background: var(--secondary-action-color); }
 
         .slider-control {
             width: 100%;
@@ -1283,6 +1507,34 @@
     </style>
 </head>
 <body>
+
+    <!-- VORGESCHALTETER MORGEN-STARTBILDSCHIRM -->
+    <section class="welcome-overlay" id="welcome-overlay" aria-label="Tagesstart">
+        <div class="welcome-pattern-layer" id="welcome-pattern-layer" aria-hidden="true"></div>
+
+        <div class="welcome-top-area">
+            <div class="welcome-date-sub" id="welcome-date-sub">-</div>
+            <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
+        </div>
+
+        <div class="welcome-hero-stage" id="welcome-hero-stage" aria-hidden="true">
+            <div class="welcome-hero-badge" id="welcome-hero-badge">
+                <span class="pixel-outline-glyph" id="welcome-hero-glyph">🐢</span>
+            </div>
+        </div>
+
+        <div class="welcome-actions-stack">
+            <button type="button" class="btn-welcome-come" id="btn-welcome-come">
+                <strong>Kommen</strong>
+                <span>Jetzt direkt einstempeln</span>
+            </button>
+
+            <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
+                <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
+                <div class="welcome-menu-hint">Zum Menü →</div>
+            </button>
+        </div>
+    </section>
 
     <div class="container" id="app-container">
         <header class="top-header-card">
@@ -1377,6 +1629,7 @@
                         <div class="output-decimal">
                             <h3 id="label-decimal-time">Dezimal (h)</h3>
                             <div id="output-decimal-time">-</div>
+                            <div class="output-sub-hint" id="output-pause-hint" style="display:none;"></div>
                         </div>
                         <div class="output-decimal">
                             <h3 id="label-overtime">+/-</h3>
@@ -1526,8 +1779,13 @@
             <h2>Einstellungen</h2>
 
             <div class="settings-group">
-                <label for="userNameInput">Name (für PDF-Stundenzettel)</label>
-                <input type="text" id="userNameInput" class="text-input-full" placeholder="z. B. Max Mustermann">
+                <label for="userNameInput">Name (Begrüßung & PDF-Zettel)</label>
+                <input type="text" id="userNameInput" class="text-input-full" placeholder="z. B. Andreas">
+            </div>
+
+            <div class="settings-group">
+                <label>Startbildschirm-Motiv (Pixel-Outline)</label>
+                <div class="pixel-emoji-grid" id="pixel-emoji-grid"></div>
             </div>
 
             <div class="settings-group">
@@ -1577,16 +1835,16 @@
             </div>
 
             <div class="settings-group color-wheel-container">
-                <label>Farbharmonie</label>
+                <label>Farbharmonie (Kommen / Gehen kontrastgleich)</label>
                 <canvas id="colorWheel" width="165" height="165"></canvas>
                 <div class="color-preview">
-                    <div class="color-dot dot-1" title="Text & Rahmen (dunkel)"></div>
-                    <div class="color-dot dot-2" title="Primär (Buttons)"></div>
-                    <div class="color-dot dot-3" title="Hintergrund (hell)"></div>
+                    <div class="color-dot dot-1" title="Text & Rahmen"></div>
+                    <div class="color-dot dot-2" title="Kommen (Primär)"></div>
+                    <div class="color-dot dot-3" title="Gehen (Gegenfarbe)"></div>
                 </div>
 
                 <div class="slider-control">
-                    <label for="spreadSelect">Farbabstand auf dem Rad:</label>
+                    <label for="spreadSelect">Farbabstand Hintergrund:</label>
                     <select id="spreadSelect" class="harmony-select">
                         <option value="30">30° – Analog (sanft)</option>
                         <option value="60">60° – Erweitert</option>
@@ -1597,15 +1855,15 @@
 
                 <div class="slider-control">
                     <label for="lightnessSlider">
-                        <span>Helligkeit Primärfarbe:</span>
-                        <span><span id="lightnessVal">50</span>%</span>
+                        <span>Helligkeit Buttons (kontrastoptimiert):</span>
+                        <span><span id="lightnessVal">46</span>%</span>
                     </label>
-                    <input type="range" id="lightnessSlider" min="25" max="70" value="50">
+                    <input type="range" id="lightnessSlider" min="28" max="52" value="46">
                 </div>
             </div>
 
             <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.10</span>
+                <span id="app-version-label" style="font-weight:bold;">Version 1.11</span>
                 <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
             </div>
 
@@ -1650,7 +1908,7 @@
             }
 
             let dynamicManifestUrl = null;
-            function updateDynamicManifest(bgHex) {
+            function updateDynamicManifest() {
                 try {
                     const baseHref = new URL(".", window.location.href).href;
                     const manifestObj = {
@@ -1658,8 +1916,8 @@
                         short_name: "Stempeluhr",
                         start_url: baseHref,
                         display: "standalone",
-                        background_color: bgHex,
-                        theme_color: bgHex,
+                        background_color: "#000000",
+                        theme_color: "#000000",
                         icons: [
                             { src: baseHref + "favicon.png", sizes: "192x192", type: "image/png" },
                             { src: baseHref + "favicon.png", sizes: "512x512", type: "image/png" }
@@ -1680,13 +1938,13 @@
                 document.documentElement.style.setProperty('--spread', spread);
                 const bgHex = hslToHex(hue + spread, 50, 95);
                 if (metaThemeColor) {
-                    metaThemeColor.setAttribute("content", bgHex);
+                    metaThemeColor.setAttribute("content", "#000000");
                 }
                 document.documentElement.style.backgroundColor = bgHex;
                 if (document.body) {
                     document.body.style.backgroundColor = bgHex;
                 }
-                updateDynamicManifest(bgHex);
+                updateDynamicManifest();
             }
 
             function applyAsymIntensity(val) {
@@ -1729,6 +1987,200 @@
                 const hasSmoke = typeof saved.smokeCount === 'number' && saved.smokeCount > 0;
                 const hasNonFreeStatus = saved.status && saved.status !== 'free' && saved.status !== 'work';
                 return hasTimes || hasSmoke || hasNonFreeStatus;
+            }
+
+            /* =========================================================
+               PIXEL-OUTLINE EMOJI-AUSWAHL (NUR KURATIERTE MOTIVE)
+               ========================================================= */
+            const ALLOWED_PIXEL_EMOJIS = [
+                { id: "none", glyph: "", label: "Keins" },
+                { id: "turtle", glyph: "🐢", label: "Schildkröte" },
+                { id: "peace", glyph: "✌️", label: "Peace" },
+                { id: "snail", glyph: "🐌", label: "Schnecke" },
+                { id: "octopus", glyph: "🐙", label: "Oktopus" },
+                { id: "jellyfish", glyph: "🪼", label: "Qualle" },
+                { id: "bee", glyph: "🐝", label: "Biene" },
+                { id: "butterfly", glyph: "🦋", label: "Schmetterling" },
+                { id: "whale", glyph: "🐳", label: "Wal" },
+                { id: "coffee", glyph: "☕", label: "Kaffee" },
+                { id: "bolt", glyph: "⚡", label: "Energie" },
+                { id: "sprout", glyph: "🌱", label: "Neustart" }
+            ];
+
+            let selectedWelcomeEmoji = localStorage.getItem("welcomeEmoji");
+            if (!ALLOWED_PIXEL_EMOJIS.some(item => item.glyph === selectedWelcomeEmoji)) {
+                selectedWelcomeEmoji = "🐢";
+            }
+
+            const pixelEmojiGrid = document.getElementById("pixel-emoji-grid");
+            function renderPixelEmojiPicker() {
+                pixelEmojiGrid.innerHTML = "";
+                ALLOWED_PIXEL_EMOJIS.forEach(item => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "pixel-emoji-chip" + (item.glyph === selectedWelcomeEmoji ? " selected" : "");
+                    btn.title = item.label;
+                    if (item.glyph === "") {
+                        btn.innerHTML = `<span class="none-lbl">Aus</span>`;
+                    } else {
+                        btn.innerHTML = `<span class="pixel-outline-glyph">${item.glyph}</span>`;
+                    }
+                    btn.addEventListener("click", () => {
+                        selectedWelcomeEmoji = item.glyph;
+                        renderPixelEmojiPicker();
+                        applyWelcomeEmojiVisuals();
+                    });
+                    pixelEmojiGrid.appendChild(btn);
+                });
+            }
+
+            const welcomeOverlay = document.getElementById("welcome-overlay");
+            const welcomePatternLayer = document.getElementById("welcome-pattern-layer");
+            const welcomeHeroStage = document.getElementById("welcome-hero-stage");
+            const welcomeHeroBadge = document.getElementById("welcome-hero-badge");
+            const welcomeHeroGlyph = document.getElementById("welcome-hero-glyph");
+            const welcomeGreetingEl = document.getElementById("welcome-greeting");
+            const welcomeDateSubEl = document.getElementById("welcome-date-sub");
+            const welcomeBigClockEl = document.getElementById("welcome-big-clock");
+
+            function applyWelcomeEmojiVisuals() {
+                if (!selectedWelcomeEmoji) {
+                    welcomeHeroStage.style.display = "none";
+                    welcomePatternLayer.innerHTML = "";
+                    return;
+                }
+                welcomeHeroStage.style.display = "flex";
+                welcomeHeroGlyph.textContent = selectedWelcomeEmoji;
+                welcomePatternLayer.innerHTML = "";
+                const frag = document.createDocumentFragment();
+                for (let i = 0; i < 48; i++) {
+                    const span = document.createElement("span");
+                    span.className = "pixel-outline-glyph";
+                    span.textContent = selectedWelcomeEmoji;
+                    const rot = ((i * 37) % 50) - 25;
+                    span.style.transform = `rotate(${rot}deg)`;
+                    frag.appendChild(span);
+                }
+                welcomePatternLayer.appendChild(frag);
+            }
+
+            function updateWelcomeGreetingText() {
+                const now = new Date();
+                const hr = now.getHours();
+                let salutation = "Guten Tag";
+                if (hr < 11) salutation = "Guten Morgen";
+                else if (hr >= 18) salutation = "Guten Abend";
+
+                const cleanName = (userName || "").trim();
+                welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+
+                const dayName = weekdaysFull[now.getDay()];
+                welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
+            }
+
+            /* =========================================================
+               WABBEL-PHYSIK (GYROSKOP + FINGER-GRAVITATION)
+               ========================================================= */
+            let wobbleRafId = null;
+            const spring = {
+                x: 0, y: 0, vx: 0, vy: 0,
+                targetX: 0, targetY: 0,
+                tiltX: 0, tiltY: 0,
+                pointerX: 0, pointerY: 0,
+                pointerActive: false
+            };
+
+            function handleWelcomeOrientation(e) {
+                if (!welcomeOverlay.classList.contains("active")) return;
+                if (typeof e.gamma === "number" && typeof e.beta === "number") {
+                    const clampedGamma = Math.max(-35, Math.min(35, e.gamma));
+                    const clampedBeta = Math.max(-35, Math.min(35, e.beta - 45));
+                    spring.tiltX = (clampedGamma / 35) * 26;
+                    spring.tiltY = (clampedBeta / 35) * 26;
+                }
+            }
+
+            function handleWelcomePointerMove(clientX, clientY) {
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight * 0.42;
+                const dx = (clientX - cx) / Math.max(1, cx);
+                const dy = (clientY - cy) / Math.max(1, cy);
+                spring.pointerX = Math.max(-1.2, Math.min(1.2, dx)) * 30;
+                spring.pointerY = Math.max(-1.2, Math.min(1.2, dy)) * 30;
+                spring.pointerActive = true;
+            }
+
+            welcomeOverlay.addEventListener("pointerdown", (e) => {
+                if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+                    DeviceOrientationEvent.requestPermission().catch(() => {});
+                }
+                handleWelcomePointerMove(e.clientX, e.clientY);
+            }, { passive: true });
+
+            welcomeOverlay.addEventListener("pointermove", (e) => {
+                handleWelcomePointerMove(e.clientX, e.clientY);
+            }, { passive: true });
+
+            welcomeOverlay.addEventListener("pointerup", () => {
+                spring.pointerActive = false;
+                spring.pointerX = 0;
+                spring.pointerY = 0;
+            }, { passive: true });
+
+            welcomeOverlay.addEventListener("pointercancel", () => {
+                spring.pointerActive = false;
+                spring.pointerX = 0;
+                spring.pointerY = 0;
+            }, { passive: true });
+
+            window.addEventListener("deviceorientation", handleWelcomeOrientation, { passive: true });
+
+            function stepWobbleLoop(ts) {
+                if (!welcomeOverlay.classList.contains("active")) {
+                    wobbleRafId = null;
+                    return;
+                }
+                const idleX = Math.sin(ts * 0.0017) * 4;
+                const idleY = Math.cos(ts * 0.0021) * 5;
+
+                spring.targetX = spring.tiltX + spring.pointerX + idleX;
+                spring.targetY = spring.tiltY + spring.pointerY + idleY;
+
+                const stiffness = 0.09;
+                const damping = 0.78;
+                spring.vx = (spring.vx + (spring.targetX - spring.x) * stiffness) * damping;
+                spring.vy = (spring.vy + (spring.targetY - spring.y) * stiffness) * damping;
+                spring.x += spring.vx;
+                spring.y += spring.vy;
+
+                const rotY = (spring.x * 0.45).toFixed(2);
+                const rotX = (-spring.y * 0.45).toFixed(2);
+                const scale = spring.pointerActive ? 1.06 : 1.0;
+
+                if (welcomeHeroBadge) {
+                    welcomeHeroBadge.style.transform =
+                        `translate3d(${spring.x.toFixed(2)}px, ${spring.y.toFixed(2)}px, 0) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
+                }
+                if (welcomePatternLayer) {
+                    welcomePatternLayer.style.transform =
+                        `translate3d(${(-spring.x * 0.42).toFixed(2)}px, ${(-spring.y * 0.42).toFixed(2)}px, 0)`;
+                }
+
+                wobbleRafId = requestAnimationFrame(stepWobbleLoop);
+            }
+
+            function openWelcomeScreen() {
+                updateWelcomeGreetingText();
+                applyWelcomeEmojiVisuals();
+                welcomeOverlay.classList.add("active");
+                if (!wobbleRafId) {
+                    wobbleRafId = requestAnimationFrame(stepWobbleLoop);
+                }
+            }
+
+            function closeWelcomeScreen() {
+                welcomeOverlay.classList.remove("active");
+                localStorage.setItem("welcomeDismissedDate", getTodayStr());
             }
 
             const viewClock = document.getElementById("view-clock");
@@ -1826,7 +2278,8 @@
             if (isNaN(appHue)) appHue = 195;
 
             let appLightness = parseInt(localStorage.getItem("appLightness"), 10);
-            if (isNaN(appLightness)) appLightness = 50;
+            if (isNaN(appLightness)) appLightness = 46;
+            appLightness = Math.min(52, Math.max(28, appLightness));
 
             let appSpread = parseInt(localStorage.getItem("appSpread"), 10);
             if (isNaN(appSpread)) appSpread = 120;
@@ -1851,6 +2304,7 @@
             document.documentElement.setAttribute("data-style", appStyleMode);
             applyAsymIntensity(appAsymIntensity);
             applyThemeColors(appHue, appLightness, appSpread);
+            renderPixelEmojiPicker();
 
             const userNameInput = document.getElementById("userNameInput");
             const sollHoursInput = document.getElementById("sollHours");
@@ -1944,7 +2398,7 @@
             spreadSelect.value = String(appSpread);
 
             lightnessSlider.addEventListener("input", () => {
-                appLightness = parseInt(lightnessSlider.value, 10);
+                appLightness = Math.min(52, Math.max(28, parseInt(lightnessSlider.value, 10)));
                 lightnessVal.textContent = appLightness;
                 applyThemeColors(appHue, appLightness, appSpread);
                 drawColorWheel();
@@ -1982,8 +2436,7 @@
                     ctx.fillStyle = `hsl(${angle}, 100%, ${appLightness}%)`;
                     ctx.fill();
                 }
-                drawWheelDot(appHue - appSpread, 4.5);
-                drawWheelDot(appHue + appSpread, 4.5);
+                drawWheelDot(appHue + 150, 5.5);
                 drawWheelDot(appHue, 7.5);
             }
 
@@ -2025,6 +2478,7 @@
             const settingsModal = document.getElementById("settings-modal");
             function openSettings() {
                 userNameInput.value = userName;
+                renderPixelEmojiPicker();
                 styleModeSelect.value = appStyleMode;
                 asymIntensitySlider.value = appAsymIntensity;
                 asymIntensityVal.textContent = appAsymIntensity;
@@ -2054,6 +2508,7 @@
                 gesturesEnabled = gesturesEnabledCheck.checked;
 
                 localStorage.setItem("userName", userName);
+                localStorage.setItem("welcomeEmoji", selectedWelcomeEmoji);
                 localStorage.setItem("appStyleMode", appStyleMode);
                 localStorage.setItem("appAsymIntensity", appAsymIntensity);
                 localStorage.setItem("sollHours", sollHours);
@@ -2368,7 +2823,7 @@
             setupInput(endHoursInput, endMinutesInput, onManualTimeInputChange);
             setupInput(endMinutesInput, null, onManualTimeInputChange);
 
-            document.getElementById("btn-now-start").addEventListener("click", () => {
+            function triggerStampComeNow() {
                 pushUndoSnapshot();
                 const now = new Date();
                 const tObj = {
@@ -2389,6 +2844,17 @@
                 syncInputsFromSessions();
                 saveSessionsAndDay();
                 calculateAllTimes();
+            }
+
+            document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
+
+            document.getElementById("btn-welcome-come").addEventListener("click", () => {
+                triggerStampComeNow();
+                closeWelcomeScreen();
+            });
+
+            document.getElementById("btn-welcome-menu").addEventListener("click", () => {
+                closeWelcomeScreen();
             });
 
             document.getElementById("btn-now-end").addEventListener("click", () => {
@@ -2423,7 +2889,7 @@
                 }
                 const totalDeductSecs = Math.max(legalPauseSecs, smokeSecs);
                 const netSecs = Math.max(0, totalPresSecs - totalDeductSecs);
-                return { netSecs, totalDeductSecs };
+                return { netSecs, totalDeductSecs, legalPauseSecs };
             }
 
             function calcNetWorkSecs(totalPresSecs, smokeSecs) {
@@ -2480,11 +2946,14 @@
 
                 const labelDec = document.getElementById("label-decimal-time");
                 const labelOver = document.getElementById("label-overtime");
+                const decOutputEl = document.getElementById("output-decimal-time");
+                const pauseHintEl = document.getElementById("output-pause-hint");
 
                 if (isNaN(stH)) {
                     labelDec.textContent = "Dezimal (h)";
                     labelOver.textContent = "+/-";
-                    document.getElementById("output-decimal-time").textContent = "-";
+                    decOutputEl.textContent = "-";
+                    pauseHintEl.style.display = "none";
                     document.getElementById("output-overtime").textContent = "-";
                     return;
                 }
@@ -2498,7 +2967,7 @@
                 let endSecs;
                 if (isLiveRunning) {
                     endSecs = getNowSecsOfDay();
-                    labelDec.innerHTML = `<span class="live-dot"></span>Bisher (Dezimal)`;
+                    labelDec.innerHTML = `<span class="live-dot"></span>Bisher (Netto)`;
                     labelOver.innerHTML = `<span class="live-dot"></span>Bis Soll (+/-)`;
                 } else {
                     const lastSess = todaySessions[todaySessions.length - 1];
@@ -2511,7 +2980,8 @@
                 }
 
                 if (endSecs < startSecs) {
-                    document.getElementById("output-decimal-time").textContent = isLiveRunning ? "0.00" : "Ungültig";
+                    decOutputEl.textContent = isLiveRunning ? "00:00 h" : "Ungültig";
+                    pauseHintEl.style.display = "none";
                     document.getElementById("output-overtime").textContent = "-";
                     return;
                 }
@@ -2525,11 +2995,10 @@
                 }
 
                 const smokeSecs = getTodaySmokeSecs();
-                const workSecs = calcNetWorkSecs(totalPresSecs, smokeSecs);
-                const workDec = workSecs / 3600;
+                const { netSecs, totalDeductSecs } = getDeductionDetails(totalPresSecs, smokeSecs);
 
                 const sollSecs = (sollHours * 3600) + (sollMinutes * 60);
-                const overSecs = workSecs - sollSecs;
+                const overSecs = netSecs - sollSecs;
 
                 const formatOvertime = (secs) => {
                     const sign = secs < 0 ? "-" : "+";
@@ -2540,7 +3009,24 @@
                     return `${sign}${format2(h)}:${format2(m)}:${format2(s)}`;
                 };
 
-                document.getElementById("output-decimal-time").textContent = workDec.toFixed(2);
+                if (isLiveRunning) {
+                    const netH = Math.floor(netSecs / 3600);
+                    const netM = Math.floor((netSecs % 3600) / 60);
+                    decOutputEl.textContent = `${format2(netH)}:${format2(netM)} h`;
+
+                    if (totalDeductSecs > 0) {
+                        const deductMins = Math.round(totalDeductSecs / 60);
+                        pauseHintEl.textContent = `inkl. -${deductMins}m Pause`;
+                        pauseHintEl.style.display = "block";
+                    } else {
+                        pauseHintEl.style.display = "none";
+                    }
+                } else {
+                    const workDec = netSecs / 3600;
+                    decOutputEl.textContent = workDec.toFixed(2);
+                    pauseHintEl.style.display = "none";
+                }
+
                 document.getElementById("output-overtime").textContent = formatOvertime(overSecs);
             }
 
@@ -3355,7 +3841,8 @@
             let gestureAxis = null;
 
             document.addEventListener("touchstart", (e) => {
-                const anyModalOpen = settingsModal.classList.contains("active")
+                const anyModalOpen = welcomeOverlay.classList.contains("active")
+                    || settingsModal.classList.contains("active")
                     || dayEditorModal.classList.contains("active")
                     || pdfExportModal.classList.contains("active")
                     || backfillModal.classList.contains("active");
@@ -3497,14 +3984,37 @@
                 localStorage.removeItem("savedStartTime");
             }
 
+            /* =========================================================
+               MORGEN-STARTSEITE BEIM ERSTEN START AM TAG PRÜFEN
+               ========================================================= */
+            const todayAtInit = getTodayStr();
+            const dismissedToday = localStorage.getItem("welcomeDismissedDate") === todayAtInit;
+            const todayRecordAtInit = getDayData(todayAtInit);
+            const hasTimesToday = todaySessions.length > 0
+                || (todayRecordAtInit && (
+                    (todayRecordAtInit.startH !== "" && todayRecordAtInit.startH !== undefined)
+                    || (todayRecordAtInit.status && todayRecordAtInit.status !== "work" && todayRecordAtInit.status !== "free")
+                ));
+
+            if (!dismissedToday && !hasTimesToday) {
+                openWelcomeScreen();
+            }
+
             function tickLiveEngine() {
                 const now = new Date();
                 const hh = format2(now.getHours());
-                liveTimeEl.textContent = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                const timeStr = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                liveTimeEl.textContent = timeStr;
+                if (welcomeBigClockEl) welcomeBigClockEl.textContent = timeStr;
                 if (bgHourWatermark) bgHourWatermark.textContent = hh;
+
                 const dayName = weekdaysFull[now.getDay()];
                 const dateFormatted = `${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
                 liveDayEl.textContent = `${dayName}, ${dateFormatted}`;
+
+                if (welcomeOverlay.classList.contains("active")) {
+                    updateWelcomeGreetingText();
+                }
 
                 if (viewClock.classList.contains("active")) {
                     const hasOpenStart = startHoursInput.value !== "" && endHoursInput.value === "";
@@ -3533,3 +4043,5 @@
     </script>
 </body>
 </html>
+
+```
