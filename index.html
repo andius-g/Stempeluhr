@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.13
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.15
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" id="meta-theme-color" content="#000000">
-    <title>Stempeluhr & Wochenübersicht (v1.13)</title>
+    <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
+    <title>Stempeluhr & Wochenübersicht (v1.15)</title>
 
     <script>
-        const APP_VERSION = "1.13";
+        const APP_VERSION = "1.15";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -44,14 +44,15 @@
             document.documentElement.style.setProperty('--spread', spread);
             document.documentElement.style.setProperty('--asym-intensity', (intensity / 100).toFixed(3));
             document.documentElement.style.backgroundColor = bgHex;
+
             const meta = document.getElementById("meta-theme-color");
-            if (meta) meta.setAttribute("content", "#000000");
+            if (meta) meta.setAttribute("content", bgHex);
         })();
     </script>
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     <link rel="manifest" id="app-manifest-link" href="manifest.json">
     <link rel="icon" href="favicon.png" type="image/png">
@@ -78,7 +79,6 @@
             --radius-input: 8px;
             --radius-badge: 8px;
             --card-pad: 16px;
-            --stamp-grid: 1fr 1fr 50px;
             --btn-come-radius: 8px;
             --btn-go-radius: 8px;
             --output-radius: 8px;
@@ -116,7 +116,6 @@
                 calc(8px - var(--k) * 4px);
 
             --card-pad: calc(16px + var(--k) * 2px) 16px;
-            --stamp-grid: calc(1fr + var(--k) * 0.35fr) calc(1fr - var(--k) * 0.05fr) 48px;
 
             --btn-come-radius:
                 calc(8px + var(--k) * 18px)
@@ -155,6 +154,7 @@
 
         html {
             min-height: 100%;
+            min-height: 100dvh;
             background-color: var(--bg-color);
             overscroll-behavior-y: none;
             transition: background-color 0.3s;
@@ -531,47 +531,54 @@
             z-index: 1;
         }
 
+        /* GESTAPELTER STEMPELBLOCK:
+           Zeile 1: Kommen über volle Breite
+           Zeile 2: Gehen (breit) + Rückgängig (kompakt rechts) */
         .stamp-btn-row {
             display: grid;
-            grid-template-columns: var(--stamp-grid);
+            grid-template-columns: 1fr 48px;
             gap: 8px;
             margin-bottom: 14px;
+            align-items: stretch;
         }
 
         .btn-stamp {
             background-color: var(--primary-color);
             color: var(--white);
             border: none;
-            padding: 14px 10px;
+            padding: 13px 12px;
             border-radius: var(--radius-btn);
             font-weight: bold;
             cursor: pointer;
-            font-size: 1.05em;
+            font-size: 1.06em;
             box-shadow: 0 2px 5px rgba(0,0,0,0.14);
             transition: transform 0.15s, opacity 0.2s, border-radius 0.2s, background-color 0.3s;
+            white-space: nowrap;
         }
 
         #btn-now-start {
+            grid-column: 1 / -1;
             background-color: var(--primary-color);
             border-radius: var(--btn-come-radius);
         }
 
         #btn-now-end {
+            grid-column: 1 / 2;
             background-color: var(--secondary-action-color);
             border-radius: var(--btn-go-radius);
         }
 
         .btn-stamp:active {
-            transform: scale(0.96);
+            transform: scale(0.97);
         }
 
         .btn-undo {
+            grid-column: 2 / 3;
             background-color: var(--white);
             color: var(--text-color);
             border: 2px solid var(--border-color);
             border-radius: var(--radius-btn);
             font-weight: bold;
-            font-size: 1.25em;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1146,7 +1153,6 @@
             line-height: 1;
         }
 
-        /* Subpage Header in den Einstellungen */
         .subpage-header {
             display: flex;
             align-items: center;
@@ -1176,7 +1182,6 @@
             font-size: 1.12em;
         }
 
-        /* Kompakte Navigations-Karten auf der Haupt-Einstellungsseite */
         .settings-nav-card {
             width: 100%;
             display: flex;
@@ -1468,7 +1473,6 @@
             gap: 8px;
         }
 
-        /* Scribble Multi-Select Picker Grid in der Unterseite */
         .scribble-picker-head {
             display: flex;
             justify-content: space-between;
@@ -1721,7 +1725,12 @@
                     <div class="stamp-btn-row">
                         <button class="btn-stamp" id="btn-now-start">Kommen</button>
                         <button class="btn-stamp" id="btn-now-end">Gehen</button>
-                        <button class="btn-undo" id="btn-undo" title="Letzte Eingabe rückgängig" aria-label="Rückgängig" disabled>↶</button>
+                        <button class="btn-undo" id="btn-undo" title="Letzte Eingabe rückgängig" aria-label="Rückgängig" disabled>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 14L4 9l5-5"></path>
+                                <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                            </svg>
+                        </button>
                     </div>
 
                     <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 14px;">
@@ -2012,7 +2021,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.13</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.15</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -2123,16 +2132,16 @@
             }
 
             let dynamicManifestUrl = null;
-            function updateDynamicManifest() {
+            function updateDynamicManifest(bgHex) {
                 try {
                     const baseHref = new URL(".", window.location.href).href;
                     const manifestObj = {
-                        name: "Stempeluhr",
+                        name: "Stempeluhr & Wochenübersicht",
                         short_name: "Stempeluhr",
                         start_url: baseHref,
                         display: "standalone",
-                        background_color: "#000000",
-                        theme_color: "#000000",
+                        orientation: "portrait",
+                        background_color: bgHex,
                         icons: [
                             { src: baseHref + "favicon.png", sizes: "192x192", type: "image/png" },
                             { src: baseHref + "favicon.png", sizes: "512x512", type: "image/png" }
@@ -2153,13 +2162,13 @@
                 document.documentElement.style.setProperty('--spread', spread);
                 const bgHex = hslToHex(hue + spread, 50, 95);
                 if (metaThemeColor) {
-                    metaThemeColor.setAttribute("content", "#000000");
+                    metaThemeColor.setAttribute("content", bgHex);
                 }
                 document.documentElement.style.backgroundColor = bgHex;
                 if (document.body) {
                     document.body.style.backgroundColor = bgHex;
                 }
-                updateDynamicManifest();
+                updateDynamicManifest(bgHex);
             }
 
             function applyAsymIntensity(val) {
@@ -2351,7 +2360,6 @@
 
             /* =========================================================
                ORGANISCHE POISSON-STREUUNG + PIXEL MIKRO-ANIMATIONEN
-               (UNTERSTÜTZT MODUS "come" UND "go")
                ========================================================= */
             const welcomeOverlay = document.getElementById("welcome-overlay");
             const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -2525,6 +2533,10 @@
                     welcomeActionSub.textContent = "Jetzt direkt einstempeln";
                 }
 
+                if (metaThemeColor) {
+                    metaThemeColor.setAttribute("content", hslToHex(appHue, 44, 22));
+                }
+
                 updateWelcomeGreetingText();
                 renderWelcomeScatter();
                 welcomeOverlay.classList.add("active");
@@ -2535,6 +2547,7 @@
                 stopAmbientPixelAnimations();
                 welcomeOverlay.classList.remove("active");
                 localStorage.setItem("welcomeDismissedDate", getTodayStr());
+                applyThemeColors(appHue, appLightness, appSpread);
             }
 
             const viewClock = document.getElementById("view-clock");
@@ -2904,6 +2917,8 @@
                 localStorage.setItem("appHue", appHue);
                 localStorage.setItem("appLightness", appLightness);
                 localStorage.setItem("appSpread", appSpread);
+
+                applyThemeColors(appHue, appLightness, appSpread);
 
                 if (isSmoker) {
                     saveTodaySmokeData();
@@ -4400,9 +4415,6 @@
                 localStorage.removeItem("savedStartTime");
             }
 
-            /* =========================================================
-               MORGEN-STARTSEITE BEIM ERSTEN START AM TAG PRÜFEN
-               ========================================================= */
             const todayAtInit = getTodayStr();
             const dismissedToday = localStorage.getItem("welcomeDismissedDate") === todayAtInit;
             const todayRecordAtInit = getDayData(todayAtInit);
