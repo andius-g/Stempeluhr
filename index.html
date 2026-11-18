@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.16
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.17
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.16)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.17)</title>
 
     <script>
-        const APP_VERSION = "1.16";
+        const APP_VERSION = "1.17";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -54,7 +54,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=116">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=117">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -174,7 +174,6 @@
             overscroll-behavior-y: none;
         }
 
-        /* ECHTER EDGE-TO-EDGE HINTERGRUNDLAYER */
         .edge-bg-layer {
             position: fixed;
             inset: 0;
@@ -1261,6 +1260,69 @@
             opacity: 0.65;
         }
 
+        /* =========================================================
+           BACKUP-BEREICH IN EINSTELLUNGEN
+           ========================================================= */
+        .backup-card {
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-input);
+            padding: 11px 12px;
+        }
+        .backup-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 9px;
+        }
+        .backup-card-title {
+            font-weight: bold;
+            font-size: 0.92em;
+            color: var(--text-color);
+        }
+        .backup-status-pill {
+            font-size: 0.74em;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+        .backup-status-pill.is-due {
+            background: #fff3cd;
+            border-color: #e0a800;
+            color: #7a5800;
+        }
+        .backup-btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-backup-action {
+            background: var(--white);
+            color: var(--text-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-btn);
+            padding: 9px 8px;
+            font-size: 0.86em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.12s, background-color 0.15s;
+        }
+        .btn-backup-action:active {
+            transform: scale(0.96);
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
         .weekend-quick-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1898,8 +1960,16 @@
                 <label for="pdfUserNamePreview">Name auf dem Stundenzettel</label>
                 <input type="text" id="pdfUserNamePreview" class="text-input-full" placeholder="Vor- und Nachname">
             </div>
-            <div style="background:var(--bg-color); padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.84em; margin-bottom:14px; line-height:1.4;">
+            <div style="background:var(--bg-color); padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.84em; margin-bottom:10px; line-height:1.4;">
                 Erstellt eine druckfertige DIN-A4-PDF-Datei mit allen Tagen des Monats, Kommen/Gehen-Zeiten, Pausen, Status (Urlaub/Krank/Feiertag), Gesamtsaldo sowie Unterschriftszeile.
+            </div>
+            <div class="settings-group">
+                <div class="setting-box-row">
+                    <label class="toggle-label-nowrap" for="pdfAlsoBackupCheck" style="font-size:0.85em;">
+                        <input type="checkbox" id="pdfAlsoBackupCheck" checked>
+                        <span>💾 Auch JSON-Backup mit speichern</span>
+                    </label>
+                </div>
             </div>
             <button class="settings-save" id="btn-download-month-pdf">PDF jetzt herunterladen</button>
         </div>
@@ -2030,8 +2100,23 @@
                     </div>
                 </div>
 
+                <!-- DATENSICHERUNG (BACKUP EXPORT / IMPORT) -->
+                <div class="settings-group">
+                    <div class="backup-card">
+                        <div class="backup-card-top">
+                            <span class="backup-card-title">Datensicherung</span>
+                            <span class="backup-status-pill" id="backup-status-pill">Noch kein Backup</span>
+                        </div>
+                        <div class="backup-btn-grid">
+                            <button type="button" class="btn-backup-action" id="btn-export-backup">💾 Sichern</button>
+                            <button type="button" class="btn-backup-action" id="btn-import-backup">📂 Laden</button>
+                        </div>
+                        <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;">
+                    </div>
+                </div>
+
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.16</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.17</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -2198,6 +2283,130 @@
                 const hasNonFreeStatus = saved.status && saved.status !== 'free' && saved.status !== 'work';
                 return hasTimes || hasSmoke || hasNonFreeStatus;
             }
+
+            /* =========================================================
+               BACKUP-FUNKTIONEN (JSON EXPORT & IMPORT)
+               ========================================================= */
+            const backupStatusPill = document.getElementById("backup-status-pill");
+            const backupFileInput = document.getElementById("backup-file-input");
+
+            function updateBackupStatusBadge() {
+                if (!backupStatusPill) return;
+                const lastIso = localStorage.getItem("lastBackupDate");
+                backupStatusPill.classList.remove("is-due");
+
+                if (!lastIso) {
+                    backupStatusPill.textContent = "Noch kein Backup";
+                    backupStatusPill.classList.add("is-due");
+                    return;
+                }
+
+                const lastMs = Date.parse(lastIso);
+                if (isNaN(lastMs)) {
+                    backupStatusPill.textContent = "Gesichert";
+                    return;
+                }
+
+                const diffDays = Math.floor((Date.now() - lastMs) / 86400000);
+                if (diffDays <= 0) {
+                    backupStatusPill.textContent = "Heute gesichert";
+                } else if (diffDays === 1) {
+                    backupStatusPill.textContent = "Vor 1 Tag";
+                } else if (diffDays >= 30) {
+                    backupStatusPill.textContent = `Vor ${diffDays} Tagen!`;
+                    backupStatusPill.classList.add("is-due");
+                } else {
+                    backupStatusPill.textContent = `Vor ${diffDays} Tagen`;
+                }
+            }
+
+            function exportBackupJson() {
+                const payload = {
+                    app: "Stempeluhr",
+                    version: APP_VERSION,
+                    exportedAt: new Date().toISOString(),
+                    storage: {}
+                };
+
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key) {
+                        payload.storage[key] = localStorage.getItem(key);
+                    }
+                }
+
+                const todayStr = getTodayStr();
+                const safeName = (localStorage.getItem("userName") || "")
+                    .trim()
+                    .replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, "_");
+                const fileName = safeName
+                    ? `Stempeluhr_Backup_${todayStr}_${safeName}.json`
+                    : `Stempeluhr_Backup_${todayStr}.json`;
+
+                const jsonStr = JSON.stringify(payload, null, 2);
+                const blob = new Blob([jsonStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+                localStorage.setItem("lastBackupDate", new Date().toISOString());
+                updateBackupStatusBadge();
+            }
+
+            document.getElementById("btn-export-backup").addEventListener("click", exportBackupJson);
+
+            document.getElementById("btn-import-backup").addEventListener("click", () => {
+                backupFileInput.value = "";
+                backupFileInput.click();
+            });
+
+            backupFileInput.addEventListener("change", (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const parsed = JSON.parse(ev.target.result);
+                        if (!parsed || parsed.app !== "Stempeluhr" || typeof parsed.storage !== "object" || parsed.storage === null) {
+                            alert("Ungültige Datei: Dies ist kein gültiges Stempeluhr-Backup.");
+                            return;
+                        }
+
+                        const keys = Object.keys(parsed.storage);
+                        const dayCount = keys.filter(k => k.startsWith("day_")).length;
+                        const exportInfo = parsed.exportedAt
+                            ? new Date(parsed.exportedAt).toLocaleDateString("de-DE")
+                            : "unbekannt";
+
+                        const confirmed = confirm(
+                            `Backup vom ${exportInfo} (${dayCount} gespeicherte Tage) einspielen?\n\nAktuelle Einträge in der App werden dadurch ersetzt.`
+                        );
+                        if (!confirmed) return;
+
+                        localStorage.clear();
+                        keys.forEach((k) => {
+                            if (typeof parsed.storage[k] === "string") {
+                                localStorage.setItem(k, parsed.storage[k]);
+                            }
+                        });
+
+                        alert("Backup erfolgreich wiederhergestellt! Die App wird jetzt neu geladen.");
+                        window.location.reload();
+                    } catch (err) {
+                        alert("Fehler beim Lesen der Backup-Datei. Bitte prüfe, ob die Datei unbeschädigt ist.");
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            updateBackupStatusBadge();
 
             /* =========================================================
                HAND-DRAWN SCRIBBLE SVG-SET (12 KRITZEL-OUTLINES)
@@ -2851,6 +3060,7 @@
                     drawColorWheel();
                 } else {
                     updateSettingsNavPreviews();
+                    updateBackupStatusBadge();
                 }
             }
 
@@ -2860,6 +3070,7 @@
                 asymIntensitySlider.value = appAsymIntensity;
                 asymIntensityVal.textContent = appAsymIntensity;
                 syncStyleControlsUI();
+                updateBackupStatusBadge();
                 showSettingsSubpage("main");
                 settingsModal.classList.add("active");
             }
@@ -4031,6 +4242,7 @@
             const pdfExportModal = document.getElementById("pdf-export-modal");
             const pdfMonthSelect = document.getElementById("pdfMonthSelect");
             const pdfUserNamePreview = document.getElementById("pdfUserNamePreview");
+            const pdfAlsoBackupCheck = document.getElementById("pdfAlsoBackupCheck");
 
             document.getElementById("btn-open-pdf-modal").addEventListener("click", () => {
                 const refDate = new Date();
@@ -4223,6 +4435,11 @@
                 const safeName = (userName || "Stundenzettel").replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, "_");
                 const fileName = `Stundenzettel_${yearNum}-${format2(monthNum)}_${safeName}.pdf`;
                 doc.save(fileName);
+
+                if (pdfAlsoBackupCheck && pdfAlsoBackupCheck.checked) {
+                    setTimeout(exportBackupJson, 450);
+                }
+
                 pdfExportModal.classList.remove("active");
             });
 
