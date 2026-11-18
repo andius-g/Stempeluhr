@@ -3,8 +3,8 @@
   "short_name": "Stempeluhr",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0083B8",
+  "orientation": "portrait",
+  "background_color": "#eff6f9",
   "icons": [
     {
       "src": "favicon.png",
