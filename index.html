@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.12
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.13
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#000000">
-    <title>Stempeluhr & Wochenübersicht (v1.12)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.13)</title>
 
     <script>
-        const APP_VERSION = "1.12";
+        const APP_VERSION = "1.13";
         (function() {
             function hslToHexInit(h, s, l) {
                 h = ((h % 360) + 360) % 360;
@@ -176,7 +176,7 @@
         }
 
         /* =========================================================
-           MORGEN-STARTBILDSCHIRM (PIXEL SCRIBBLE SCATTER + MIKRO-ANIMATIONEN)
+           VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN)
            ========================================================= */
         .welcome-overlay {
             position: fixed;
@@ -194,6 +194,11 @@
         }
         .welcome-overlay.active {
             display: flex;
+            animation: welcomeFadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes welcomeFadeIn {
+            from { opacity: 0; transform: scale(1.03); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .welcome-scatter-field {
@@ -311,7 +316,7 @@
             gap: 14px;
         }
 
-        .btn-welcome-come {
+        .btn-welcome-action {
             width: 100%;
             min-height: 84px;
             border: none;
@@ -325,16 +330,19 @@
             align-items: center;
             justify-content: center;
             gap: 3px;
-            transition: transform 0.14s;
+            transition: transform 0.14s, background-color 0.25s;
         }
-        .btn-welcome-come:active {
+        .btn-welcome-action.mode-go {
+            background: var(--secondary-action-color);
+        }
+        .btn-welcome-action:active {
             transform: scale(0.97);
         }
-        .btn-welcome-come strong {
+        .btn-welcome-action strong {
             font-size: 1.55em;
             letter-spacing: 0.5px;
         }
-        .btn-welcome-come span {
+        .btn-welcome-action span {
             font-size: 0.86em;
             opacity: 0.92;
         }
@@ -353,7 +361,10 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            transition: transform 0.14s;
+            transition: transform 0.14s, background-color 0.25s;
+        }
+        .btn-welcome-menu.mode-go {
+            background: var(--primary-color);
         }
         .btn-welcome-menu:active {
             transform: scale(0.97);
@@ -455,9 +466,6 @@
         }
         .view-section.active {
             display: block;
-        }
-
-        #view-week.active {
             touch-action: pan-x;
         }
 
@@ -1138,6 +1146,108 @@
             line-height: 1;
         }
 
+        /* Subpage Header in den Einstellungen */
+        .subpage-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-right: 26px;
+        }
+        .btn-subpage-back {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-btn);
+            padding: 6px 11px;
+            font-size: 0.86em;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-subpage-back:active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        .subpage-header h2 {
+            margin: 0;
+            font-size: 1.12em;
+        }
+
+        /* Kompakte Navigations-Karten auf der Haupt-Einstellungsseite */
+        .settings-nav-card {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-input);
+            padding: 11px 12px;
+            cursor: pointer;
+            text-align: left;
+            color: var(--text-color);
+            transition: transform 0.12s, border-color 0.15s;
+        }
+        .settings-nav-card:active {
+            transform: scale(0.98);
+            border-color: var(--primary-color);
+        }
+        .settings-nav-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .settings-nav-info strong {
+            font-size: 0.94em;
+        }
+        .settings-nav-info span {
+            font-size: 0.78em;
+            opacity: 0.78;
+        }
+        .settings-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .nav-scribble-preview {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: hsl(var(--hue), 44%, 22%);
+            padding: 5px 8px;
+            border-radius: 8px;
+        }
+        .nav-scribble-preview svg {
+            width: 18px;
+            height: 18px;
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .nav-color-preview {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-color-preview .mini-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(0,0,0,0.2);
+        }
+        .nav-chevron {
+            font-size: 1.25em;
+            font-weight: bold;
+            opacity: 0.65;
+        }
+
         .weekend-quick-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1358,40 +1468,42 @@
             gap: 8px;
         }
 
-        /* Scribble Multi-Select Picker Grid in den Einstellungen */
+        /* Scribble Multi-Select Picker Grid in der Unterseite */
         .scribble-picker-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .scribble-picker-head label {
             margin-bottom: 0;
         }
         .scribble-count-tag {
-            font-size: 0.78em;
+            font-size: 0.82em;
             font-weight: bold;
-            opacity: 0.78;
+            opacity: 0.8;
         }
         .scribble-svg-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             background: hsl(var(--hue), 44%, 22%);
-            padding: 10px;
+            padding: 12px;
             border-radius: var(--radius-input);
             border: 1.5px solid var(--border-color);
         }
         .scribble-svg-chip {
             aspect-ratio: 1;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1.5px solid rgba(255, 255, 255, 0.18);
             background: rgba(0, 0, 0, 0.24);
             color: #ffffff;
             cursor: pointer;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 4px;
             transition: transform 0.12s, border-color 0.15s, background-color 0.15s;
         }
         .scribble-svg-chip:active {
@@ -1403,13 +1515,17 @@
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.24);
         }
         .scribble-svg-chip svg {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             stroke: #ffffff;
             fill: none;
             stroke-width: 2.2;
             stroke-linecap: round;
             stroke-linejoin: round;
+        }
+        .scribble-svg-chip span {
+            font-size: 0.65em;
+            opacity: 0.88;
         }
 
         .setting-box-row {
@@ -1466,10 +1582,10 @@
         .color-preview {
             display: flex;
             gap: 10px;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         .color-dot {
-            width: 26px; height: 26px;
+            width: 28px; height: 28px;
             border-radius: 50%;
             border: 2px solid #ccc;
         }
@@ -1547,8 +1663,8 @@
 </head>
 <body>
 
-    <!-- VORGESCHALTETER MORGEN-STARTBILDSCHIRM -->
-    <section class="welcome-overlay" id="welcome-overlay" aria-label="Tagesstart">
+    <!-- VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN) -->
+    <section class="welcome-overlay" id="welcome-overlay" aria-label="Stempelbildschirm">
         <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
         <div class="welcome-top-area">
@@ -1557,9 +1673,9 @@
         </div>
 
         <div class="welcome-actions-stack">
-            <button type="button" class="btn-welcome-come" id="btn-welcome-come">
-                <strong>Kommen</strong>
-                <span>Jetzt direkt einstempeln</span>
+            <button type="button" class="btn-welcome-action" id="btn-welcome-action">
+                <strong id="welcome-action-title">Kommen</strong>
+                <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
             </button>
 
             <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
@@ -1809,108 +1925,164 @@
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
-            <h2>Einstellungen</h2>
 
-            <div class="settings-group">
-                <label for="userNameInput">Name (Begrüßung & PDF-Zettel)</label>
-                <input type="text" id="userNameInput" class="text-input-full" placeholder="z. B. Andreas">
-            </div>
+            <!-- HAUPTANSICHT DER EINSTELLUNGEN -->
+            <div id="settings-page-main">
+                <h2>Einstellungen</h2>
 
-            <div class="settings-group">
-                <div class="scribble-picker-head">
-                    <label>Startbildschirm-Scribbles (1–5 wählbar)</label>
-                    <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
+                <div class="settings-group">
+                    <label for="userNameInput">Name (Begrüßung & PDF-Zettel)</label>
+                    <input type="text" id="userNameInput" class="text-input-full" placeholder="z. B. Andreas">
                 </div>
-                <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
-                <div class="slider-control" style="margin-top: 8px;">
-                    <label for="scribbleSizeSlider">
-                        <span>Symbolgröße & Präsenz:</span>
-                        <span><span id="scribbleSizeVal">50</span>%</span>
-                    </label>
-                    <input type="range" id="scribbleSizeSlider" min="15" max="100" value="50">
-                </div>
-            </div>
 
-            <div class="settings-group">
-                <label>Sollarbeitszeit (Std : Min)</label>
-                <div class="soll-pair">
-                    <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
-                    <span style="font-weight:bold; color:var(--text-color);">:</span>
-                    <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
+                <div class="settings-group">
+                    <button type="button" class="settings-nav-card" id="btn-open-scribbles-subpage">
+                        <div class="settings-nav-info">
+                            <strong>Startbildschirm-Scribbles</strong>
+                            <span id="nav-scribble-summary">2 aktiv · Größe 50%</span>
+                        </div>
+                        <div class="settings-nav-right">
+                            <div class="nav-scribble-preview" id="nav-scribble-preview"></div>
+                            <span class="nav-chevron">›</span>
+                        </div>
+                    </button>
                 </div>
-            </div>
 
-            <div class="settings-group">
-                <label for="styleModeSelect">Form-Design</label>
-                <select id="styleModeSelect" class="harmony-select">
-                    <option value="classic" selected>Klassisch (gleichmäßige Ecken)</option>
-                    <option value="asymmetric">Asymmetrisch & Organisch</option>
-                </select>
-                <div class="slider-control" id="asymSliderWrap" style="display: none; margin-top: 8px;">
-                    <label for="asymIntensitySlider">
-                        <span>Stärke der Asymmetrie:</span>
-                        <span><span id="asymIntensityVal">55</span>%</span>
-                    </label>
-                    <input type="range" id="asymIntensitySlider" min="0" max="100" value="55">
+                <div class="settings-group">
+                    <button type="button" class="settings-nav-card" id="btn-open-colors-subpage">
+                        <div class="settings-nav-info">
+                            <strong>Farbharmonie</strong>
+                            <span id="nav-color-summary">120° · Helligkeit 46%</span>
+                        </div>
+                        <div class="settings-nav-right">
+                            <div class="nav-color-preview">
+                                <span class="mini-dot dot-1"></span>
+                                <span class="mini-dot dot-2"></span>
+                                <span class="mini-dot dot-3"></span>
+                            </div>
+                            <span class="nav-chevron">›</span>
+                        </div>
+                    </button>
                 </div>
-            </div>
 
-            <div class="settings-group">
-                <div class="setting-box-row">
-                    <label class="toggle-label-nowrap" for="isSmokerCheck">
-                        <input type="checkbox" id="isSmokerCheck">
-                        <span>🚬 Raucher-Modus</span>
-                    </label>
-                    <div class="smoker-mins-wrap" id="smokerMinsWrap">
-                        <input type="number" id="smokeMinutesInput" min="1" max="60" value="5" inputmode="numeric">
-                        <span>Min/Gang</span>
+                <div class="settings-group">
+                    <label>Sollarbeitszeit (Std : Min)</label>
+                    <div class="soll-pair">
+                        <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
+                        <span style="font-weight:bold; color:var(--text-color);">:</span>
+                        <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
                     </div>
                 </div>
-            </div>
 
-            <div class="settings-group">
-                <div class="setting-box-row">
-                    <label class="toggle-label-nowrap" for="gesturesEnabledCheck">
-                        <input type="checkbox" id="gesturesEnabledCheck" checked>
-                        <span>👆 Wischgesten (Uhr ↔ Woche)</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="settings-group color-wheel-container">
-                <label>Farbharmonie (Kommen / Gehen kontrastgleich)</label>
-                <canvas id="colorWheel" width="165" height="165"></canvas>
-                <div class="color-preview">
-                    <div class="color-dot dot-1" title="Text & Rahmen"></div>
-                    <div class="color-dot dot-2" title="Kommen (Primär)"></div>
-                    <div class="color-dot dot-3" title="Gehen (Gegenfarbe)"></div>
-                </div>
-
-                <div class="slider-control">
-                    <label for="spreadSelect">Farbabstand Hintergrund:</label>
-                    <select id="spreadSelect" class="harmony-select">
-                        <option value="30">30° – Analog (sanft)</option>
-                        <option value="60">60° – Erweitert</option>
-                        <option value="120" selected>120° – Triadisch (deutlich)</option>
-                        <option value="150">150° – Split-Komplementär (stark)</option>
+                <div class="settings-group">
+                    <label for="styleModeSelect">Form-Design</label>
+                    <select id="styleModeSelect" class="harmony-select">
+                        <option value="classic" selected>Klassisch (gleichmäßige Ecken)</option>
+                        <option value="asymmetric">Asymmetrisch & Organisch</option>
                     </select>
+                    <div class="slider-control" id="asymSliderWrap" style="display: none; margin-top: 8px;">
+                        <label for="asymIntensitySlider">
+                            <span>Stärke der Asymmetrie:</span>
+                            <span><span id="asymIntensityVal">55</span>%</span>
+                        </label>
+                        <input type="range" id="asymIntensitySlider" min="0" max="100" value="55">
+                    </div>
                 </div>
 
-                <div class="slider-control">
-                    <label for="lightnessSlider">
-                        <span>Helligkeit Buttons (kontrastoptimiert):</span>
-                        <span><span id="lightnessVal">46</span>%</span>
-                    </label>
-                    <input type="range" id="lightnessSlider" min="28" max="52" value="46">
+                <div class="settings-group">
+                    <div class="setting-box-row">
+                        <label class="toggle-label-nowrap" for="isSmokerCheck">
+                            <input type="checkbox" id="isSmokerCheck">
+                            <span>🚬 Raucher-Modus</span>
+                        </label>
+                        <div class="smoker-mins-wrap" id="smokerMinsWrap">
+                            <input type="number" id="smokeMinutesInput" min="1" max="60" value="5" inputmode="numeric">
+                            <span>Min/Gang</span>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="settings-group">
+                    <div class="setting-box-row">
+                        <label class="toggle-label-nowrap" for="gesturesEnabledCheck">
+                            <input type="checkbox" id="gesturesEnabledCheck" checked>
+                            <span>👆 Wischgesten aktiv</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="version-update-bar">
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.13</span>
+                    <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
+                </div>
+
+                <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
             </div>
 
-            <div class="version-update-bar">
-                <span id="app-version-label" style="font-weight:bold;">Version 1.12</span>
-                <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
+            <!-- UNTERSEITE 1: SCRIBBLES & GRÖSSE -->
+            <div id="settings-page-scribbles" style="display: none;">
+                <div class="subpage-header">
+                    <button type="button" class="btn-subpage-back" id="btn-back-from-scribbles">← Zurück</button>
+                    <h2>Scribbles</h2>
+                </div>
+
+                <div class="settings-group">
+                    <div class="scribble-picker-head">
+                        <label>Motive auswählen (1–5 wählbar)</label>
+                        <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
+                    </div>
+                    <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="slider-control">
+                        <label for="scribbleSizeSlider">
+                            <span>Symbolgröße & Präsenz:</span>
+                            <span><span id="scribbleSizeVal">50</span>%</span>
+                        </label>
+                        <input type="range" id="scribbleSizeSlider" min="15" max="100" value="50">
+                    </div>
+                </div>
+
+                <button type="button" class="settings-save" id="btn-done-scribbles">Fertig</button>
             </div>
 
-            <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
+            <!-- UNTERSEITE 2: COLOR WHEEL & FARBHARMONIE -->
+            <div id="settings-page-colors" style="display: none;">
+                <div class="subpage-header">
+                    <button type="button" class="btn-subpage-back" id="btn-back-from-colors">← Zurück</button>
+                    <h2>Farbharmonie</h2>
+                </div>
+
+                <div class="settings-group color-wheel-container">
+                    <canvas id="colorWheel" width="185" height="185"></canvas>
+                    <div class="color-preview">
+                        <div class="color-dot dot-1" title="Text & Rahmen"></div>
+                        <div class="color-dot dot-2" title="Kommen (Primär)"></div>
+                        <div class="color-dot dot-3" title="Gehen (Gegenfarbe)"></div>
+                    </div>
+
+                    <div class="slider-control">
+                        <label for="spreadSelect">Farbabstand Hintergrund:</label>
+                        <select id="spreadSelect" class="harmony-select">
+                            <option value="30">30° – Analog (sanft)</option>
+                            <option value="60">60° – Erweitert</option>
+                            <option value="120" selected>120° – Triadisch (deutlich)</option>
+                            <option value="150">150° – Split-Komplementär (stark)</option>
+                        </select>
+                    </div>
+
+                    <div class="slider-control">
+                        <label for="lightnessSlider">
+                            <span>Helligkeit Buttons (kontrastoptimiert):</span>
+                            <span><span id="lightnessVal">46</span>%</span>
+                        </label>
+                        <input type="range" id="lightnessSlider" min="28" max="52" value="46">
+                    </div>
+                </div>
+
+                <button type="button" class="settings-save" id="btn-done-colors">Fertig</button>
+            </div>
         </div>
     </div>
 
@@ -2043,12 +2215,12 @@
                 },
                 {
                     id: "loop-arrow",
-                    label: "Schleifen-Pfeil",
+                    label: "Schleife",
                     svg: `<svg viewBox="0 0 36 36"><path d="M5 24 C10 26, 22 23, 21 15 C20 10, 13 11, 14 17 C15 23, 25 22, 30 13 M24 12.5 L30.5 12.5 L29.5 19"/></svg>`
                 },
                 {
                     id: "star",
-                    label: "Kritzel-Stern",
+                    label: "Stern",
                     svg: `<svg viewBox="0 0 36 36"><path d="M18 4 L21.4 13.4 L31.5 13.8 L23.5 19.8 L26.3 29.8 L18 23.8 L9.7 29.8 L12.5 19.8 L4.5 13.8 L14.6 13.4 Z"/></svg>`
                 },
                 {
@@ -2083,12 +2255,12 @@
                 },
                 {
                     id: "note",
-                    label: "Musiknote",
+                    label: "Musik",
                     svg: `<svg viewBox="0 0 36 36"><path d="M14 26.5 V9.5 L27.5 6.5 V23.5 M14 14.5 L27.5 11.5"/><circle cx="10.8" cy="26.8" r="3.4"/><circle cx="24.3" cy="23.8" r="3.4"/></svg>`
                 },
                 {
                     id: "clover",
-                    label: "Kleeblatt",
+                    label: "Klee",
                     svg: `<svg viewBox="0 0 36 36"><path d="M18 17.5 C13 15.5, 13.5 8.5, 18 8.5 C22.5 8.5, 23 15.5, 18 17.5 Z M18 17.5 C20 12.5, 27 13, 27 17.5 C27 22, 20 22.5, 18 17.5 Z M18 17.5 C16 12.5, 9 13, 9 17.5 C9 22, 16 22.5, 18 17.5 Z M18 17.5 C21 21, 19.5 28, 15.5 31.5"/></svg>`
                 },
                 {
@@ -2114,9 +2286,35 @@
             const scribbleCountTag = document.getElementById("scribble-count-tag");
             const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
             const scribbleSizeVal = document.getElementById("scribbleSizeVal");
+            const navScribbleSummary = document.getElementById("nav-scribble-summary");
+            const navScribblePreview = document.getElementById("nav-scribble-preview");
+            const navColorSummary = document.getElementById("nav-color-summary");
 
             scribbleSizeSlider.value = scribbleSizePct;
             scribbleSizeVal.textContent = scribbleSizePct;
+
+            function updateSettingsNavPreviews() {
+                if (navScribbleSummary && navScribblePreview) {
+                    navScribbleSummary.textContent = `${selectedScribbles.length} aktiv · Größe ${scribbleSizePct}%`;
+                    navScribblePreview.innerHTML = "";
+                    if (selectedScribbles.length === 0) {
+                        navScribblePreview.innerHTML = `<span style="color:#fff; font-size:0.74em; opacity:0.8;">Aus</span>`;
+                    } else {
+                        selectedScribbles.slice(0, 4).forEach(id => {
+                            const ic = SCRIBBLE_ICONS.find(x => x.id === id);
+                            if (ic) {
+                                const wrap = document.createElement("span");
+                                wrap.style.display = "inline-flex";
+                                wrap.innerHTML = ic.svg;
+                                navScribblePreview.appendChild(wrap);
+                            }
+                        });
+                    }
+                }
+                if (navColorSummary) {
+                    navColorSummary.textContent = `Abstand ${appSpread}° · Helligkeit ${appLightness}%`;
+                }
+            }
 
             function renderScribblePicker() {
                 scribbleSvgGrid.innerHTML = "";
@@ -2127,7 +2325,7 @@
                     btn.type = "button";
                     btn.className = "scribble-svg-chip" + (isSel ? " selected" : "");
                     btn.title = item.label;
-                    btn.innerHTML = item.svg;
+                    btn.innerHTML = `${item.svg}<span>${item.label}</span>`;
                     btn.addEventListener("click", () => {
                         const idx = selectedScribbles.indexOf(item.id);
                         if (idx >= 0) {
@@ -2139,9 +2337,7 @@
                             selectedScribbles.push(item.id);
                         }
                         renderScribblePicker();
-                        if (welcomeOverlay.classList.contains("active")) {
-                            renderWelcomeScatter();
-                        }
+                        updateSettingsNavPreviews();
                     });
                     scribbleSvgGrid.appendChild(btn);
                 });
@@ -2150,19 +2346,24 @@
             scribbleSizeSlider.addEventListener("input", () => {
                 scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
                 scribbleSizeVal.textContent = scribbleSizePct;
-                if (welcomeOverlay.classList.contains("active")) {
-                    renderWelcomeScatter();
-                }
+                updateSettingsNavPreviews();
             });
 
             /* =========================================================
                ORGANISCHE POISSON-STREUUNG + PIXEL MIKRO-ANIMATIONEN
+               (UNTERSTÜTZT MODUS "come" UND "go")
                ========================================================= */
             const welcomeOverlay = document.getElementById("welcome-overlay");
             const welcomeScatterField = document.getElementById("welcome-scatter-field");
             const welcomeGreetingEl = document.getElementById("welcome-greeting");
             const welcomeDateSubEl = document.getElementById("welcome-date-sub");
             const welcomeBigClockEl = document.getElementById("welcome-big-clock");
+            const btnWelcomeAction = document.getElementById("btn-welcome-action");
+            const welcomeActionTitle = document.getElementById("welcome-action-title");
+            const welcomeActionSub = document.getElementById("welcome-action-sub");
+            const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
+
+            let welcomeActionMode = "come";
             let ambientAnimTimer = null;
 
             function createSeededRng(seedNum) {
@@ -2197,7 +2398,8 @@
                     .filter(Boolean);
                 if (activeIcons.length === 0) return;
 
-                const todaySeed = parseInt(getTodayStr().replace(/-/g, ""), 10) + selectedScribbles.join("").length * 131;
+                const modeOffset = welcomeActionMode === "go" ? 7919 : 0;
+                const todaySeed = parseInt(getTodayStr().replace(/-/g, ""), 10) + selectedScribbles.join("").length * 131 + modeOffset;
                 const rng = createSeededRng(todaySeed);
 
                 const scaleFactor = 0.62 + (scribbleSizePct / 100) * 0.98;
@@ -2213,7 +2415,6 @@
                     const x = 7 + rng() * 86;
                     const y = 6 + rng() * 88;
 
-                    // Freiraum um Begrüßung oben und die zwei großen Buttons unten lassen
                     const inGreetingZone = (y > 9 && y < 23 && x > 14 && x < 86);
                     const inBottomButtonsZone = (y > 64 && y < 93 && x > 10 && x < 90);
                     if (inGreetingZone || inBottomButtonsZone) continue;
@@ -2262,7 +2463,6 @@
 
                     welcomeScatterField.appendChild(node);
 
-                    // Begrüßungs-Spin für einzelne Icons beim Start
                     if (idx % 3 === 0) {
                         setTimeout(() => {
                             triggerNodeMicroAnim(node, "anim-pixel-spin");
@@ -2294,18 +2494,37 @@
             function updateWelcomeGreetingText() {
                 const now = new Date();
                 const hr = now.getHours();
-                let salutation = "Guten Tag";
-                if (hr < 11) salutation = "Guten Morgen";
-                else if (hr >= 18) salutation = "Guten Abend";
-
                 const cleanName = (userName || "").trim();
-                welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+
+                if (welcomeActionMode === "go") {
+                    const salutation = hr >= 16 ? "Schönen Feierabend" : "Bis später";
+                    welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+                } else {
+                    let salutation = "Guten Tag";
+                    if (hr < 11) salutation = "Guten Morgen";
+                    else if (hr >= 18) salutation = "Guten Abend";
+                    welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+                }
 
                 const dayName = weekdaysFull[now.getDay()];
                 welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
             }
 
-            function openWelcomeScreen() {
+            function openWelcomeScreen(mode = "come") {
+                welcomeActionMode = mode === "go" ? "go" : "come";
+
+                if (welcomeActionMode === "go") {
+                    btnWelcomeAction.classList.add("mode-go");
+                    btnWelcomeMenu.classList.add("mode-go");
+                    welcomeActionTitle.textContent = "Gehen";
+                    welcomeActionSub.textContent = "Jetzt direkt ausstempeln";
+                } else {
+                    btnWelcomeAction.classList.remove("mode-go");
+                    btnWelcomeMenu.classList.remove("mode-go");
+                    welcomeActionTitle.textContent = "Kommen";
+                    welcomeActionSub.textContent = "Jetzt direkt einstempeln";
+                }
+
                 updateWelcomeGreetingText();
                 renderWelcomeScatter();
                 welcomeOverlay.classList.add("active");
@@ -2439,7 +2658,7 @@
             document.documentElement.setAttribute("data-style", appStyleMode);
             applyAsymIntensity(appAsymIntensity);
             applyThemeColors(appHue, appLightness, appSpread);
-            renderScribblePicker();
+            updateSettingsNavPreviews();
 
             const userNameInput = document.getElementById("userNameInput");
             const sollHoursInput = document.getElementById("sollHours");
@@ -2536,12 +2755,14 @@
                 appLightness = Math.min(52, Math.max(28, parseInt(lightnessSlider.value, 10)));
                 lightnessVal.textContent = appLightness;
                 applyThemeColors(appHue, appLightness, appSpread);
+                updateSettingsNavPreviews();
                 drawColorWheel();
             });
 
             spreadSelect.addEventListener("change", () => {
                 appSpread = parseInt(spreadSelect.value, 10);
                 applyThemeColors(appHue, appLightness, appSpread);
+                updateSettingsNavPreviews();
                 drawColorWheel();
             });
 
@@ -2571,8 +2792,8 @@
                     ctx.fillStyle = `hsl(${angle}, 100%, ${appLightness}%)`;
                     ctx.fill();
                 }
-                drawWheelDot(appHue + 150, 5.5);
-                drawWheelDot(appHue, 7.5);
+                drawWheelDot(appHue + 150, 6);
+                drawWheelDot(appHue, 8);
             }
 
             function handleColorPick(e) {
@@ -2610,21 +2831,47 @@
                 canvas.removeEventListener("touchmove", handleColorPick);
             });
 
+            /* =========================================================
+               EINSTELLUNGEN MIT UNTER-ANSICHTEN (MAIN / SCRIBBLES / COLORS)
+               ========================================================= */
             const settingsModal = document.getElementById("settings-modal");
+            const settingsPageMain = document.getElementById("settings-page-main");
+            const settingsPageScribbles = document.getElementById("settings-page-scribbles");
+            const settingsPageColors = document.getElementById("settings-page-colors");
+
+            function showSettingsSubpage(pageName) {
+                settingsPageMain.style.display = pageName === "main" ? "block" : "none";
+                settingsPageScribbles.style.display = pageName === "scribbles" ? "block" : "none";
+                settingsPageColors.style.display = pageName === "colors" ? "block" : "none";
+
+                if (pageName === "scribbles") {
+                    renderScribblePicker();
+                    scribbleSizeSlider.value = scribbleSizePct;
+                    scribbleSizeVal.textContent = scribbleSizePct;
+                } else if (pageName === "colors") {
+                    drawColorWheel();
+                } else {
+                    updateSettingsNavPreviews();
+                }
+            }
+
             function openSettings() {
                 userNameInput.value = userName;
-                renderScribblePicker();
-                scribbleSizeSlider.value = scribbleSizePct;
-                scribbleSizeVal.textContent = scribbleSizePct;
                 styleModeSelect.value = appStyleMode;
                 asymIntensitySlider.value = appAsymIntensity;
                 asymIntensityVal.textContent = appAsymIntensity;
                 syncStyleControlsUI();
+                showSettingsSubpage("main");
                 settingsModal.classList.add("active");
-                drawColorWheel();
             }
 
             document.getElementById("btn-settings").addEventListener("click", openSettings);
+            document.getElementById("btn-open-scribbles-subpage").addEventListener("click", () => showSettingsSubpage("scribbles"));
+            document.getElementById("btn-open-colors-subpage").addEventListener("click", () => showSettingsSubpage("colors"));
+            document.getElementById("btn-back-from-scribbles").addEventListener("click", () => showSettingsSubpage("main"));
+            document.getElementById("btn-done-scribbles").addEventListener("click", () => showSettingsSubpage("main"));
+            document.getElementById("btn-back-from-colors").addEventListener("click", () => showSettingsSubpage("main"));
+            document.getElementById("btn-done-colors").addEventListener("click", () => showSettingsSubpage("main"));
 
             function closeSettings() {
                 settingsModal.classList.remove("active");
@@ -2984,18 +3231,7 @@
                 calculateAllTimes();
             }
 
-            document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
-
-            document.getElementById("btn-welcome-come").addEventListener("click", () => {
-                triggerStampComeNow();
-                closeWelcomeScreen();
-            });
-
-            document.getElementById("btn-welcome-menu").addEventListener("click", () => {
-                closeWelcomeScreen();
-            });
-
-            document.getElementById("btn-now-end").addEventListener("click", () => {
+            function triggerStampGoNow() {
                 pushUndoSnapshot();
                 const now = new Date();
                 const tObj = {
@@ -3011,6 +3247,22 @@
                 syncInputsFromSessions();
                 saveSessionsAndDay();
                 calculateAllTimes();
+            }
+
+            document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
+            document.getElementById("btn-now-end").addEventListener("click", triggerStampGoNow);
+
+            btnWelcomeAction.addEventListener("click", () => {
+                if (welcomeActionMode === "go") {
+                    triggerStampGoNow();
+                } else {
+                    triggerStampComeNow();
+                }
+                closeWelcomeScreen();
+            });
+
+            btnWelcomeMenu.addEventListener("click", () => {
+                closeWelcomeScreen();
             });
 
             function getTodaySmokeSecs() {
@@ -3973,6 +4225,15 @@
                 pdfExportModal.classList.remove("active");
             });
 
+            /* =========================================================
+               TOUCH-GESTEN:
+               - Horizontal (beide Views): Uhr <-> Woche
+               - Vertikal auf Stempeluhr (viewClock):
+                   * Hochwischen (dy < 0)   -> Vollbild "Kommen"
+                   * Runterwischen (dy > 0) -> Vollbild "Gehen"
+               - Vertikal auf Wochenbilanz (viewWeek):
+                   * Hoch/Runter -> Kalenderwoche wechseln
+               ========================================================= */
             let touchStartX = 0;
             let touchStartY = 0;
             let touchBlocked = false;
@@ -4027,13 +4288,20 @@
                         activeEl.style.transform = `translateX(${dampedX}px)`;
                         activeEl.style.opacity = String(fade);
                     }
-                } else if (gestureAxis === 'y' && isWeekActive) {
-                    if (e.cancelable) e.preventDefault();
-                    const listCard = document.getElementById("week-days-container");
-                    if (listCard) {
-                        const dampedY = Math.max(-45, Math.min(45, dy * 0.35));
-                        listCard.style.transition = "none";
-                        listCard.style.transform = `translateY(${dampedY}px)`;
+                } else if (gestureAxis === 'y') {
+                    if (isClockActive) {
+                        if (e.cancelable) e.preventDefault();
+                        const dampedY = Math.max(-44, Math.min(44, dy * 0.32));
+                        viewClock.style.transition = "none";
+                        viewClock.style.transform = `translateY(${dampedY}px)`;
+                    } else if (isWeekActive) {
+                        if (e.cancelable) e.preventDefault();
+                        const listCard = document.getElementById("week-days-container");
+                        if (listCard) {
+                            const dampedY = Math.max(-45, Math.min(45, dy * 0.35));
+                            listCard.style.transition = "none";
+                            listCard.style.transform = `translateY(${dampedY}px)`;
+                        }
                     }
                 }
             }, { passive: false });
@@ -4073,14 +4341,24 @@
                     }
                 }
 
-                if (gestureAxis === 'y' && isWeekActive && absY > 55 && absY > absX * 1.35) {
+                if (gestureAxis === 'y' && absY > 58 && absY > absX * 1.35) {
                     resetDragVisuals();
-                    if (dy < 0) {
-                        changeWeek(1);
-                    } else {
-                        changeWeek(-1);
+                    if (isClockActive) {
+                        if (dy < 0) {
+                            openWelcomeScreen("come");
+                        } else {
+                            openWelcomeScreen("go");
+                        }
+                        return;
                     }
-                    return;
+                    if (isWeekActive) {
+                        if (dy < 0) {
+                            changeWeek(1);
+                        } else {
+                            changeWeek(-1);
+                        }
+                        return;
+                    }
                 }
 
                 resetDragVisuals();
@@ -4135,7 +4413,7 @@
                 ));
 
             if (!dismissedToday && !hasTimesToday) {
-                openWelcomeScreen();
+                openWelcomeScreen("come");
             }
 
             function tickLiveEngine() {
