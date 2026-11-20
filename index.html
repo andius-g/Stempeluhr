@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.20
+     STEMPELUHR, STEMPELDECK & WOCHENBILANZ — VERSION 1.21
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.20)</title>
+    <title>Stempeluhr & Stempeldeck (v1.21)</title>
 
     <script>
-        const APP_VERSION = "1.20";
+        const APP_VERSION = "1.21";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -50,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=120">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=121">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -136,7 +136,7 @@
         }
 
         /* =========================================================
-           VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN)
+           STEMPELDECK (3 ROLLENDE SEITEN + WIDGETS + SCRIBBLES)
            ========================================================= */
         .welcome-overlay {
             position: fixed;
@@ -148,10 +148,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: calc(30px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
+            padding: calc(16px + env(safe-area-inset-top)) 0 calc(18px + env(safe-area-inset-bottom));
             overflow: hidden;
             user-select: none;
-            touch-action: none;
         }
         .welcome-overlay.active {
             display: flex;
@@ -227,104 +226,263 @@
         .anim-pixel-pop { animation: pixelIconPop 0.68s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .anim-pixel-wiggle { animation: pixelIconWiggle 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-        .welcome-top-area {
+        .deck-top-bar {
             position: relative;
-            z-index: 3;
-            text-align: center;
-            margin-top: 6px;
+            z-index: 4;
             width: 100%;
-            max-width: 390px;
+            max-width: 410px;
+            padding: 0 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .deck-greeting-col {
+            text-align: left;
             pointer-events: none;
         }
         .welcome-date-sub {
-            font-size: 0.94em;
+            font-size: 0.84em;
             opacity: 0.9;
-            letter-spacing: 0.4px;
-            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
         }
         .welcome-greeting {
-            font-size: 1.72em;
+            font-size: 1.38em;
             font-weight: bold;
-            line-height: 1.24;
+            line-height: 1.2;
             text-shadow: 0 3px 14px rgba(0, 0, 0, 0.5);
         }
 
-        .welcome-actions-stack {
+        .deck-edit-btn {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.34);
+            border-radius: var(--radius-btn);
+            padding: 7px 11px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            flex-shrink: 0;
+            transition: background-color 0.2s, transform 0.15s;
+        }
+        .deck-edit-btn.is-editing {
+            background: var(--primary-color);
+            border-color: #ffffff;
+        }
+        .deck-edit-btn:active { transform: scale(0.95); }
+
+        /* 3-SEITEN CAROUSEL (LINKS - MITTE - RECHTS) */
+        .deck-carousel {
             position: relative;
             z-index: 3;
             width: 100%;
-            max-width: 390px;
+            flex: 1;
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            margin: 8px 0;
+        }
+        .deck-carousel::-webkit-scrollbar { display: none; }
+
+        .deck-page {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 4px 20px 6px;
+            overflow-y: auto;
         }
 
-        .btn-welcome-action,
-        .btn-welcome-menu {
+        .deck-widget-grid {
             width: 100%;
-            color: #ffffff;
+            max-width: 390px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 11px;
+            align-content: end;
+        }
+
+        .deck-widget {
+            position: relative;
+            border-radius: var(--output-radius);
             border: 1.5px solid rgba(255, 255, 255, 0.32);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            cursor: pointer;
+            color: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
-            transition: transform 0.14s, background-color 0.25s, border-radius 0.2s;
+            text-align: center;
+            padding: 13px 10px;
+            min-height: 76px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            transition: transform 0.14s, border-radius 0.2s, background-color 0.25s;
         }
+        .deck-widget.span-2 { grid-column: 1 / -1; }
+        .deck-widget.is-clickable { cursor: pointer; }
+        .deck-widget.is-clickable:active { transform: scale(0.97); }
 
-        .btn-welcome-action {
-            min-height: 140px;
+        .deck-widget.style-primary {
+            background: hsla(var(--hue), 64%, var(--lightness), 0.74);
             border-radius: var(--welcome-btn-come-radius);
-            background: hsla(var(--hue), 64%, var(--lightness), 0.72);
         }
-        .btn-welcome-action.mode-go {
+        .deck-widget.style-secondary {
+            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.74);
             border-radius: var(--welcome-btn-go-radius);
-            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.72);
+        }
+        .deck-widget.style-glass {
+            background: hsla(var(--hue), 48%, 34%, 0.68);
+        }
+        .deck-widget.style-ampel-gruen {
+            background: rgba(22, 163, 74, 0.74);
+            border-color: rgba(134, 239, 172, 0.65);
+        }
+        .deck-widget.style-ampel-gelb {
+            background: rgba(217, 119, 6, 0.78);
+            border-color: rgba(253, 224, 71, 0.65);
+        }
+        .deck-widget.style-ampel-rot {
+            background: rgba(220, 38, 38, 0.78);
+            border-color: rgba(252, 165, 165, 0.65);
         }
 
-        .btn-welcome-menu {
-            min-height: 166px;
-            border-radius: var(--welcome-btn-go-radius);
-            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.66);
+        .dw-stamp-hero {
+            min-height: 122px;
+            padding: 18px 14px;
         }
-        .btn-welcome-menu.mode-go {
-            border-radius: var(--welcome-btn-come-radius);
-            background: hsla(var(--hue), 64%, var(--lightness), 0.66);
-        }
+        .dw-stamp-hero strong { font-size: 1.68em; letter-spacing: 0.4px; }
+        .dw-stamp-hero span { font-size: 0.88em; opacity: 0.94; margin-top: 4px; }
 
-        .btn-welcome-action:active,
-        .btn-welcome-menu:active {
-            transform: scale(0.97);
-        }
-        .btn-welcome-action strong {
-            font-size: 1.72em;
-            letter-spacing: 0.5px;
-        }
-        .btn-welcome-action span {
-            font-size: 0.9em;
-            opacity: 0.94;
-        }
-        .welcome-big-clock {
-            font-size: 2.5em;
+        .dw-clock-box { min-height: 92px; }
+        .dw-clock-val {
+            font-size: 2.1em;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             line-height: 1.05;
         }
-        .welcome-menu-hint {
-            font-size: 0.9em;
+        .dw-clock-sub { font-size: 0.76em; opacity: 0.86; margin-top: 3px; }
+
+        .dw-menu-box { min-height: 92px; }
+        .dw-menu-box strong { font-size: 1.08em; }
+        .dw-menu-box span { font-size: 0.76em; opacity: 0.88; margin-top: 3px; }
+
+        .dw-metric-lbl { font-size: 0.76em; opacity: 0.9; margin-bottom: 3px; }
+        .dw-metric-val { font-size: 1.18em; font-weight: bold; font-variant-numeric: tabular-nums; }
+        .dw-metric-sub { font-size: 0.7em; opacity: 0.86; margin-top: 2px; }
+
+        /* Bearbeitungs-Overlay auf Widgets */
+        .dw-edit-controls {
+            display: none;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            left: 5px;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 5;
+        }
+        .deck-widget.editing .dw-edit-controls { display: flex; }
+        .dw-ctrl-btn {
+            background: rgba(0, 0, 0, 0.62);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 6px;
+            padding: 3px 7px;
+            font-size: 0.72em;
             font-weight: bold;
-            opacity: 0.94;
+            cursor: pointer;
+        }
+        .dw-ctrl-btn.del { background: rgba(185, 28, 28, 0.85); }
+
+        .btn-deck-add-widget {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border: 1.5px dashed rgba(255, 255, 255, 0.55);
+            border-radius: var(--radius-btn);
+            padding: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+        }
+        .deck-empty-hint {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 0.84em;
+            opacity: 0.75;
+            padding: 18px 10px;
+            background: rgba(0, 0, 0, 0.18);
+            border-radius: var(--radius-card);
         }
 
+        /* FESTES DOCK UNTEN (NOTAUSGANG + SEITEN-PUNKTE) */
+        .deck-bottom-dock {
+            position: relative;
+            z-index: 4;
+            width: 100%;
+            max-width: 390px;
+            padding: 4px 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .deck-dots {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .deck-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.36);
+            border: none;
+            cursor: pointer;
+            transition: width 0.2s, background-color 0.2s;
+        }
+        .deck-dot.active {
+            width: 22px;
+            background: #ffffff;
+        }
+        .deck-page-label {
+            font-size: 0.75em;
+            opacity: 0.82;
+            font-weight: bold;
+        }
+        .btn-deck-exit {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.38);
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 0.82em;
+            font-weight: bold;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .btn-deck-exit:active { transform: scale(0.95); }
+
         /* =========================================================
-           HAUPTAPP
+           HAUPTAPP (TAGESRECHNER & WOCHENBILANZ)
            ========================================================= */
         .container {
             max-width: 390px;
@@ -448,7 +606,7 @@
             display: grid;
             grid-template-columns: 1fr 48px;
             gap: 8px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             align-items: stretch;
         }
 
@@ -549,11 +707,92 @@
         }
         .btn-smoke-minus:active { transform: scale(0.9); }
 
+        /* HARMONISIERTE K / G KAPSELN (DIREKT UNTER GEHEN) */
+        .dual-manual-times {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .kg-pill-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            padding: 4px 6px 4px 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: border-color 0.25s, border-radius 0.2s, background-color 0.3s;
+        }
+        .kg-pill-card.is-come {
+            border-radius: var(--btn-come-radius);
+        }
+        .kg-pill-card.is-go {
+            border-radius: var(--btn-go-radius);
+        }
+        .kg-pill-card:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px hsla(var(--hue), 64%, var(--lightness), 0.2);
+        }
+
+        .kg-tag {
+            width: 30px;
+            height: 34px;
+            border-radius: var(--radius-badge);
+            color: var(--white);
+            font-weight: bold;
+            font-size: 0.96em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .kg-pill-card.is-come .kg-tag {
+            background-color: var(--primary-color);
+        }
+        .kg-pill-card.is-go .kg-tag {
+            background-color: var(--secondary-action-color);
+        }
+
+        .kg-time-fields {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            gap: 1px;
+        }
+        .kg-time-fields input[type="number"] {
+            width: 100%;
+            min-width: 0;
+            height: 36px;
+            padding: 2px 0;
+            border: none;
+            background: transparent;
+            font-size: 1.16em;
+            font-weight: bold;
+            color: var(--text-color);
+            box-shadow: none;
+        }
+        .kg-time-fields input[type="number"]:focus {
+            box-shadow: none;
+            background: rgba(255, 255, 255, 0.55);
+            border-radius: 6px;
+        }
+        .kg-colon {
+            font-weight: bold;
+            font-size: 1.05em;
+            opacity: 0.55;
+            user-select: none;
+            padding-bottom: 1px;
+        }
+
         .output-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .output, .output-decimal {
@@ -588,45 +827,7 @@
             background-color: var(--border-color);
             height: var(--divider-height);
             opacity: 0.45;
-            margin: 14px 0;
-        }
-
-        .dual-manual-times {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .inputs-group-kg {
-            display: grid;
-            grid-template-columns: 38px 1fr 1fr;
-            gap: 4px;
-            align-items: center;
-            width: 100%;
-        }
-
-        .kg-badge {
-            height: 48px;
-            border-radius: var(--radius-input);
-            border: 2px solid var(--border-color);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-weight: bold;
-            font-size: 1.08em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-        }
-
-        .inputs-group-kg input[type="number"] {
-            width: 100%;
-            min-width: 0;
-            height: 48px;
-            padding: 8px 1px;
-            font-size: 1.15em;
-            font-weight: bold;
+            margin: 12px 0;
         }
 
         input[type="text"], input[type="number"], input[type="month"], input[type="date"] {
@@ -672,7 +873,7 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-input);
             padding: 8px 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             text-align: left;
             font-size: 0.84em;
         }
@@ -714,7 +915,7 @@
             justify-content: space-between;
         }
 
-        /* WOCHENÜBERSICHT */
+        /* WOCHENBILANZ */
         .week-header {
             display: flex;
             justify-content: space-between;
@@ -902,9 +1103,7 @@
             margin-top: 2px;
         }
 
-        /* =========================================================
-           AMPELKONTO STATUS-PILLE (UNTER MONATS-PDF)
-           ========================================================= */
+        /* AMPELKONTO STATUS-PILLE */
         .glz-pill-wrap {
             display: flex;
             justify-content: center;
@@ -973,7 +1172,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.22s;
-            z-index: 1000;
+            z-index: 2500;
             padding: 12px;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -988,6 +1187,7 @@
             position: relative;
             box-shadow: 0 12px 32px rgba(0,0,0,0.24);
             text-align: left;
+            color: var(--text-color);
         }
         .modal-content h2 {
             margin: 0 0 14px;
@@ -1002,6 +1202,37 @@
             font-size: 1.65em; color: var(--text-color);
             cursor: pointer;
             line-height: 1;
+        }
+
+        .widget-picker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .widget-pick-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-btn);
+            padding: 10px 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+            cursor: pointer;
+            text-align: left;
+        }
+        .widget-pick-btn:active {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+        .widget-pick-btn span.sub {
+            font-weight: normal;
+            font-size: 0.8em;
+            opacity: 0.78;
         }
 
         .subpage-header {
@@ -1418,28 +1649,55 @@
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
 
-    <!-- VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN) -->
-    <section class="welcome-overlay" id="welcome-overlay" aria-label="Stempelbildschirm">
+    <!-- =========================================================
+         STEMPELDECK (3 ROLLENDE WIDGET-SEITEN + SCRIBBLES)
+         ========================================================= -->
+    <section class="welcome-overlay" id="welcome-overlay" aria-label="Stempeldeck">
         <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
-        <div class="welcome-top-area">
-            <div class="welcome-date-sub" id="welcome-date-sub">-</div>
-            <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
+        <div class="deck-top-bar">
+            <div class="deck-greeting-col">
+                <div class="welcome-date-sub" id="welcome-date-sub">-</div>
+                <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
+            </div>
+            <button type="button" class="deck-edit-btn" id="btn-deck-edit">🔒 Widgets</button>
         </div>
 
-        <div class="welcome-actions-stack">
-            <button type="button" class="btn-welcome-action" id="btn-welcome-action">
-                <strong id="welcome-action-title">Kommen</strong>
-                <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
-            </button>
+        <div class="deck-carousel" id="deck-carousel">
+            <div class="deck-page" data-page-idx="0">
+                <div class="deck-widget-grid" id="deck-grid-0"></div>
+            </div>
+            <div class="deck-page" data-page-idx="1">
+                <div class="deck-widget-grid" id="deck-grid-1"></div>
+            </div>
+            <div class="deck-page" data-page-idx="2">
+                <div class="deck-widget-grid" id="deck-grid-2"></div>
+            </div>
+        </div>
 
-            <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
-                <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
-                <div class="welcome-menu-hint">Zum Menü →</div>
-            </button>
+        <div class="deck-bottom-dock">
+            <div class="deck-dots" id="deck-dots">
+                <button type="button" class="deck-dot" data-go-page="0" aria-label="Seite Links"></button>
+                <button type="button" class="deck-dot active" data-go-page="1" aria-label="Stempeldeck Mitte"></button>
+                <button type="button" class="deck-dot" data-go-page="2" aria-label="Seite Rechts"></button>
+            </div>
+            <span class="deck-page-label" id="deck-page-label">Mitte</span>
+            <button type="button" class="btn-deck-exit" id="btn-deck-exit">Tagesrechner →</button>
         </div>
     </section>
 
+    <!-- MODAL: WIDGET ZUM STEMPELDECK HINZUFÜGEN -->
+    <div class="modal-overlay" id="widget-picker-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="btn-close-widget-picker">&times;</button>
+            <h2>Widget hinzufügen</h2>
+            <div class="widget-picker-list" id="widget-picker-list"></div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         HAUPTAPP (TAGESRECHNER & WOCHENBILANZ)
+         ========================================================= -->
     <div class="container" id="app-container">
         <header class="top-header-card">
             <div class="live-clock-box">
@@ -1469,6 +1727,7 @@
         </header>
 
         <div class="views-stage" id="views-stage">
+            <!-- ANSICHT 1: TAGESRECHNER -->
             <div id="view-clock" class="view-section active">
                 <div class="feature-section">
                     <div class="bg-hour-watermark" id="bg-hour-watermark">--</div>
@@ -1484,11 +1743,43 @@
                         </button>
                     </div>
 
-                    <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 14px;">
+                    <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 12px;">
                         <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
                         <div class="smoke-counter-box">
                             <span id="smoke-count-display">0× (-0m)</span>
                             <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
+                        </div>
+                    </div>
+
+                    <!-- HARMONISIERTE K / G EINGABEKAPSELN DIREKT UNTER GEHEN -->
+                    <div class="dual-manual-times">
+                        <div class="kg-pill-card is-come">
+                            <div class="kg-tag" title="Kommen">K</div>
+                            <div class="kg-time-fields">
+                                <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" aria-label="Kommen Stunden">
+                                <span class="kg-colon">:</span>
+                                <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" aria-label="Kommen Minuten">
+                            </div>
+                        </div>
+                        <div class="kg-pill-card is-go">
+                            <div class="kg-tag" title="Gehen">G</div>
+                            <div class="kg-time-fields">
+                                <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh" aria-label="Gehen Stunden">
+                                <span class="kg-colon">:</span>
+                                <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm" aria-label="Gehen Minuten">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sessions-box" id="sessions-box" style="display: none;">
+                        <div class="sessions-header">
+                            <span>Stempel-Blöcke heute</span>
+                            <span id="sessions-pres-sum">00:00 h</span>
+                        </div>
+                        <div id="sessions-list"></div>
+                        <div class="sessions-break-info" id="sessions-break-info" style="display: none;">
+                            <span>Unterbrechung (abwesend):</span>
+                            <strong id="sessions-gap-sum">0 min</strong>
                         </div>
                     </div>
 
@@ -1509,31 +1800,6 @@
 
                     <hr class="section-divider">
 
-                    <div class="dual-manual-times">
-                        <div class="inputs-group-kg">
-                            <div class="kg-badge" title="Kommen">K</div>
-                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
-                        </div>
-                        <div class="inputs-group-kg">
-                            <div class="kg-badge" title="Gehen">G</div>
-                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
-                        </div>
-                    </div>
-
-                    <div class="sessions-box" id="sessions-box" style="display: none;">
-                        <div class="sessions-header">
-                            <span>Stempel-Blöcke heute</span>
-                            <span id="sessions-pres-sum">00:00 h</span>
-                        </div>
-                        <div id="sessions-list"></div>
-                        <div class="sessions-break-info" id="sessions-break-info" style="display: none;">
-                            <span>Unterbrechung (abwesend):</span>
-                            <strong id="sessions-gap-sum">0 min</strong>
-                        </div>
-                    </div>
-
                     <div class="output-decimal-container">
                         <div class="output-decimal">
                             <h3 id="label-decimal-time">Dezimal (h)</h3>
@@ -1548,6 +1814,7 @@
                 </div>
             </div>
 
+            <!-- ANSICHT 2: WOCHENBILANZ -->
             <div id="view-week" class="view-section">
                 <div class="feature-section">
                     <div class="week-header">
@@ -1604,7 +1871,6 @@
                         <span>Monatsübersicht als PDF</span>
                     </button>
 
-                    <!-- AMPELKONTO STATUS-PILLE -->
                     <div class="glz-pill-wrap">
                         <div id="glzPill" class="glz-pill ampel-gruen">
                             <span class="glz-dot"></span>
@@ -1701,12 +1967,11 @@
         </div>
     </div>
 
-    <!-- MODAL: EINSTELLUNGEN (KOMPAKT + 2 UNTERMENÜS) -->
+    <!-- MODAL: EINSTELLUNGEN -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
 
-            <!-- HAUPTANSICHT -->
             <div id="settings-page-main">
                 <h2>Einstellungen</h2>
 
@@ -1767,7 +2032,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.20</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.21</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -1822,7 +2087,7 @@
                 <div class="design-sub-card">
                     <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:4px;">Ampelkonto (GBV § 5)</label>
                     <div style="font-size:0.75em; opacity:0.78; margin-bottom:7px; line-height:1.3;">
-                        Stand der echten Stempeluhr vor Arbeitsbeginn am Stichtag eintragen:
+                        Stand der echten Stempeluhr vor Arbeitsbeginn am Stichtag (als Dezimalzahl, z. B. 12.5):
                     </div>
                     <div class="ampel-settings-grid">
                         <div class="ampel-field-box">
@@ -1884,7 +2149,7 @@
 
                 <div class="design-sub-card">
                     <div class="scribble-picker-head">
-                        <label style="font-weight:bold; font-size:0.9em;">Startbildschirm-Scribbles</label>
+                        <label style="font-weight:bold; font-size:0.9em;">Stempeldeck-Scribbles</label>
                         <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
                     </div>
                     <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
@@ -1942,18 +2207,9 @@
                 return clamped;
             }
 
-            /* =========================================================
-               SYSTEM-BENACHRICHTIGUNG (MIT APP-ICON & SERVICE WORKER)
-               ========================================================= */
             async function showAppNotification(title, body, tag) {
                 if (!("Notification" in window) || Notification.permission !== "granted") return;
-                const options = {
-                    body,
-                    icon: "./favicon.png",
-                    badge: "./favicon.png",
-                    tag,
-                    renotify: true
-                };
+                const options = { body, icon: "./favicon.png", badge: "./favicon.png", tag, renotify: true };
                 try {
                     if ("serviceWorker" in navigator) {
                         const reg = await navigator.serviceWorker.ready;
@@ -1963,9 +2219,7 @@
                         }
                     }
                 } catch (e) {}
-                try {
-                    new Notification(title, options);
-                } catch (e) {}
+                try { new Notification(title, options); } catch (e) {}
             }
 
             const holidaysNds = {
@@ -1998,7 +2252,7 @@
             }
 
             /* =========================================================
-               BACKUP-FUNKTIONEN (JSON EXPORT & IMPORT)
+               BACKUP-FUNKTIONEN
                ========================================================= */
             const backupStatusPill = document.getElementById("backup-status-pill");
             const backupFileInput = document.getElementById("backup-file-input");
@@ -2007,35 +2261,24 @@
                 if (!backupStatusPill) return;
                 const lastIso = localStorage.getItem("lastBackupDate");
                 backupStatusPill.classList.remove("is-due");
-
                 if (!lastIso) {
                     backupStatusPill.textContent = "Noch kein Backup";
                     backupStatusPill.classList.add("is-due");
                     return;
                 }
                 const lastMs = Date.parse(lastIso);
-                if (isNaN(lastMs)) {
-                    backupStatusPill.textContent = "Gesichert";
-                    return;
-                }
+                if (isNaN(lastMs)) { backupStatusPill.textContent = "Gesichert"; return; }
                 const diffDays = Math.floor((Date.now() - lastMs) / 86400000);
                 if (diffDays <= 0) backupStatusPill.textContent = "Heute gesichert";
                 else if (diffDays === 1) backupStatusPill.textContent = "Vor 1 Tag";
                 else if (diffDays >= 30) {
                     backupStatusPill.textContent = `Vor ${diffDays} Tagen!`;
                     backupStatusPill.classList.add("is-due");
-                } else {
-                    backupStatusPill.textContent = `Vor ${diffDays} Tagen`;
-                }
+                } else backupStatusPill.textContent = `Vor ${diffDays} Tagen`;
             }
 
             function exportBackupJson() {
-                const payload = {
-                    app: "Stempeluhr",
-                    version: APP_VERSION,
-                    exportedAt: new Date().toISOString(),
-                    storage: {}
-                };
+                const payload = { app: "Stempeluhr", version: APP_VERSION, exportedAt: new Date().toISOString(), storage: {} };
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key) payload.storage[key] = localStorage.getItem(key);
@@ -2094,7 +2337,7 @@
             });
 
             /* =========================================================
-               SCRIBBLE SVG-SET
+               SCRIBBLE SVG-SET & GLOBALE VARIABLEN
                ========================================================= */
             const SCRIBBLE_ICONS = [
                 { id: "bolt", label: "Blitz", inner: `<path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/>` },
@@ -2168,69 +2411,53 @@
             applyThemeColors(appHue, appLightness);
 
             /* =========================================================
-               SCRIBBLE PICKER & SETTINGS NAVIGATION
+               STEMPELDECK WIDGET-SYSTEM (3 SEITEN: LINKS - MITTE - RECHTS)
                ========================================================= */
-            const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
-            const scribbleCountTag = document.getElementById("scribble-count-tag");
-            const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
-            const scribbleSizeVal = document.getElementById("scribbleSizeVal");
-            const navWorkSummary = document.getElementById("nav-work-summary");
-            const navDesignSummary = document.getElementById("nav-design-summary");
+            const DECK_WIDGET_CATALOG = [
+                { id: "stamp_btn", label: "Stempel-Button (Kommen / Gehen)", desc: "Großer Haupt-Button zum Stempeln", span: 2 },
+                { id: "live_clock", label: "Live-Uhrzeit", desc: "Große Digitaluhr mit Sekunden", span: 1 },
+                { id: "open_menu", label: "Zum Tagesrechner", desc: "Öffnet die Hauptansicht", span: 1 },
+                { id: "no_pause", label: "Keine Pause (gehen um)", desc: "Zeitpunkt vor 6:30 Std.", span: 1 },
+                { id: "pause_30", label: "30 min Pause (Fenster)", desc: "Von – bis Zeitpunkt", span: 1 },
+                { id: "pause_45", label: "45 min Pause (ab)", desc: "Zeitpunkt ab 9:45 Std.", span: 1 },
+                { id: "today_netto", label: "Heute Netto / Dezimal", desc: "Bisher geleistete Nettozeit", span: 1 },
+                { id: "today_saldo", label: "Heute Saldo (+/-)", desc: "Tages-Differenz zum Soll", span: 1 },
+                { id: "ampel_glz", label: "Ampelkonto (GLZ)", desc: "Gesamtsaldo & Ampelstatus", span: 2 }
+            ];
 
-            function updateSettingsNavPreviews() {
-                if (navWorkSummary) {
-                    const smokeTxt = isSmoker ? `Raucher ${smokeMinutesPerBreak}m` : "Raucher aus";
-                    const pushTxt = pauseNotifyEnabled ? ` · Push ${pauseNotifyLeadMins}m` : "";
-                    navWorkSummary.textContent = `${format2(sollHours)}:${format2(sollMinutes)}/Tag · ${weeklyHours}h/Wo · ${smokeTxt}${pushTxt}`;
+            const DEFAULT_DECK_LAYOUT = [
+                ["no_pause", "pause_30", "pause_45", "today_netto"],
+                ["stamp_btn", "live_clock", "open_menu"],
+                ["ampel_glz", "today_saldo"]
+            ];
+
+            let deckLayout = JSON.parse(JSON.stringify(DEFAULT_DECK_LAYOUT));
+            try {
+                const rawDeck = JSON.parse(localStorage.getItem("stempeldeckLayout"));
+                if (Array.isArray(rawDeck) && rawDeck.length === 3 && rawDeck.every(Array.isArray)) {
+                    deckLayout = rawDeck.map(page => page.filter(id => DECK_WIDGET_CATALOG.some(w => w.id === id)));
                 }
-                if (navDesignSummary) {
-                    const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
-                    navDesignSummary.textContent = `${styleTxt} · ${selectedScribbles.length} Scribbles`;
-                }
+            } catch (e) {}
+
+            function saveDeckLayout() {
+                localStorage.setItem("stempeldeckLayout", JSON.stringify(deckLayout));
             }
 
-            function renderScribblePicker() {
-                scribbleSvgGrid.innerHTML = "";
-                scribbleCountTag.textContent = `${selectedScribbles.length} / 5`;
-                SCRIBBLE_ICONS.forEach(item => {
-                    const isSel = selectedScribbles.includes(item.id);
-                    const btn = document.createElement("button");
-                    btn.type = "button";
-                    btn.className = "scribble-svg-chip" + (isSel ? " selected" : "");
-                    btn.title = item.label;
-                    btn.innerHTML = `${makeScribbleSvg(item)}<span>${item.label}</span>`;
-                    btn.addEventListener("click", () => {
-                        const idx = selectedScribbles.indexOf(item.id);
-                        if (idx >= 0) selectedScribbles.splice(idx, 1);
-                        else {
-                            if (selectedScribbles.length >= 5) selectedScribbles.shift();
-                            selectedScribbles.push(item.id);
-                        }
-                        renderScribblePicker();
-                    });
-                    scribbleSvgGrid.appendChild(btn);
-                });
-            }
-
-            scribbleSizeSlider.addEventListener("input", () => {
-                scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
-                scribbleSizeVal.textContent = scribbleSizePct;
-            });
-
-            /* =========================================================
-               VOLLBILD-STEMPELBILDSCHIRM + SCRIBBLES + WISCHGESTEN
-               ========================================================= */
             const welcomeOverlay = document.getElementById("welcome-overlay");
             const welcomeScatterField = document.getElementById("welcome-scatter-field");
             const welcomeGreetingEl = document.getElementById("welcome-greeting");
             const welcomeDateSubEl = document.getElementById("welcome-date-sub");
-            const welcomeBigClockEl = document.getElementById("welcome-big-clock");
-            const btnWelcomeAction = document.getElementById("btn-welcome-action");
-            const welcomeActionTitle = document.getElementById("welcome-action-title");
-            const welcomeActionSub = document.getElementById("welcome-action-sub");
-            const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
+            const deckCarousel = document.getElementById("deck-carousel");
+            const deckPageLabel = document.getElementById("deck-page-label");
+            const btnDeckEdit = document.getElementById("btn-deck-edit");
+            const btnDeckExit = document.getElementById("btn-deck-exit");
+            const widgetPickerModal = document.getElementById("widget-picker-modal");
+            const widgetPickerList = document.getElementById("widget-picker-list");
 
             let welcomeActionMode = "come";
+            let deckEditMode = false;
+            let deckActivePage = 1;
+            let pickerTargetPage = 1;
             let ambientAnimTimer = null;
 
             function createSeededRng(seedNum) {
@@ -2282,7 +2509,7 @@
                     const x = 5 + rng() * 90;
                     const y = 4 + rng() * 92;
 
-                    const inGreetingZone = (y > 8 && y < 22 && x > 14 && x < 86);
+                    const inGreetingZone = (y > 4 && y < 16 && x > 8 && x < 72);
                     if (inGreetingZone) continue;
 
                     let tooClose = false;
@@ -2367,79 +2594,236 @@
                 welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
             }
 
+            function renderDeckWidgets() {
+                const pageNames = ["Links", "Mitte", "Rechts"];
+                deckPageLabel.textContent = pageNames[deckActivePage] || "Mitte";
+                document.querySelectorAll("#deck-dots .deck-dot").forEach((dot, idx) => {
+                    dot.classList.toggle("active", idx === deckActivePage);
+                });
+
+                for (let p = 0; p < 3; p++) {
+                    const grid = document.getElementById(`deck-grid-${p}`);
+                    if (!grid) continue;
+                    grid.innerHTML = "";
+                    const items = deckLayout[p] || [];
+
+                    if (items.length === 0 && !deckEditMode) {
+                        grid.innerHTML = `<div class="deck-empty-hint">Leere Seite · Oben auf „🔓 Widgets“ tippen, um Karten hinzuzufügen</div>`;
+                    }
+
+                    items.forEach((wId, idx) => {
+                        const meta = DECK_WIDGET_CATALOG.find(w => w.id === wId);
+                        if (!meta) return;
+
+                        const card = document.createElement("div");
+                        card.className = "deck-widget" + (meta.span === 2 ? " span-2" : "") + (deckEditMode ? " editing" : "");
+                        card.setAttribute("data-widget-id", wId);
+
+                        if (wId === "stamp_btn") {
+                            card.classList.add(welcomeActionMode === "go" ? "style-secondary" : "style-primary", "dw-stamp-hero", "is-clickable");
+                            card.innerHTML = `
+                                <strong>${welcomeActionMode === "go" ? "Gehen" : "Kommen"}</strong>
+                                <span>${welcomeActionMode === "go" ? "Jetzt direkt ausstempeln" : "Jetzt direkt einstempeln"}</span>
+                            `;
+                            card.addEventListener("click", () => {
+                                if (deckEditMode) return;
+                                if (welcomeActionMode === "go") triggerStampGoNow();
+                                else triggerStampComeNow();
+                                closeWelcomeScreen();
+                            });
+                        } else if (wId === "live_clock") {
+                            card.classList.add("style-glass", "dw-clock-box");
+                            card.innerHTML = `
+                                <div class="dw-clock-val js-dw-clock">--:--:--</div>
+                                <div class="dw-clock-sub">Uhrzeit</div>
+                            `;
+                        } else if (wId === "open_menu") {
+                            card.classList.add(welcomeActionMode === "go" ? "style-primary" : "style-secondary", "dw-menu-box", "is-clickable");
+                            card.innerHTML = `
+                                <strong>Tagesrechner →</strong>
+                                <span>Alle Details</span>
+                            `;
+                            card.addEventListener("click", () => {
+                                if (deckEditMode) return;
+                                closeWelcomeScreen();
+                            });
+                        } else if (wId === "no_pause") {
+                            card.classList.add("style-primary");
+                            card.innerHTML = `<div class="dw-metric-lbl">Keine Pause bis</div><div class="dw-metric-val js-dw-nopause">-</div>`;
+                        } else if (wId === "pause_30") {
+                            card.classList.add("style-primary");
+                            card.innerHTML = `<div class="dw-metric-lbl">30m Pause</div><div class="dw-metric-val js-dw-p30" style="font-size:0.96em;">-</div>`;
+                        } else if (wId === "pause_45") {
+                            card.classList.add("style-primary");
+                            card.innerHTML = `<div class="dw-metric-lbl">45m Pause ab</div><div class="dw-metric-val js-dw-p45">-</div>`;
+                        } else if (wId === "today_netto") {
+                            card.classList.add("style-glass");
+                            card.innerHTML = `<div class="dw-metric-lbl">Heute Netto</div><div class="dw-metric-val js-dw-netto">-</div>`;
+                        } else if (wId === "today_saldo") {
+                            card.classList.add("style-glass");
+                            card.innerHTML = `<div class="dw-metric-lbl">Heute +/-</div><div class="dw-metric-val js-dw-saldo">-</div>`;
+                        } else if (wId === "ampel_glz") {
+                            card.classList.add("style-ampel-gruen", "js-dw-ampel-card");
+                            card.innerHTML = `<div class="dw-metric-lbl">Ampelkonto (GLZ)</div><div class="dw-metric-val js-dw-ampel-val">+0,00h</div><div class="dw-metric-sub js-dw-ampel-sub">Grün</div>`;
+                        }
+
+                        if (deckEditMode) {
+                            const ctrls = document.createElement("div");
+                            ctrls.className = "dw-edit-controls";
+                            ctrls.innerHTML = `
+                                <div style="display:flex; gap:4px;">
+                                    ${p > 0 ? `<button type="button" class="dw-ctrl-btn" data-act="left">←</button>` : ""}
+                                    ${p < 2 ? `<button type="button" class="dw-ctrl-btn" data-act="right">→</button>` : ""}
+                                </div>
+                                <button type="button" class="dw-ctrl-btn del" data-act="del">✕</button>
+                            `;
+                            ctrls.querySelectorAll("button").forEach(b => {
+                                b.addEventListener("click", (ev) => {
+                                    ev.stopPropagation();
+                                    const act = b.getAttribute("data-act");
+                                    const [moved] = deckLayout[p].splice(idx, 1);
+                                    if (act === "left" && p > 0) deckLayout[p - 1].push(moved);
+                                    else if (act === "right" && p < 2) deckLayout[p + 1].push(moved);
+                                    saveDeckLayout();
+                                    renderDeckWidgets();
+                                    updateDeckLiveValues();
+                                });
+                            });
+                            card.appendChild(ctrls);
+                        }
+
+                        grid.appendChild(card);
+                    });
+
+                    if (deckEditMode) {
+                        const addBtn = document.createElement("button");
+                        addBtn.type = "button";
+                        addBtn.className = "btn-deck-add-widget";
+                        addBtn.textContent = "+ Widget auf dieser Seite platzieren";
+                        addBtn.addEventListener("click", () => openWidgetPicker(p));
+                        grid.appendChild(addBtn);
+                    }
+                }
+                updateDeckLiveValues();
+            }
+
+            function updateDeckLiveValues() {
+                if (!welcomeOverlay.classList.contains("active")) return;
+                const now = new Date();
+                const timeStr = `${format2(now.getHours())}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                welcomeOverlay.querySelectorAll(".js-dw-clock").forEach(el => el.textContent = timeStr);
+
+                const noPauseTxt = document.getElementById("output-no-pause").textContent;
+                const p30Txt = document.getElementById("output-30min-pause-range").textContent;
+                const p45Txt = document.getElementById("output-45min-pause").textContent;
+                const nettoTxt = document.getElementById("output-decimal-time").textContent;
+                const saldoTxt = document.getElementById("output-overtime").textContent;
+
+                welcomeOverlay.querySelectorAll(".js-dw-nopause").forEach(el => el.textContent = noPauseTxt);
+                welcomeOverlay.querySelectorAll(".js-dw-p30").forEach(el => el.textContent = p30Txt);
+                welcomeOverlay.querySelectorAll(".js-dw-p45").forEach(el => el.textContent = p45Txt);
+                welcomeOverlay.querySelectorAll(".js-dw-netto").forEach(el => el.textContent = nettoTxt);
+                welcomeOverlay.querySelectorAll(".js-dw-saldo").forEach(el => el.textContent = saldoTxt);
+
+                const ampelCards = welcomeOverlay.querySelectorAll(".js-dw-ampel-card");
+                if (ampelCards.length > 0) {
+                    const info = getAmpelStatusInfo();
+                    ampelCards.forEach(c => {
+                        c.classList.remove("style-ampel-gruen", "style-ampel-gelb", "style-ampel-rot");
+                        c.classList.add(info.deckClass);
+                        const vEl = c.querySelector(".js-dw-ampel-val");
+                        const sEl = c.querySelector(".js-dw-ampel-sub");
+                        if (vEl) vEl.textContent = `${info.signedStr}h`;
+                        if (sEl) sEl.textContent = info.infoText;
+                    });
+                }
+            }
+
+            function openWidgetPicker(pageIdx) {
+                pickerTargetPage = pageIdx;
+                widgetPickerList.innerHTML = "";
+                DECK_WIDGET_CATALOG.forEach(item => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "widget-pick-btn";
+                    btn.innerHTML = `<div><div>${item.label}</div><span class="sub">${item.desc}</span></div><span>+</span>`;
+                    btn.addEventListener("click", () => {
+                        deckLayout[pickerTargetPage].push(item.id);
+                        saveDeckLayout();
+                        widgetPickerModal.classList.remove("active");
+                        renderDeckWidgets();
+                    });
+                    widgetPickerList.appendChild(btn);
+                });
+                widgetPickerModal.classList.add("active");
+            }
+            document.getElementById("btn-close-widget-picker").addEventListener("click", () => widgetPickerModal.classList.remove("active"));
+
+            btnDeckEdit.addEventListener("click", () => {
+                deckEditMode = !deckEditMode;
+                btnDeckEdit.classList.toggle("is-editing", deckEditMode);
+                btnDeckEdit.textContent = deckEditMode ? "🔓 Fertig" : "🔒 Widgets";
+                renderDeckWidgets();
+            });
+
+            function goToDeckPage(pageIdx, instant = false) {
+                deckActivePage = Math.min(2, Math.max(0, pageIdx));
+                const targetX = deckActivePage * deckCarousel.clientWidth;
+                deckCarousel.scrollTo({ left: targetX, behavior: instant ? "auto" : "smooth" });
+                const pageNames = ["Links", "Mitte", "Rechts"];
+                deckPageLabel.textContent = pageNames[deckActivePage];
+                document.querySelectorAll("#deck-dots .deck-dot").forEach((dot, idx) => {
+                    dot.classList.toggle("active", idx === deckActivePage);
+                });
+            }
+
+            document.querySelectorAll("#deck-dots .deck-dot").forEach(dot => {
+                dot.addEventListener("click", () => {
+                    goToDeckPage(parseInt(dot.getAttribute("data-go-page"), 10));
+                });
+            });
+
+            deckCarousel.addEventListener("scroll", () => {
+                const w = deckCarousel.clientWidth || 1;
+                const newIdx = Math.round(deckCarousel.scrollLeft / w);
+                if (newIdx !== deckActivePage && newIdx >= 0 && newIdx <= 2) {
+                    deckActivePage = newIdx;
+                    const pageNames = ["Links", "Mitte", "Rechts"];
+                    deckPageLabel.textContent = pageNames[deckActivePage];
+                    document.querySelectorAll("#deck-dots .deck-dot").forEach((dot, idx) => {
+                        dot.classList.toggle("active", idx === deckActivePage);
+                    });
+                }
+            }, { passive: true });
+
             function openWelcomeScreen(mode = "come") {
                 welcomeActionMode = mode === "go" ? "go" : "come";
-                welcomeOverlay.style.transform = "";
-                welcomeOverlay.style.opacity = "";
-
-                if (welcomeActionMode === "go") {
-                    btnWelcomeAction.classList.add("mode-go");
-                    btnWelcomeMenu.classList.add("mode-go");
-                    welcomeActionTitle.textContent = "Gehen";
-                    welcomeActionSub.textContent = "Jetzt direkt ausstempeln";
-                } else {
-                    btnWelcomeAction.classList.remove("mode-go");
-                    btnWelcomeMenu.classList.remove("mode-go");
-                    welcomeActionTitle.textContent = "Kommen";
-                    welcomeActionSub.textContent = "Jetzt direkt einstempeln";
-                }
+                deckEditMode = false;
+                btnDeckEdit.classList.remove("is-editing");
+                btnDeckEdit.textContent = "🔒 Widgets";
 
                 if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 44, 22));
 
                 updateWelcomeGreetingText();
                 renderWelcomeScatter();
+                renderDeckWidgets();
                 welcomeOverlay.classList.add("active");
+                requestAnimationFrame(() => goToDeckPage(1, true));
                 startAmbientPixelAnimations();
             }
 
             function closeWelcomeScreen() {
                 stopAmbientPixelAnimations();
-                welcomeOverlay.style.transform = "";
-                welcomeOverlay.style.opacity = "";
+                deckEditMode = false;
                 welcomeOverlay.classList.remove("active");
                 localStorage.setItem("welcomeDismissedDate", getTodayStr());
                 applyThemeColors(appHue, appLightness);
             }
 
-            let welcomeTouchStartX = 0;
-            let welcomeTouchStartY = 0;
-            let welcomeSwiping = false;
-
-            welcomeOverlay.addEventListener("touchstart", (e) => {
-                if (!gesturesEnabled || e.touches.length !== 1) return;
-                welcomeSwiping = true;
-                welcomeTouchStartX = e.touches[0].clientX;
-                welcomeTouchStartY = e.touches[0].clientY;
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("touchmove", (e) => {
-                if (!gesturesEnabled || !welcomeSwiping || e.touches.length !== 1) return;
-                const dy = e.touches[0].clientY - welcomeTouchStartY;
-                const allowDrag = (welcomeActionMode === "come" && dy > 0) || (welcomeActionMode === "go" && dy < 0);
-                if (allowDrag) {
-                    const dampedY = Math.max(-70, Math.min(70, dy * 0.4));
-                    welcomeOverlay.style.transition = "none";
-                    welcomeOverlay.style.transform = `translateY(${dampedY}px)`;
-                }
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("touchend", (e) => {
-                if (!gesturesEnabled || !welcomeSwiping || e.changedTouches.length !== 1) return;
-                welcomeSwiping = false;
-                const dx = e.changedTouches[0].clientX - welcomeTouchStartX;
-                const dy = e.changedTouches[0].clientY - welcomeTouchStartY;
-
-                welcomeOverlay.style.transition = "transform 0.2s ease-out";
-                welcomeOverlay.style.transform = "";
-
-                if (Math.abs(dy) > 65 && Math.abs(dy) > Math.abs(dx) * 1.3) {
-                    if (welcomeActionMode === "come" && dy > 0) closeWelcomeScreen();
-                    else if (welcomeActionMode === "go" && dy < 0) closeWelcomeScreen();
-                }
-            }, { passive: true });
+            btnDeckExit.addEventListener("click", closeWelcomeScreen);
 
             /* =========================================================
-               ANSICHTEN-NAVIGATION (UHR <-> WOCHE)
+               ANSICHTEN-NAVIGATION (TAGESRECHNER <-> WOCHENBILANZ)
                ========================================================= */
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
@@ -2477,7 +2861,7 @@
                 playViewAnim(viewWeek, "anim-slide-from-right");
                 iconViewWeek.style.display = "none";
                 iconViewClock.style.display = "block";
-                toggleViewBtn.title = "Stempeluhr";
+                toggleViewBtn.title = "Tagesrechner";
                 weekOffset = 0;
                 buildWeekView();
             }
@@ -2545,6 +2929,12 @@
             const gesturesEnabledCheck = document.getElementById("gesturesEnabledCheck");
             const lightnessSlider = document.getElementById("lightnessSlider");
             const lightnessVal = document.getElementById("lightnessVal");
+            const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
+            const scribbleCountTag = document.getElementById("scribble-count-tag");
+            const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
+            const scribbleSizeVal = document.getElementById("scribbleSizeVal");
+            const navWorkSummary = document.getElementById("nav-work-summary");
+            const navDesignSummary = document.getElementById("nav-design-summary");
 
             userNameInput.value = userName;
             sollHoursInput.value = sollHours;
@@ -2564,6 +2954,46 @@
             lightnessVal.textContent = appLightness;
             scribbleSizeSlider.value = scribbleSizePct;
             scribbleSizeVal.textContent = scribbleSizePct;
+
+            function updateSettingsNavPreviews() {
+                if (navWorkSummary) {
+                    const smokeTxt = isSmoker ? `Raucher ${smokeMinutesPerBreak}m` : "Raucher aus";
+                    const pushTxt = pauseNotifyEnabled ? ` · Push ${pauseNotifyLeadMins}m` : "";
+                    navWorkSummary.textContent = `${format2(sollHours)}:${format2(sollMinutes)}/Tag · ${weeklyHours}h/Wo · ${smokeTxt}${pushTxt}`;
+                }
+                if (navDesignSummary) {
+                    const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
+                    navDesignSummary.textContent = `${styleTxt} · ${selectedScribbles.length} Scribbles`;
+                }
+            }
+
+            function renderScribblePicker() {
+                scribbleSvgGrid.innerHTML = "";
+                scribbleCountTag.textContent = `${selectedScribbles.length} / 5`;
+                SCRIBBLE_ICONS.forEach(item => {
+                    const isSel = selectedScribbles.includes(item.id);
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "scribble-svg-chip" + (isSel ? " selected" : "");
+                    btn.title = item.label;
+                    btn.innerHTML = `${makeScribbleSvg(item)}<span>${item.label}</span>`;
+                    btn.addEventListener("click", () => {
+                        const idx = selectedScribbles.indexOf(item.id);
+                        if (idx >= 0) selectedScribbles.splice(idx, 1);
+                        else {
+                            if (selectedScribbles.length >= 5) selectedScribbles.shift();
+                            selectedScribbles.push(item.id);
+                        }
+                        renderScribblePicker();
+                    });
+                    scribbleSvgGrid.appendChild(btn);
+                });
+            }
+
+            scribbleSizeSlider.addEventListener("input", () => {
+                scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
+                scribbleSizeVal.textContent = scribbleSizePct;
+            });
 
             function syncStyleControlsUI() {
                 asymSliderWrap.style.display = styleModeSelect.value === "asymmetric" ? "block" : "none";
@@ -2596,9 +3026,7 @@
                         return;
                     }
                     let perm = Notification.permission;
-                    if (perm === "default") {
-                        perm = await Notification.requestPermission();
-                    }
+                    if (perm === "default") perm = await Notification.requestPermission();
                     if (perm !== "granted") {
                         alert("Benachrichtigungen wurden im Browser blockiert. Bitte erlaube sie in den Website-Einstellungen.");
                         pauseNotifyCheck.checked = false;
@@ -2657,7 +3085,7 @@
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
 
-            /* FARBRAD (120° TRIADISCH) */
+            /* FARBRAD */
             const canvas = document.getElementById("colorWheel");
             const ctx = canvas.getContext("2d");
             const radius = canvas.width / 2;
@@ -2719,7 +3147,6 @@
             }, { passive: false });
             window.addEventListener("touchend", () => canvas.removeEventListener("touchmove", handleColorPick));
 
-            /* EINSTELLUNGS-PERSISTENZ */
             function persistAllSettings() {
                 userName = userNameInput.value.trim();
                 sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value, 10) || 0));
@@ -2931,7 +3358,6 @@
                 const todayStr = getTodayStr();
                 const leadSecs = pauseNotifyLeadMins * 60;
 
-                // 1) 30-Minuten-Grenze bei 06:30:00 (23.400 Sekunden Anwesenheit)
                 const limit30Secs = 23400;
                 if (totalPresSecs >= (limit30Secs - leadSecs) && totalPresSecs < (limit30Secs + 180)) {
                     const key30 = `notified_p30_${todayStr}`;
@@ -2949,7 +3375,6 @@
                     }
                 }
 
-                // 2) 45-Minuten-Grenze bei 09:45:00 (35.100 Sekunden Anwesenheit)
                 const limit45Secs = 35100;
                 if (totalPresSecs >= (limit45Secs - leadSecs) && totalPresSecs < (limit45Secs + 180)) {
                     const key45 = `notified_p45_${todayStr}`;
@@ -3140,12 +3565,6 @@
 
             document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
             document.getElementById("btn-now-end").addEventListener("click", triggerStampGoNow);
-            btnWelcomeAction.addEventListener("click", () => {
-                if (welcomeActionMode === "go") triggerStampGoNow();
-                else triggerStampComeNow();
-                closeWelcomeScreen();
-            });
-            btnWelcomeMenu.addEventListener("click", closeWelcomeScreen);
 
             const getTodaySmokeSecs = () => isSmoker ? todaySmokeCount * smokeMinutesPerBreak * 60 : 0;
 
@@ -3302,7 +3721,6 @@
                 return { presSecs: totalPresSecs, deductSecs: totalDeductSecs, netSecs, isLive };
             }
 
-            /* GESAMTSALDO AB STICHTAG + AMPEL-LOGIK (§ 5 GBV) */
             function computeTotalGlzHours() {
                 const todayStr = getTodayStr();
                 const nowSecs = getNowSecsOfDay();
@@ -3344,11 +3762,7 @@
                 return glzBaseHours + (deltaSecs / 3600);
             }
 
-            function updateAmpelPill() {
-                const pill = document.getElementById("glzPill");
-                const pillText = document.getElementById("glzPillText");
-                if (!pill || !pillText) return;
-
+            function getAmpelStatusInfo() {
                 const gesamtSaldo = computeTotalGlzHours();
                 const faktor = (weeklyHours > 0 ? weeklyHours : 40) / 40;
 
@@ -3358,19 +3772,20 @@
                 const gelbMax  =  80 * faktor;
                 const rotMax   = 100 * faktor;
 
-                pill.classList.remove("ampel-gruen", "ampel-gelb", "ampel-rot");
-
                 const fmtSigned = (num) => (num >= 0 ? "+" : "") + num.toFixed(2).replace(".", ",");
                 const fmtPlain = (num) => Math.abs(num).toFixed(1).replace(".", ",");
 
                 let statusClass = "ampel-gruen";
+                let deckClass = "style-ampel-gruen";
                 let infoText = "";
 
                 if (gesamtSaldo >= gruenMin && gesamtSaldo <= gruenMax) {
                     statusClass = "ampel-gruen";
+                    deckClass = "style-ampel-gruen";
                     infoText = `Grün · noch ${fmtPlain(gruenMax - gesamtSaldo)}h bis Gelb`;
                 } else if ((gesamtSaldo > gruenMax && gesamtSaldo <= gelbMax) || (gesamtSaldo < gruenMin && gesamtSaldo >= gelbMin)) {
                     statusClass = "ampel-gelb";
+                    deckClass = "style-ampel-gelb";
                     if (gesamtSaldo > gruenMax) {
                         infoText = `Gelb · noch ${fmtPlain(gelbMax - gesamtSaldo)}h bis Rot`;
                     } else {
@@ -3378,6 +3793,7 @@
                     }
                 } else {
                     statusClass = "ampel-rot";
+                    deckClass = "style-ampel-rot";
                     if (gesamtSaldo > rotMax) {
                         infoText = `Rot (> ${rotMax.toFixed(0)}h Max!)`;
                     } else if (gesamtSaldo < gelbMin) {
@@ -3387,8 +3803,18 @@
                     }
                 }
 
-                pill.classList.add(statusClass);
-                pillText.textContent = `GLZ: ${fmtSigned(gesamtSaldo)}h (${infoText})`;
+                return { statusClass, deckClass, signedStr: fmtSigned(gesamtSaldo), infoText };
+            }
+
+            function updateAmpelPill() {
+                const pill = document.getElementById("glzPill");
+                const pillText = document.getElementById("glzPillText");
+                if (!pill || !pillText) return;
+
+                const info = getAmpelStatusInfo();
+                pill.classList.remove("ampel-gruen", "ampel-gelb", "ampel-rot");
+                pill.classList.add(info.statusClass);
+                pillText.textContent = `GLZ: ${info.signedStr}h (${info.infoText})`;
             }
 
             const statusLabels = { work: "Arbeit", vacation: "Urlaub", sick: "Krank", holiday: "Feiertag", free: "Frei" };
@@ -3966,7 +4392,7 @@
             });
 
             /* =========================================================
-               TOUCH-GESTEN (HAUPTAPP)
+               TOUCH-GESTEN (HAUPTAPP -> STEMPELDECK / WOCHENBILANZ)
                ========================================================= */
             let touchStartX = 0, touchStartY = 0, touchBlocked = false, gestureAxis = null;
 
@@ -3975,7 +4401,8 @@
                     || settingsModal.classList.contains("active")
                     || dayEditorModal.classList.contains("active")
                     || pdfExportModal.classList.contains("active")
-                    || backfillModal.classList.contains("active");
+                    || backfillModal.classList.contains("active")
+                    || widgetPickerModal.classList.contains("active");
                 if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
                     touchBlocked = true;
                     return;
@@ -4094,21 +4521,24 @@
                 const hh = format2(now.getHours());
                 const timeStr = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
                 liveTimeEl.textContent = timeStr;
-                if (welcomeBigClockEl) welcomeBigClockEl.textContent = timeStr;
                 if (bgHourWatermark) bgHourWatermark.textContent = hh;
 
                 liveDayEl.textContent = `${weekdaysFull[now.getDay()]}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
-                if (welcomeOverlay.classList.contains("active")) updateWelcomeGreetingText();
 
                 if (startHoursInput.value !== "" && endHoursInput.value === "") {
                     checkPauseNotifications();
-                    if (viewClock.classList.contains("active")) {
+                    if (viewClock.classList.contains("active") || welcomeOverlay.classList.contains("active")) {
                         calculateWorkingTime();
                         if (todaySessions.length > 1) {
                             const { totalPresSecs } = getSessionMetrics(getNowSecsOfDay());
                             sessionsPresSum.textContent = `Anwesenheit: ${format2(Math.floor(totalPresSecs / 3600))}:${format2(Math.floor((totalPresSecs % 3600) / 60))} h`;
                         }
                     }
+                }
+
+                if (welcomeOverlay.classList.contains("active")) {
+                    updateWelcomeGreetingText();
+                    updateDeckLiveValues();
                 }
 
                 if (viewWeek.classList.contains("active") && weekHasLiveToday) {
