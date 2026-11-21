@@ -1,964 +1,1090 @@
 <!DOCTYPE html>
-<!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.20
-     ========================================================= -->
-<html lang="de">
+<html lang="de" data-style="classic">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.20)</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" id="meta-theme-color" content="#eef7fa">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Stempeluhr</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
     <script>
-        const APP_VERSION = "1.20";
+        const APP_VERSION = "1.21";
+
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
-            s /= 100; l /= 100;
+            s /= 100;
+            l /= 100;
+            const k = n => (n + h / 30) % 12;
             const a = s * Math.min(l, 1 - l);
-            const f = n => {
-                const k = (n + h / 30) % 12;
-                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-                return Math.round(255 * color).toString(16).padStart(2, '0');
-            };
-            return `#${f(0)}${f(8)}${f(4)}`;
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+            return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
         };
 
-        (function() {
-            const h = parseInt(localStorage.getItem("appHue"), 10);
-            const l = parseInt(localStorage.getItem("appLightness"), 10);
-            const hue = isNaN(h) ? 195 : h;
-            const light = isNaN(l) ? 46 : Math.min(52, Math.max(28, l));
-            const bgHex = window.hslToHex(hue + 120, 50, 95);
-
+        (function initEarlyTheme() {
+            const hue = parseInt(localStorage.getItem("appHue"), 10);
+            const safeHue = isNaN(hue) ? 195 : hue;
+            const light = parseInt(localStorage.getItem("appLightness"), 10);
+            const safeLight = isNaN(light) ? 46 : Math.min(52, Math.max(28, light));
             const styleMode = localStorage.getItem("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
-            const rawIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
-            const intensity = isNaN(rawIntensity) ? 55 : Math.min(100, Math.max(0, rawIntensity));
+            const asymRaw = parseInt(localStorage.getItem("appAsymIntensity"), 10);
+            const safeAsym = isNaN(asymRaw) ? 55 : Math.min(100, Math.max(0, asymRaw));
 
-            const root = document.documentElement;
-            root.setAttribute("data-style", styleMode);
-            root.style.setProperty('--hue', hue);
-            root.style.setProperty('--lightness', light + '%');
-            root.style.setProperty('--asym-intensity', (intensity / 100).toFixed(3));
-            root.style.backgroundColor = bgHex;
+            document.documentElement.setAttribute("data-style", styleMode);
+            document.documentElement.style.setProperty('--hue', safeHue);
+            document.documentElement.style.setProperty('--lightness', safeLight + '%');
+            document.documentElement.style.setProperty('--asym-intensity', (safeAsym / 100).toFixed(3));
 
+            const bgHex = window.hslToHex(safeHue + 120, 50, 95);
+            document.documentElement.style.backgroundColor = bgHex;
             const meta = document.getElementById("meta-theme-color");
             if (meta) meta.setAttribute("content", bgHex);
         })();
     </script>
-
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=120">
-    <link rel="icon" href="favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="favicon.png">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-
     <style>
         :root {
             --hue: 195;
             --lightness: 46%;
-            --spread: 120;
             --asym-intensity: 0.55;
-            --primary-color: hsl(var(--hue), 64%, var(--lightness));
-            --secondary-action-color: hsl(calc(var(--hue) + 150), 64%, var(--lightness));
-            --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
-            --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
-            --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
-            --border-color: hsl(calc(var(--hue) - var(--spread)), 30%, 70%);
+            --primary-color: hsl(var(--hue), 72%, var(--lightness));
+            --primary-hover: hsl(var(--hue), 72%, calc(var(--lightness) - 7%));
+            --secondary-color: hsl(calc(var(--hue) + 150), 65%, calc(var(--lightness) - 2%));
+            --secondary-hover: hsl(calc(var(--hue) + 150), 65%, calc(var(--lightness) - 9%));
+            --bg-color: hsl(calc(var(--hue) + 120), 50%, 95%);
+            --text-color: hsl(calc(var(--hue) + 240), 42%, 22%);
+            --border-color: hsl(calc(var(--hue) + 240), 30%, 76%);
+            --input-bg: hsl(calc(var(--hue) + 120), 45%, 98%);
             --white: #ffffff;
-
-            --radius-card: 12px;
-            --radius-btn: 8px;
+            --danger: #d9534f;
+            --radius-box: 14px;
+            --radius-btn: 10px;
             --radius-input: 8px;
-            --radius-badge: 8px;
-            --card-pad: 16px;
-            --btn-come-radius: 8px;
-            --btn-go-radius: 8px;
-            --welcome-btn-come-radius: 22px;
-            --welcome-btn-go-radius: 22px;
-            --output-radius: 8px;
-            --divider-height: 1px;
-            --week-card-radius: 10px;
-            --watermark-display: none;
+            --radius-pill: 999px;
+            --radius-modal: 16px;
         }
 
         html[data-style="asymmetric"] {
-            --k: var(--asym-intensity);
-            --radius-card: calc(12px + var(--k) * 18px) calc(12px - var(--k) * 4px) calc(12px + var(--k) * 18px) calc(12px - var(--k) * 4px);
-            --radius-btn: calc(8px + var(--k) * 14px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 14px) calc(8px - var(--k) * 2px);
-            --radius-input: calc(8px + var(--k) * 10px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 10px) calc(8px - var(--k) * 2px);
-            --radius-badge: calc(8px + var(--k) * 6px) calc(8px - var(--k) * 4px) calc(8px + var(--k) * 6px) calc(8px - var(--k) * 4px);
-            --card-pad: calc(16px + var(--k) * 2px) 16px;
-            --btn-come-radius: calc(8px + var(--k) * 18px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 18px) calc(8px - var(--k) * 2px);
-            --btn-go-radius: calc(8px - var(--k) * 2px) calc(8px + var(--k) * 18px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 18px);
-            --welcome-btn-come-radius: calc(22px + var(--k) * 28px) calc(22px - var(--k) * 10px) calc(22px + var(--k) * 28px) calc(22px - var(--k) * 10px);
-            --welcome-btn-go-radius: calc(22px - var(--k) * 10px) calc(22px + var(--k) * 28px) calc(22px - var(--k) * 10px) calc(22px + var(--k) * 28px);
-            --output-radius: calc(8px + var(--k) * 14px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 14px) calc(8px - var(--k) * 2px);
-            --divider-height: calc(1px + var(--k) * 1px);
-            --week-card-radius: calc(10px + var(--k) * 14px) calc(10px - var(--k) * 4px) calc(10px + var(--k) * 14px) calc(10px - var(--k) * 4px);
-            --watermark-display: block;
+            --radius-box: calc(14px + 14px * var(--asym-intensity)) calc(14px - 6px * var(--asym-intensity)) calc(14px + 10px * var(--asym-intensity)) calc(14px - 6px * var(--asym-intensity));
+            --radius-btn: calc(10px + 12px * var(--asym-intensity)) calc(10px - 4px * var(--asym-intensity)) calc(10px + 12px * var(--asym-intensity)) calc(10px - 4px * var(--asym-intensity));
+            --radius-input: calc(8px + 8px * var(--asym-intensity)) calc(8px - 3px * var(--asym-intensity)) calc(8px + 8px * var(--asym-intensity)) calc(8px - 3px * var(--asym-intensity));
+            --radius-modal: calc(16px + 16px * var(--asym-intensity)) calc(16px - 6px * var(--asym-intensity)) calc(16px + 12px * var(--asym-intensity)) calc(16px - 6px * var(--asym-intensity));
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         html {
+            margin: 0;
+            padding: 0;
             min-height: 100dvh;
             background-color: var(--bg-color);
-            overscroll-behavior-y: none;
-            transition: background-color 0.3s;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            color: var(--text-color);
-            background-color: transparent;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: max(12px, env(safe-area-inset-top)) 14px max(24px, env(safe-area-inset-bottom)) 14px;
             min-height: 100dvh;
-            padding: calc(14px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             overflow-x: hidden;
-            overscroll-behavior-y: none;
+            touch-action: pan-y;
         }
 
-        .edge-bg-layer {
+        #edge-bg-layer {
+            position: fixed;
+            inset: -120px;
+            background-color: var(--bg-color);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        #bg-hour-watermark {
             position: fixed;
             inset: 0;
-            width: 100vw;
-            height: 100lvh;
-            background-color: var(--bg-color);
-            z-index: -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 62vw;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            color: var(--text-color);
+            opacity: 0.045;
+            user-select: none;
             pointer-events: none;
-            transition: background-color 0.3s;
+            z-index: -1;
         }
 
         /* =========================================================
-           VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN)
+           VOLLBILD-HOME-SCREEN (WIDGET-BAUKASTEN & SCRIBBLES)
            ========================================================= */
         .welcome-overlay {
             position: fixed;
             inset: 0;
-            z-index: 2000;
-            background: hsl(var(--hue), 44%, 22%);
-            color: #ffffff;
+            z-index: 3000;
             display: none;
             flex-direction: column;
-            align-items: center;
             justify-content: space-between;
-            padding: calc(30px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
-            overflow: hidden;
+            padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom)) 16px;
+            color: #ffffff;
+            background:
+                radial-gradient(circle at 20% 18%, hsla(var(--hue), 75%, 52%, 0.42), transparent 55%),
+                radial-gradient(circle at 82% 80%, hsla(calc(var(--hue) + 150), 70%, 46%, 0.35), transparent 60%),
+                linear-gradient(155deg, hsl(var(--hue), 44%, 20%), hsl(calc(var(--hue) + 30), 42%, 14%));
+            overflow-y: auto;
+            overflow-x: hidden;
             user-select: none;
-            touch-action: none;
+            transition: background 0.35s ease;
         }
+
+        .welcome-overlay.mode-go {
+            background:
+                radial-gradient(circle at 80% 18%, hsla(calc(var(--hue) + 150), 75%, 50%, 0.44), transparent 55%),
+                radial-gradient(circle at 18% 82%, hsla(var(--hue), 68%, 45%, 0.34), transparent 60%),
+                linear-gradient(155deg, hsl(calc(var(--hue) + 150), 44%, 20%), hsl(calc(var(--hue) + 180), 42%, 14%));
+        }
+
         .welcome-overlay.active {
             display: flex;
-            animation: welcomeFadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: welcomeFadeIn 0.25s ease-out;
         }
+
         @keyframes welcomeFadeIn {
-            from { opacity: 0; transform: scale(1.03); }
+            from { opacity: 0; transform: scale(1.02); }
             to { opacity: 1; transform: scale(1); }
         }
 
         .welcome-scatter-field {
-            position: absolute;
+            position: fixed;
             inset: 0;
-            overflow: hidden;
+            pointer-events: none;
             z-index: 1;
+            overflow: hidden;
         }
 
         .scatter-node {
             position: absolute;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            padding: 8px;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .scatter-rot-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: rotate(var(--base-rot, 0deg));
-        }
-        .scatter-anim-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            will-change: transform, opacity;
-        }
-        .scatter-anim-wrap svg {
             width: var(--icon-size, 42px);
             height: var(--icon-size, 42px);
+            transform: translate(-50%, -50%);
+            pointer-events: auto;
+            cursor: pointer;
+            opacity: var(--icon-alpha, 0.32);
+            transition: opacity 0.25s ease;
+        }
+
+        .scatter-node.is-animating { opacity: 0.72; }
+
+        .scatter-rot-wrap {
+            width: 100%;
+            height: 100%;
+            transform: rotate(var(--base-rot, 0deg));
+        }
+
+        .scatter-anim-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scatter-anim-wrap svg {
+            width: 100%;
+            height: 100%;
             stroke: #ffffff;
             fill: none;
             stroke-width: 2.3;
             stroke-linecap: round;
             stroke-linejoin: round;
-            opacity: var(--icon-alpha, 0.34);
-            transition: opacity 0.25s;
         }
-        .scatter-node.is-animating .scatter-anim-wrap svg { opacity: 0.82; }
 
-        @keyframes pixelIconSpin360 {
+        .anim-pixel-spin { animation: pixelSpin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .anim-pixel-pop { animation: pixelPop 0.7s ease-out; }
+        .anim-pixel-wiggle { animation: pixelWiggle 0.65s ease-in-out; }
+
+        @keyframes pixelSpin {
             0% { transform: rotate(0deg) scale(1); }
-            22% { transform: rotate(-22deg) scale(0.92); }
-            72% { transform: rotate(382deg) scale(1.16); }
-            88% { transform: rotate(354deg) scale(0.98); }
+            45% { transform: rotate(195deg) scale(1.22); }
             100% { transform: rotate(360deg) scale(1); }
         }
-        @keyframes pixelIconPop {
-            0% { transform: scale(1) rotate(0deg); }
-            35% { transform: scale(1.32) rotate(12deg); }
-            65% { transform: scale(0.9) rotate(-8deg); }
-            85% { transform: scale(1.08) rotate(3deg); }
-            100% { transform: scale(1) rotate(0deg); }
+        @keyframes pixelPop {
+            0%, 100% { transform: scale(1); }
+            40% { transform: scale(1.32); }
+            70% { transform: scale(0.92); }
         }
-        @keyframes pixelIconWiggle {
-            0% { transform: rotate(0deg) scale(1); }
-            20% { transform: rotate(-18deg) scale(1.12); }
-            45% { transform: rotate(16deg) scale(1.12); }
-            70% { transform: rotate(-10deg) scale(1.05); }
-            88% { transform: rotate(6deg) scale(1.02); }
-            100% { transform: rotate(0deg) scale(1); }
+        @keyframes pixelWiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-16deg) scale(1.1); }
+            55% { transform: rotate(14deg) scale(1.1); }
+            80% { transform: rotate(-6deg); }
         }
-        .anim-pixel-spin { animation: pixelIconSpin360 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-        .anim-pixel-pop { animation: pixelIconPop 0.68s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-        .anim-pixel-wiggle { animation: pixelIconWiggle 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
         .welcome-top-area {
             position: relative;
             z-index: 3;
-            text-align: center;
-            margin-top: 6px;
             width: 100%;
-            max-width: 390px;
-            pointer-events: none;
-        }
-        .welcome-date-sub {
-            font-size: 0.94em;
-            opacity: 0.9;
-            letter-spacing: 0.4px;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
-        }
-        .welcome-greeting {
-            font-size: 1.72em;
-            font-weight: bold;
-            line-height: 1.24;
-            text-shadow: 0 3px 14px rgba(0, 0, 0, 0.5);
+            max-width: 480px;
+            margin: 0 auto;
         }
 
-        .welcome-actions-stack {
-            position: relative;
-            z-index: 3;
-            width: 100%;
-            max-width: 390px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .btn-welcome-action,
-        .btn-welcome-menu {
-            width: 100%;
-            color: #ffffff;
-            border: 1.5px solid rgba(255, 255, 255, 0.32);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
-            transition: transform 0.14s, background-color 0.25s, border-radius 0.2s;
-        }
-
-        .btn-welcome-action {
-            min-height: 140px;
-            border-radius: var(--welcome-btn-come-radius);
-            background: hsla(var(--hue), 64%, var(--lightness), 0.72);
-        }
-        .btn-welcome-action.mode-go {
-            border-radius: var(--welcome-btn-go-radius);
-            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.72);
-        }
-
-        .btn-welcome-menu {
-            min-height: 166px;
-            border-radius: var(--welcome-btn-go-radius);
-            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.66);
-        }
-        .btn-welcome-menu.mode-go {
-            border-radius: var(--welcome-btn-come-radius);
-            background: hsla(var(--hue), 64%, var(--lightness), 0.66);
-        }
-
-        .btn-welcome-action:active,
-        .btn-welcome-menu:active {
-            transform: scale(0.97);
-        }
-        .btn-welcome-action strong {
-            font-size: 1.72em;
-            letter-spacing: 0.5px;
-        }
-        .btn-welcome-action span {
-            font-size: 0.9em;
-            opacity: 0.94;
-        }
-        .welcome-big-clock {
-            font-size: 2.5em;
-            font-weight: bold;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 1px;
-            line-height: 1.05;
-        }
-        .welcome-menu-hint {
-            font-size: 0.9em;
-            font-weight: bold;
-            opacity: 0.94;
-        }
-
-        /* =========================================================
-           HAUPTAPP
-           ========================================================= */
-        .container {
-            max-width: 390px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-        }
-
-        .top-header-card {
-            background-color: var(--card-bg);
-            border-radius: var(--radius-card);
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        .welcome-top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            transition: background-color 0.3s, border-radius 0.2s;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .live-clock-box {
+        .welcome-mode-pill {
+            font-size: 0.78em;
+            font-weight: bold;
+            letter-spacing: 0.4px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(6px);
+        }
+
+        .btn-widget-edit-toggle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+        }
+
+        .btn-widget-edit-toggle.active {
+            background: #ffffff;
+            color: #111827;
+        }
+
+        .welcome-greeting-block {
+            padding: 2px 4px 6px 4px;
+        }
+
+        .welcome-greeting {
+            margin: 0;
+            font-size: 1.55em;
+            font-weight: 800;
+            line-height: 1.2;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+        }
+
+        .welcome-date-sub {
+            font-size: 0.9em;
+            opacity: 0.86;
+            margin-top: 3px;
+        }
+
+        .widget-editor-bar {
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            backdrop-filter: blur(8px);
+        }
+
+        .widget-editor-bar.active {
+            display: flex;
+        }
+
+        .w-bar-btn {
+            flex: 1 1 auto;
+            padding: 7px 10px;
+            border-radius: 9px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .w-bar-btn.primary {
+            background: #ffffff;
+            color: #111827;
+            border-color: #ffffff;
+        }
+
+        .home-widget-grid {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            max-width: 480px;
+            margin: auto auto 8px auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .home-widget {
+            position: relative;
+            background: var(--w-bg, rgba(255, 255, 255, 0.18));
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            border-radius: var(--w-radius, 20px);
+            padding: 13px 14px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            text-align: left;
-            line-height: 1.15;
+            justify-content: center;
+            min-width: 0;
+            transition: transform 0.14s ease, border-radius 0.25s ease, background 0.25s ease;
         }
-        .live-time {
-            font-size: 1.65em;
+
+        .home-widget.span-2 { grid-column: span 2; }
+        .home-widget.span-1 { grid-column: span 1; }
+        .home-widget.size-s { min-height: 68px; padding: 10px 12px; }
+        .home-widget.size-m { min-height: 94px; }
+        .home-widget.size-l { min-height: 126px; padding: 16px 18px; }
+
+        .home-widget.is-clickable { cursor: pointer; }
+        .home-widget.is-clickable:active { transform: scale(0.98); }
+
+        .widget-edit-controls {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+            z-index: 5;
+        }
+
+        .w-ctrl-group {
+            display: flex;
+            gap: 3px;
+        }
+
+        .w-ctrl-btn {
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.45);
+            color: #ffffff;
+            font-size: 0.72em;
             font-weight: bold;
-            color: var(--text-color);
-            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+        }
+
+        .w-ctrl-btn.danger {
+            background: rgba(217, 83, 79, 0.85);
+        }
+
+        .w-kicker {
+            font-size: 0.72em;
+            font-weight: bold;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
+            opacity: 0.84;
+            margin-bottom: 3px;
         }
-        .live-weekday {
+
+        .w-title-lg {
+            font-size: 1.9em;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .w-sub {
+            font-size: 0.82em;
+            opacity: 0.88;
+            margin-top: 3px;
+        }
+
+        .w-clock-val {
+            font-size: 1.48em;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .w-value-main {
+            font-size: 1.25em;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .w-kg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .w-kg-pair {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.22);
+            padding: 5px 7px;
+            border-radius: 10px;
+        }
+
+        .w-kg-tag {
+            font-weight: 900;
             font-size: 0.85em;
+            min-width: 14px;
+        }
+
+        .w-kg-pair input {
+            width: 36px;
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.92);
+            color: #111827;
             font-weight: bold;
-            color: var(--text-color);
+            font-size: 0.95em;
+            text-align: center;
+        }
+
+        .w-pause-triple {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .w-pause-cell {
+            background: rgba(0, 0, 0, 0.22);
+            border-radius: 9px;
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        .w-pause-cell span {
+            display: block;
+            font-size: 0.72em;
+            opacity: 0.85;
+        }
+
+        .w-pause-cell strong {
+            font-size: 0.92em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .w-dual-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 3px;
+        }
+
+        .w-mini-pill {
+            background: rgba(0, 0, 0, 0.22);
+            border-radius: 9px;
+            padding: 6px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88em;
+        }
+
+        .w-ampel-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .welcome-swipe-hint {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            font-size: 0.74em;
             opacity: 0.78;
-            margin-top: 2px;
+            padding-top: 4px;
+        }
+
+        /* =========================================================
+           HAUPT-APP CONTAINER, HEADER & KARTEN
+           ========================================================= */
+        .app-shell {
+            width: 100%;
+            max-width: 460px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2px 2px 4px 2px;
+        }
+
+        .app-title {
+            margin: 0;
+            font-size: 1.35em;
+            font-weight: 800;
+            letter-spacing: -0.3px;
         }
 
         .header-actions {
             display: flex;
+            align-items: center;
             gap: 8px;
-            align-items: center;
         }
 
-        .settings-btn, .tab-btn {
-            background: var(--primary-color);
-            color: var(--white);
-            border: none;
+        .icon-btn {
+            width: 40px;
+            height: 40px;
             border-radius: var(--radius-btn);
-            width: 42px;
-            height: 42px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
-            transition: transform 0.15s, background-color 0.3s, border-radius 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .settings-btn:active, .tab-btn:active { transform: scale(0.94); }
-
-        .views-stage { position: relative; width: 100%; overflow: visible; }
-        .view-section { display: none; will-change: transform, opacity; }
-        .view-section.active { display: block; touch-action: pan-x; }
-
-        @keyframes slideInFromRight {
-            from { opacity: 0.35; transform: translateX(46px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInFromLeft {
-            from { opacity: 0.35; transform: translateX(-46px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .anim-slide-from-right { animation: slideInFromRight 0.26s cubic-bezier(0.22, 1, 0.36, 1); }
-        .anim-slide-from-left { animation: slideInFromLeft 0.26s cubic-bezier(0.22, 1, 0.36, 1); }
-
-        @keyframes kwSlideUp {
-            from { opacity: 0.3; transform: translateY(22px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes kwSlideDown {
-            from { opacity: 0.3; transform: translateY(-22px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .anim-kw-next { animation: kwSlideUp 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
-        .anim-kw-prev { animation: kwSlideDown 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
-
-        .feature-section {
-            position: relative;
-            background-color: var(--card-bg);
-            border-radius: var(--radius-card);
-            padding: var(--card-pad);
-            margin-bottom: 14px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: background-color 0.3s, border-radius 0.2s, padding 0.2s;
-            overflow: hidden;
-        }
-
-        .bg-hour-watermark {
-            display: var(--watermark-display);
-            position: absolute;
-            right: 12px;
-            bottom: 6px;
-            font-size: 4.8em;
-            font-weight: 900;
-            line-height: 0.9;
-            color: var(--text-color);
-            opacity: calc(0.02 + var(--asym-intensity) * 0.055);
-            pointer-events: none;
-            user-select: none;
-            font-variant-numeric: tabular-nums;
-            z-index: 0;
-        }
-        .feature-section > *:not(.bg-hour-watermark) { position: relative; z-index: 1; }
-
-        .stamp-btn-row {
-            display: grid;
-            grid-template-columns: 1fr 48px;
-            gap: 8px;
-            margin-bottom: 14px;
-            align-items: stretch;
-        }
-
-        .btn-stamp {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            padding: 13px 12px;
-            border-radius: var(--radius-btn);
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1.06em;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
-            transition: transform 0.15s, opacity 0.2s, border-radius 0.2s, background-color 0.3s;
-            white-space: nowrap;
-        }
-        #btn-now-start {
-            grid-column: 1 / -1;
-            background-color: var(--primary-color);
-            border-radius: var(--btn-come-radius);
-        }
-        #btn-now-end {
-            grid-column: 1 / 2;
-            background-color: var(--secondary-action-color);
-            border-radius: var(--btn-go-radius);
-        }
-        .btn-stamp:active { transform: scale(0.97); }
-
-        .btn-undo {
-            grid-column: 2 / 3;
-            background-color: var(--white);
-            color: var(--text-color);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-btn);
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-            transition: transform 0.15s, opacity 0.2s, border-radius 0.2s;
-        }
-        .btn-undo:active:not(:disabled) { transform: scale(0.93); }
-        .btn-undo:disabled { opacity: 0.38; cursor: default; }
-
-        .time-input-pair {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .btn-now {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            padding: 11px 10px;
-            border-radius: var(--radius-btn);
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.92em;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            white-space: nowrap;
-            width: 100%;
-            text-align: center;
-            transition: border-radius 0.2s, transform 0.15s;
-        }
-        .btn-now:active { transform: scale(0.96); }
-
-        .smoke-counter-box {
-            width: 152px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 6px 0 10px;
-            border-radius: var(--radius-btn);
-            border: 2px solid var(--border-color);
+            border: 1.5px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
-            font-size: 0.86em;
-            font-weight: bold;
-        }
-        .btn-smoke-minus {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-weight: bold;
-            font-size: 1.1em;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.12s ease, background-color 0.2s;
         }
-        .btn-smoke-minus:active { transform: scale(0.9); }
 
-        .output-container {
+        .icon-btn:active {
+            transform: scale(0.94);
+        }
+
+        .view-stage {
+            width: 100%;
+        }
+
+        .view-section {
+            display: none;
+            width: 100%;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .anim-slide-from-right { animation: slideFromRight 0.22s ease-out; }
+        .anim-slide-from-left { animation: slideFromLeft 0.22s ease-out; }
+
+        @keyframes slideFromRight {
+            from { opacity: 0.4; transform: translateX(28px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideFromLeft {
+            from { opacity: 0.4; transform: translateX(-28px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .feature-section {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 14px;
         }
 
-        .output, .output-decimal {
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 11px 14px;
-            border-radius: var(--output-radius);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        .live-clock-card {
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
+            padding: 12px 16px;
             text-align: center;
-            transition: border-radius 0.2s;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
         }
-        .output h3, .output-decimal h3 {
-            font-size: 0.83em;
-            margin-bottom: 3px;
-            opacity: 0.9;
-            font-weight: normal;
-        }
-        .output div, .output-decimal div {
-            font-size: 1.24em;
-            font-weight: bold;
+
+        .live-clock-time {
+            font-size: 2.05em;
+            font-weight: 800;
+            letter-spacing: 0.5px;
             font-variant-numeric: tabular-nums;
-        }
-        .output-sub-hint {
-            font-size: 0.72em !important;
-            font-weight: normal !important;
-            opacity: 0.92;
-            margin-top: 2px;
+            line-height: 1.1;
         }
 
-        .section-divider {
-            border: none;
-            background-color: var(--border-color);
-            height: var(--divider-height);
-            opacity: 0.45;
-            margin: 14px 0;
+        .live-clock-day {
+            font-size: 0.86em;
+            opacity: 0.78;
+            margin-top: 3px;
         }
 
-        .dual-manual-times {
+        .stamp-action-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 14px;
         }
 
-        .inputs-group-kg {
+        .btn-stamp-big {
+            padding: 16px 10px;
+            border: none;
+            border-radius: var(--radius-btn);
+            color: #ffffff;
+            font-size: 1.12em;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            transition: transform 0.12s ease, background-color 0.2s;
+        }
+
+        .btn-stamp-big:active { transform: scale(0.97); }
+        .btn-stamp-come { background-color: var(--primary-color); }
+        .btn-stamp-come:hover { background-color: var(--primary-hover); }
+        .btn-stamp-go { background-color: var(--secondary-color); }
+        .btn-stamp-go:hover { background-color: var(--secondary-hover); }
+
+        .time-inputs-card {
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
+            padding: 10px 12px;
             display: grid;
-            grid-template-columns: 38px 1fr 1fr;
-            gap: 4px;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
             align-items: center;
-            width: 100%;
         }
 
-        .kg-badge {
-            height: 48px;
+        .time-pair-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .time-pair-label {
+            font-size: 0.78em;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        .hhmm-inputs {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .hhmm-inputs input {
+            width: 44px;
+            height: 40px;
+            border: 1.5px solid var(--border-color);
             border-radius: var(--radius-input);
-            border: 2px solid var(--border-color);
-            background-color: var(--bg-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1.15em;
+            font-weight: bold;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hhmm-inputs span {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .btn-undo-mini {
+            height: 40px;
+            padding: 0 11px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
             color: var(--text-color);
             font-weight: bold;
-            font-size: 1.08em;
+            font-size: 0.95em;
+            cursor: pointer;
+            align-self: flex-end;
+        }
+
+        .btn-undo-mini:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .smoke-bar {
+            display: none;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 8px;
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
+            padding: 8px 12px;
+        }
+
+        .smoke-bar-info {
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .smoke-step-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1.15em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .pause-results-card {
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .pause-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.92em;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .pause-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .pause-row span { opacity: 0.85; }
+        .pause-row strong {
+            font-variant-numeric: tabular-nums;
+            font-size: 0.98em;
+        }
+
+        .sessions-box {
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
+            padding: 10px 12px;
+            font-size: 0.88em;
+        }
+
+        .sessions-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .session-del-btn {
+            border: none;
+            background: rgba(217, 83, 79, 0.14);
+            color: var(--danger);
+            border-radius: 6px;
+            width: 24px;
+            height: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .sessions-break-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            padding-top: 5px;
+            border-top: 1px dashed var(--border-color);
+            font-size: 0.92em;
+        }
+
+        .output-decimal-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .output-decimal {
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
+            padding: 11px 10px;
+            text-align: center;
+        }
+
+        .output-decimal h3 {
+            margin: 0 0 4px 0;
+            font-size: 0.82em;
+            font-weight: bold;
+            opacity: 0.8;
             display: flex;
             align-items: center;
             justify-content: center;
-            user-select: none;
+            gap: 5px;
         }
 
-        .inputs-group-kg input[type="number"] {
-            width: 100%;
-            min-width: 0;
-            height: 48px;
-            padding: 8px 1px;
-            font-size: 1.15em;
-            font-weight: bold;
+        .output-decimal > div:first-of-type {
+            font-size: 1.32em;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
         }
 
-        input[type="text"], input[type="number"], input[type="month"], input[type="date"] {
-            width: 54px;
-            padding: 10px 2px;
-            font-size: 1.12em;
-            border-radius: var(--radius-input);
-            border: 2px solid var(--border-color);
-            text-align: center;
-            background: var(--white);
-            color: var(--text-color);
-            transition: border-color 0.3s, box-shadow 0.3s, border-radius 0.2s;
+        .output-sub-hint, .balance-sub {
+            font-size: 0.76em;
+            opacity: 0.74;
+            margin-top: 2px;
         }
-        input:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 8px rgba(0,0,0,0.12);
-        }
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
-
-        .output-decimal-container { display: flex; gap: 10px; }
-        .output-decimal-container .output-decimal { flex: 1; }
 
         .live-dot {
             display: inline-block;
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background-color: #a8ffcf;
-            margin-right: 4px;
-            vertical-align: middle;
-            animation: livePulse 1.4s infinite ease-in-out;
+            background-color: #22c55e;
+            animation: livePulse 1.4s infinite;
         }
+
         @keyframes livePulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.35; transform: scale(0.82); }
+            50% { opacity: 0.35; transform: scale(0.8); }
         }
 
-        .sessions-box {
-            background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 8px 10px;
-            margin-bottom: 14px;
-            text-align: left;
-            font-size: 0.84em;
-        }
-        .sessions-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid rgba(0,0,0,0.08);
-        }
-        .session-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-            border-bottom: 1px dashed rgba(0,0,0,0.08);
-        }
-        .session-item:last-child { border-bottom: none; }
-        .session-del-btn {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            opacity: 0.6;
-            font-weight: bold;
-            font-size: 1.15em;
-            cursor: pointer;
-            padding: 0 4px;
-        }
-        .session-del-btn:hover { opacity: 1; }
-        .sessions-break-info {
-            margin-top: 5px;
-            padding-top: 4px;
-            border-top: 1px solid rgba(0,0,0,0.08);
-            font-size: 0.92em;
-            opacity: 0.85;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* WOCHENÜBERSICHT */
+        /* =========================================================
+           WOCHENBILANZ & AMPELKONTO
+           ========================================================= */
         .week-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 12px;
+            gap: 8px;
         }
+
         .week-title-col {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 4px;
+            align-items: center;
+            gap: 8px;
         }
-        .week-header h2 { font-size: 1.08em; }
-        .week-nav-cluster { display: flex; align-items: center; gap: 6px; }
+
+        .week-title-col h2 {
+            margin: 0;
+            font-size: 1.22em;
+        }
 
         .btn-jump-today {
-            background: var(--primary-color);
-            color: var(--white);
-            border: none;
-            border-radius: var(--radius-badge);
-            padding: 5px 9px;
-            font-size: 0.76em;
+            display: none;
+            padding: 4px 9px;
+            border-radius: 999px;
+            border: 1.5px solid var(--primary-color);
+            background: var(--white);
+            color: var(--primary-color);
+            font-size: 0.78em;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-            display: none;
         }
+
         .btn-jump-today.visible { display: inline-block; }
 
-        .date-jump-wrap { position: relative; width: 36px; height: 46px; }
+        .week-nav-cluster {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .date-jump-wrap {
+            position: relative;
+            width: 36px;
+            height: 36px;
+        }
+
         .btn-date-jump {
-            width: 100%;
-            height: 100%;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
             background: var(--white);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-btn);
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
         }
+
         .hidden-date-picker {
             position: absolute;
             inset: 0;
+            opacity: 0;
             width: 100%;
             height: 100%;
-            opacity: 0;
             cursor: pointer;
-            border: none;
         }
 
         .kw-vertical-nav {
             display: flex;
-            flex-direction: column;
             align-items: center;
             background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-btn);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-input);
             overflow: hidden;
-            min-width: 92px;
         }
+
         .kw-v-btn {
-            width: 100%;
-            background: var(--white);
-            color: var(--text-color);
             border: none;
-            font-size: 0.74em;
-            font-weight: bold;
-            padding: 3px 8px;
+            background: transparent;
+            color: var(--text-color);
+            padding: 6px 8px;
+            font-size: 0.78em;
             cursor: pointer;
         }
+
         .kw-badge {
-            width: 100%;
-            font-size: 0.78em;
+            font-size: 0.8em;
             font-weight: bold;
-            background: var(--primary-color);
-            color: var(--white);
-            padding: 4px 8px;
+            padding: 0 6px;
             cursor: pointer;
-            text-align: center;
+            white-space: nowrap;
         }
 
         .week-list-card {
             background: var(--white);
-            border-radius: var(--week-card-radius);
-            border: 1px solid var(--border-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-box);
             overflow: hidden;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .anim-kw-next { animation: kwSlideUp 0.2s ease-out; }
+        .anim-kw-prev { animation: kwSlideDown 0.2s ease-out; }
+
+        @keyframes kwSlideUp {
+            from { opacity: 0.4; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes kwSlideDown {
+            from { opacity: 0.4; transform: translateY(-14px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .week-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 88px 1fr auto;
             align-items: center;
-            justify-content: space-between;
             gap: 8px;
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(0,0,0,0.07);
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
         }
+
         .week-row:last-child { border-bottom: none; }
-        .week-row:active { background-color: var(--bg-color); }
-        .week-row.is-today {
-            background-color: var(--bg-color);
-            box-shadow: inset 4px 0 0 var(--primary-color);
-        }
+        .week-row.is-today { background-color: hsla(var(--hue), 70%, 50%, 0.08); }
 
         .day-label {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            min-width: 72px;
-            text-align: left;
-            line-height: 1.22;
+            font-size: 0.86em;
         }
-        .day-label strong { font-size: 0.96em; }
-        .day-label span { font-size: 0.75em; opacity: 0.78; white-space: nowrap; }
+
+        .day-label span {
+            font-size: 0.84em;
+            opacity: 0.75;
+        }
 
         .day-time-display {
-            flex: 1;
-            font-size: 0.98em;
             font-weight: bold;
-            text-align: center;
+            font-size: 0.92em;
             font-variant-numeric: tabular-nums;
         }
-        .day-time-display.empty { opacity: 0.38; font-weight: normal; }
+
+        .day-time-display.empty {
+            opacity: 0.4;
+            font-weight: normal;
+        }
 
         .day-status-note {
-            flex: 1;
-            font-size: 0.85em;
-            opacity: 0.78;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.84em;
+            opacity: 0.8;
         }
 
         .status-badge-pill {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-badge);
-            padding: 5px 8px;
-            font-size: 0.78em;
+            font-size: 0.76em;
             font-weight: bold;
-            text-align: center;
-            min-width: 72px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
         }
-        .status-badge-pill[data-status="vacation"],
-        .status-badge-pill[data-status="holiday"] {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border-color: var(--primary-color);
-        }
-        .status-badge-pill[data-status="free"] { opacity: 0.72; }
+
+        .status-badge-pill[data-status="vacation"] { background: #dcfce7; color: #166534; border-color: #86efac; }
+        .status-badge-pill[data-status="sick"] { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .status-badge-pill[data-status="holiday"] { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
 
         .btn-add-day-entry, .btn-open-pdf-export {
             width: 100%;
-            padding: 10px 12px;
+            padding: 11px 14px;
             border-radius: var(--radius-btn);
+            border: 1.5px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
             font-weight: bold;
             font-size: 0.9em;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-        }
-        .btn-add-day-entry {
-            margin-bottom: 14px;
-            border: 1.5px dashed var(--primary-color);
-        }
-        .btn-open-pdf-export {
-            margin-top: 12px;
-            border: 1.5px solid var(--border-color);
-        }
-        .balance-sub {
-            font-size: 0.74em !important;
-            font-weight: normal !important;
-            opacity: 0.88;
-            margin-top: 2px;
+            gap: 8px;
+            cursor: pointer;
         }
 
-        /* =========================================================
-           AMPELKONTO STATUS-PILLE (UNTER MONATS-PDF)
-           ========================================================= */
         .glz-pill-wrap {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 2px;
         }
+
         .glz-pill {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 7px;
-            width: 100%;
-            padding: 8px 12px;
+            gap: 8px;
+            padding: 8px 14px;
             border-radius: 999px;
-            font-size: 0.82em;
+            font-size: 0.84em;
             font-weight: bold;
-            letter-spacing: 0.15px;
-            font-variant-numeric: tabular-nums;
-            transition: background-color 0.25s, border-color 0.25s, color 0.25s;
             border: 1.5px solid transparent;
-            background: var(--white);
         }
+
         .glz-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             flex-shrink: 0;
         }
-        .glz-pill.ampel-gruen {
-            background: rgba(34, 197, 94, 0.15);
-            border-color: rgba(34, 197, 94, 0.42);
-            color: #14532d;
-        }
-        .glz-pill.ampel-gruen .glz-dot {
-            background: #22c55e;
-            box-shadow: 0 0 6px rgba(34, 197, 94, 0.65);
-        }
-        .glz-pill.ampel-gelb {
-            background: rgba(245, 158, 11, 0.18);
-            border-color: rgba(245, 158, 11, 0.48);
-            color: #78350f;
-        }
-        .glz-pill.ampel-gelb .glz-dot {
-            background: #f59e0b;
-            box-shadow: 0 0 6px rgba(245, 158, 11, 0.65);
-        }
-        .glz-pill.ampel-rot {
-            background: rgba(239, 68, 68, 0.17);
-            border-color: rgba(239, 68, 68, 0.48);
-            color: #7f1d1d;
-        }
-        .glz-pill.ampel-rot .glz-dot {
-            background: #ef4444;
-            box-shadow: 0 0 6px rgba(239, 68, 68, 0.65);
-        }
+
+        .glz-pill.ampel-gruen { background: #dcfce7; color: #14532d; border-color: #86efac; }
+        .glz-pill.ampel-gruen .glz-dot { background: #16a34a; }
+        .glz-pill.ampel-gelb { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+        .glz-pill.ampel-gelb .glz-dot { background: #d97706; }
+        .glz-pill.ampel-rot { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+        .glz-pill.ampel-rot .glz-dot { background: #dc2626; }
 
         /* =========================================================
            MODALS & EINSTELLUNGEN
@@ -966,119 +1092,277 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.52);
-            display: flex;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(4px);
+            display: none;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.22s;
-            z-index: 1000;
-            padding: 12px;
+            padding: 16px;
+            z-index: 4000;
         }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-overlay.active { display: flex; }
+
         .modal-content {
-            background: var(--white);
-            width: 100%;
-            max-width: 365px;
-            max-height: 94dvh;
-            overflow-y: auto;
-            border-radius: var(--radius-card);
-            padding: 18px;
             position: relative;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.24);
-            text-align: left;
-        }
-        .modal-content h2 {
-            margin: 0 0 14px;
+            width: 100%;
+            max-width: 430px;
+            max-height: 88dvh;
+            overflow-y: auto;
+            background: var(--white);
             color: var(--text-color);
-            font-size: 1.18em;
-            text-align: center;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-modal);
+            padding: 18px 16px;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
         }
+
+        .modal-content h2 {
+            margin: 0 28px 14px 0;
+            font-size: 1.2em;
+        }
+
         .close-btn {
             position: absolute;
-            top: 10px; right: 13px;
-            background: none; border: none;
-            font-size: 1.65em; color: var(--text-color);
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .subpage-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            padding-right: 26px;
-        }
-        .btn-subpage-back {
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
             background: var(--bg-color);
             color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-btn);
-            padding: 6px 11px;
-            font-size: 0.85em;
-            font-weight: bold;
+            font-size: 1.25em;
+            line-height: 1;
             cursor: pointer;
         }
-        .btn-subpage-back:active {
-            background: var(--primary-color);
-            color: var(--white);
-        }
-        .subpage-header h2 { margin: 0; font-size: 1.1em; }
 
-        .settings-group { margin-bottom: 10px; text-align: left; }
-        .settings-group label {
+        .settings-group { margin-bottom: 11px; }
+        .settings-group > label {
             display: block;
+            font-size: 0.86em;
             font-weight: bold;
             margin-bottom: 5px;
-            color: var(--text-color);
-            font-size: 0.9em;
         }
-        .text-input-full {
-            width: 100% !important;
-            text-align: left !important;
-            padding: 9px 11px !important;
-            font-size: 0.96em !important;
+
+        .text-input-full, .harmony-select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 0.96em;
         }
 
         .settings-nav-card {
             width: 100%;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            background: var(--bg-color);
+            align-items: center;
+            padding: 11px 12px;
+            border-radius: var(--radius-btn);
             border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 10px 12px;
-            cursor: pointer;
-            text-align: left;
+            background: var(--bg-color);
             color: var(--text-color);
+            text-align: left;
+            cursor: pointer;
         }
-        .settings-nav-card:active {
-            transform: scale(0.98);
-            border-color: var(--primary-color);
+
+        .settings-nav-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        .settings-nav-info { display: flex; flex-direction: column; gap: 2px; }
-        .settings-nav-info strong { font-size: 0.92em; }
-        .settings-nav-info span { font-size: 0.76em; opacity: 0.78; }
-        .settings-nav-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-        .nav-color-preview { display: flex; align-items: center; gap: 3px; }
-        .nav-color-preview .mini-dot {
-            width: 15px;
-            height: 15px;
+
+        .settings-nav-info span {
+            font-size: 0.78em;
+            opacity: 0.78;
+        }
+
+        .settings-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-color-preview {
+            display: flex;
+            gap: 3px;
+        }
+
+        .mini-dot, .color-dot {
+            width: 11px;
+            height: 11px;
             border-radius: 50%;
-            border: 1.5px solid rgba(0,0,0,0.2);
+            border: 1px solid rgba(0, 0, 0, 0.25);
         }
-        .nav-chevron { font-size: 1.25em; font-weight: bold; opacity: 0.65; }
+
+        .color-dot { width: 20px; height: 20px; }
+        .dot-1 { background: var(--text-color); }
+        .dot-2 { background: var(--primary-color); }
+        .dot-3 { background: var(--secondary-color); }
+
+        .nav-chevron {
+            font-size: 1.4em;
+            font-weight: bold;
+            opacity: 0.6;
+        }
+
+        .setting-box-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 11px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+        }
+
+        .toggle-label-nowrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        .smoker-mins-wrap {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.84em;
+        }
+
+        .smoker-mins-wrap input {
+            width: 48px;
+            padding: 5px;
+            border-radius: 6px;
+            border: 1.5px solid var(--border-color);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .backup-card {
+            padding: 10px 12px;
+            border-radius: var(--radius-btn);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+        }
+
+        .backup-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .backup-card-title { font-weight: bold; font-size: 0.9em; }
+
+        .backup-status-pill {
+            font-size: 0.74em;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .backup-status-pill.is-due {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .backup-btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-backup-action {
+            padding: 9px 10px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 0.86em;
+            cursor: pointer;
+        }
+
+        .version-update-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82em;
+            padding: 6px 2px 12px 2px;
+        }
+
+        .btn-force-update {
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        .settings-save {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-btn);
+            background: var(--primary-color);
+            color: #ffffff;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .subpage-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .subpage-header h2 { margin: 0; }
+
+        .btn-subpage-back {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-weight: bold;
+            cursor: pointer;
+        }
 
         .design-sub-card {
             background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 11px 12px;
-            margin-bottom: 11px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-btn);
+            padding: 10px 12px;
+            margin-bottom: 10px;
+        }
+
+        .soll-pair {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .soll-pair input {
+            width: 54px;
+            padding: 7px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1em;
         }
 
         .ampel-settings-grid {
@@ -1086,448 +1370,451 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
+
         .ampel-field-box {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
+            font-size: 0.8em;
         }
-        .ampel-field-box span {
-            font-size: 0.78em;
-            font-weight: bold;
-            opacity: 0.85;
-        }
+
         .ampel-field-box input {
             width: 100%;
-            padding: 8px 6px;
-            font-size: 0.98em;
+            padding: 7px 8px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
             font-weight: bold;
         }
 
-        .backup-card {
-            background: var(--bg-color);
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 9px 11px;
-        }
-        .backup-card-top {
+        .slider-control { margin-top: 9px; }
+        .slider-control label {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 7px;
+            font-size: 0.82em;
+            margin-bottom: 4px;
         }
-        .backup-card-title { font-weight: bold; font-size: 0.9em; }
-        .backup-status-pill {
-            font-size: 0.73em;
+        .slider-control input[type="range"] { width: 100%; }
+
+        .color-wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #colorWheel {
+            border-radius: 50%;
+            cursor: crosshair;
+            touch-action: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+        }
+
+        .color-preview {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .scribble-picker-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .scribble-count-tag {
+            font-size: 0.78em;
             font-weight: bold;
             padding: 2px 8px;
             border-radius: 999px;
             background: var(--white);
             border: 1px solid var(--border-color);
         }
-        .backup-status-pill.is-due {
-            background: #fff3cd;
-            border-color: #e0a800;
-            color: #7a5800;
-        }
-        .backup-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn-backup-action {
-            background: var(--white);
-            color: var(--text-color);
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-btn);
-            padding: 8px;
-            font-size: 0.85em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .btn-backup-action:active {
-            background: var(--primary-color);
-            color: var(--white);
-            border-color: var(--primary-color);
-        }
 
-        .setting-box-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            background: var(--bg-color);
-            padding: 9px 11px;
-            border-radius: var(--radius-input);
-            border: 1px solid var(--border-color);
-        }
-        .toggle-label-nowrap {
-            display: flex !important;
-            align-items: center;
-            gap: 7px;
-            margin-bottom: 0 !important;
-            cursor: pointer;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-        .toggle-label-nowrap input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary-color);
-            cursor: pointer;
-        }
-        .smoker-mins-wrap {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.82em;
-            font-weight: bold;
-        }
-        .smoker-mins-wrap input { width: 46px; padding: 5px 2px; font-size: 0.95em; }
-
-        .soll-pair { display: flex; align-items: center; gap: 8px; }
-
-        .scribble-picker-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 7px;
-        }
-        .scribble-picker-head label { margin-bottom: 0; }
-        .scribble-count-tag { font-size: 0.8em; font-weight: bold; opacity: 0.8; }
         .scribble-svg-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            background: hsl(var(--hue), 44%, 22%);
-            padding: 10px;
-            border-radius: var(--radius-input);
         }
+
         .scribble-svg-chip {
-            aspect-ratio: 1;
-            border-radius: 10px;
-            border: 1.5px solid rgba(255, 255, 255, 0.18);
-            background: rgba(0, 0, 0, 0.24);
-            color: #ffffff;
-            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             gap: 3px;
+            padding: 7px 4px;
+            border-radius: 9px;
+            border: 1.5px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-size: 0.72em;
+            cursor: pointer;
         }
-        .scribble-svg-chip.selected {
-            border: 2px solid #ffffff;
-            background: rgba(255, 255, 255, 0.26);
-        }
+
         .scribble-svg-chip svg {
-            width: 24px;
-            height: 24px;
-            stroke: #ffffff;
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
             fill: none;
             stroke-width: 2.2;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-        .scribble-svg-chip span { font-size: 0.62em; opacity: 0.9; }
 
-        .color-wheel-container { display: flex; flex-direction: column; align-items: center; }
-        canvas {
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            cursor: crosshair;
-            touch-action: none;
-        }
-        .color-preview { display: flex; gap: 10px; margin-top: 8px; }
-        .color-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ccc; }
-        .dot-1 { background: var(--text-color); }
-        .dot-2 { background: var(--primary-color); }
-        .dot-3 { background: var(--secondary-action-color); }
-
-        .slider-control { width: 100%; margin-top: 8px; text-align: left; }
-        .slider-control label {
-            font-size: 0.83em;
-            margin-bottom: 3px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .slider-control input[type="range"] { width: 100%; accent-color: var(--primary-color); }
-        .harmony-select {
-            width: 100%;
-            padding: 8px;
-            border-radius: var(--radius-input);
-            border: 1px solid var(--border-color);
-            background: var(--white);
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .version-update-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 7px 11px;
-            margin-bottom: 10px;
-            font-size: 0.83em;
-        }
-        .btn-force-update {
-            background: var(--white);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 5px 9px;
-            font-size: 0.85em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .settings-save {
-            width: 100%;
+        .scribble-svg-chip.selected {
             background: var(--primary-color);
-            color: var(--white);
-            border: none;
-            padding: 12px;
-            border-radius: var(--radius-btn);
-            font-size: 1.02em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* TAGES-EDITOR & NACHTRAGEN */
-        .weekend-quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .btn-weekend-quick {
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-btn);
-            padding: 10px 8px;
-            font-weight: bold;
-            font-size: 0.88em;
-            cursor: pointer;
-        }
-        .day-status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 14px; }
-        .day-status-chip {
-            padding: 9px 2px;
-            border-radius: var(--radius-badge);
-            border: 1.5px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-size: 0.78em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .day-status-chip.selected {
-            background: var(--primary-color);
-            color: var(--white);
+            color: #ffffff;
             border-color: var(--primary-color);
         }
+
+        .widget-catalog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .widget-catalog-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+        }
+
+        .widget-catalog-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 0.85em;
+        }
+
+        .widget-catalog-info span {
+            font-size: 0.84em;
+            opacity: 0.78;
+        }
+
+        .btn-catalog-toggle {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--primary-color);
+            background: var(--white);
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 0.8em;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .btn-catalog-toggle.is-added {
+            background: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .weekend-quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-weekend-quick {
+            padding: 10px;
+            border-radius: var(--radius-input);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* TAGES-EDITOR */
+        .day-status-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .day-status-chip {
+            padding: 7px 2px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.76em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .day-status-chip.selected {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+
         .editor-block-card {
             background: var(--bg-color);
             border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 11px;
-            margin-bottom: 11px;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 9px;
         }
+
         .editor-block-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 9px;
+            font-size: 0.82em;
             font-weight: bold;
-            font-size: 0.9em;
+            margin-bottom: 8px;
         }
+
         .editor-block-del {
-            background: var(--white);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
+            border: none;
+            background: rgba(217, 83, 79, 0.15);
+            color: var(--danger);
+            padding: 3px 8px;
             border-radius: 6px;
-            padding: 4px 9px;
-            font-size: 0.84em;
+            font-size: 0.9em;
             font-weight: bold;
             cursor: pointer;
         }
-        .editor-time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .editor-time-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        .editor-time-col span.lbl { font-size: 0.8em; font-weight: bold; opacity: 0.8; }
-        .editor-hhmm-pair { display: flex; align-items: center; gap: 4px; width: 100%; }
-        .editor-hhmm-pair input[type="number"] {
-            width: 100%;
-            height: 48px;
-            font-size: 1.22em;
-            font-weight: bold;
+
+        .editor-time-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
-        .nudge-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; width: 100%; }
-        .nudge-btn {
-            background: var(--white);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 6px 0;
+
+        .editor-time-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .editor-time-col .lbl {
             font-size: 0.78em;
             font-weight: bold;
-            cursor: pointer;
         }
-        .btn-add-block-full {
-            width: 100%;
-            padding: 10px;
-            border-radius: var(--radius-btn);
-            border: 1.5px dashed var(--primary-color);
-            background: var(--white);
-            color: var(--text-color);
-            font-weight: bold;
-            font-size: 0.9em;
-            cursor: pointer;
-            margin-bottom: 11px;
-        }
-        .editor-smoke-bar {
+
+        .editor-hhmm-pair {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            background: var(--bg-color);
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-input);
-            padding: 9px 12px;
-            margin-bottom: 12px;
+            gap: 3px;
         }
-        .editor-smoke-btns { display: flex; align-items: center; gap: 10px; }
-        .big-step-btn {
-            width: 36px;
+
+        .editor-hhmm-pair input {
+            width: 44px;
             height: 36px;
-            border-radius: var(--radius-btn);
+            border-radius: 7px;
             border: 1.5px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
-            font-size: 1.2em;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .nudge-row {
+            display: flex;
+            gap: 3px;
+        }
+
+        .nudge-btn {
+            padding: 3px 6px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-size: 0.74em;
             font-weight: bold;
             cursor: pointer;
         }
+
+        .btn-add-block-full {
+            width: 100%;
+            padding: 8px;
+            border-radius: 9px;
+            border: 1.5px dashed var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 0.84em;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .editor-smoke-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 11px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-color);
+            margin-bottom: 10px;
+        }
+
+        .editor-smoke-btns {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .big-step-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+
         .btn-reset-day {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             border-radius: var(--radius-btn);
-            border: 1.5px solid #d9534f;
-            background: #fff6f6;
-            color: #b52b27;
+            border: 1.5px solid rgba(217, 83, 79, 0.45);
+            background: rgba(217, 83, 79, 0.08);
+            color: var(--danger);
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 0.86em;
+            margin-bottom: 8px;
             cursor: pointer;
-            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="edge-bg-layer" id="edge-bg-layer"></div>
+    <div id="edge-bg-layer"></div>
+    <div id="bg-hour-watermark">08</div>
 
-    <!-- VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN) -->
-    <section class="welcome-overlay" id="welcome-overlay" aria-label="Stempelbildschirm">
+    <!-- VOLLBILD-HOME-SCREEN -->
+    <div class="welcome-overlay" id="welcome-overlay">
         <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
         <div class="welcome-top-area">
-            <div class="welcome-date-sub" id="welcome-date-sub">-</div>
-            <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
-        </div>
-
-        <div class="welcome-actions-stack">
-            <button type="button" class="btn-welcome-action" id="btn-welcome-action">
-                <strong id="welcome-action-title">Kommen</strong>
-                <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
-            </button>
-
-            <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
-                <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
-                <div class="welcome-menu-hint">Zum Menü →</div>
-            </button>
-        </div>
-    </section>
-
-    <div class="container" id="app-container">
-        <header class="top-header-card">
-            <div class="live-clock-box">
-                <div class="live-time" id="live-clock-time">--:--:--</div>
-                <div class="live-weekday" id="live-clock-day">-</div>
+            <div class="welcome-top-bar">
+                <span class="welcome-mode-pill" id="welcome-mode-pill">Modus: Kommen</span>
+                <button type="button" class="btn-widget-edit-toggle" id="btn-toggle-widget-edit" title="Widgets anpassen">⊞</button>
             </div>
+            <div class="welcome-greeting-block">
+                <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
+                <div class="welcome-date-sub" id="welcome-date-sub">Samstag, 21.11.2026</div>
+            </div>
+            <div class="widget-editor-bar" id="widget-editor-bar">
+                <button type="button" class="w-bar-btn" id="btn-open-widget-catalog">+ Widget</button>
+                <button type="button" class="w-bar-btn" id="btn-preview-switch-mode">Kommen / Gehen</button>
+                <button type="button" class="w-bar-btn" id="btn-reset-widgets">Standard</button>
+                <button type="button" class="w-bar-btn primary" id="btn-done-widget-edit">Fertig</button>
+            </div>
+        </div>
+
+        <div class="home-widget-grid" id="home-widget-grid"></div>
+
+        <div class="welcome-swipe-hint">
+            ↑ Kommen · ↓ Gehen · ← Menü · → Woche
+        </div>
+    </div>
+
+    <!-- HAUPT-APP -->
+    <div class="app-shell">
+        <header class="top-header">
+            <h1 class="app-title">Stempeluhr</h1>
             <div class="header-actions">
-                <button class="tab-btn" id="btn-toggle-view" title="Wochenbilanz" aria-label="Wochenbilanz">
-                    <svg id="icon-view-week" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"></line>
-                        <line x1="12" y1="20" x2="12" y2="4"></line>
-                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                <button type="button" class="icon-btn" id="btn-toggle-view" title="Wochenbilanz">
+                    <svg id="icon-view-week" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <svg id="icon-view-clock" style="display:none;" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="9"></circle>
-                        <polyline points="12 7 12 12 15 14"></polyline>
+                    <svg id="icon-view-clock" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                 </button>
-                <button class="settings-btn" id="btn-settings" title="Einstellungen" aria-label="Einstellungen">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                        <line x1="4" y1="6" x2="20" y2="6"></line>
-                        <line x1="4" y1="12" x2="20" y2="12"></line>
-                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                <button type="button" class="icon-btn" id="btn-settings" title="Einstellungen">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
                 </button>
             </div>
         </header>
 
-        <div class="views-stage" id="views-stage">
+        <div class="view-stage">
             <div id="view-clock" class="view-section active">
                 <div class="feature-section">
-                    <div class="bg-hour-watermark" id="bg-hour-watermark">--</div>
-
-                    <div class="stamp-btn-row">
-                        <button class="btn-stamp" id="btn-now-start">Kommen</button>
-                        <button class="btn-stamp" id="btn-now-end">Gehen</button>
-                        <button class="btn-undo" id="btn-undo" title="Letzte Eingabe rückgängig" aria-label="Rückgängig" disabled>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 14L4 9l5-5"></path>
-                                <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
-                            </svg>
-                        </button>
+                    <div class="live-clock-card">
+                        <div class="live-clock-time" id="live-clock-time">08:00:00</div>
+                        <div class="live-clock-day" id="live-clock-day">Samstag, 21.11.2026</div>
                     </div>
 
-                    <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 14px;">
-                        <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
-                        <div class="smoke-counter-box">
-                            <span id="smoke-count-display">0× (-0m)</span>
-                            <button type="button" class="btn-smoke-minus" id="btn-sub-smoke" title="Eine Pause abziehen">−</button>
-                        </div>
+                    <div class="stamp-action-grid">
+                        <button type="button" class="btn-stamp-big btn-stamp-come" id="btn-now-start">Kommen</button>
+                        <button type="button" class="btn-stamp-big btn-stamp-go" id="btn-now-end">Gehen</button>
                     </div>
 
-                    <div class="output-container">
-                        <div class="output">
-                            <h3>Keine Pause (gehen um):</h3>
-                            <div id="output-no-pause">-</div>
+                    <div class="time-inputs-card">
+                        <div class="time-pair-box">
+                            <span class="time-pair-label">Kommen</span>
+                            <div class="hhmm-inputs">
+                                <input type="number" id="startHours" min="0" max="23" placeholder="hh" inputmode="numeric">
+                                <span>:</span>
+                                <input type="number" id="startMinutes" min="0" max="59" placeholder="mm" inputmode="numeric">
+                            </div>
                         </div>
-                        <div class="output">
-                            <h3>30 min Pause (von - bis):</h3>
-                            <div id="output-30min-pause-range">-</div>
+                        <div class="time-pair-box">
+                            <span class="time-pair-label">Gehen</span>
+                            <div class="hhmm-inputs">
+                                <input type="number" id="endHours" min="0" max="23" placeholder="hh" inputmode="numeric">
+                                <span>:</span>
+                                <input type="number" id="endMinutes" min="0" max="59" placeholder="mm" inputmode="numeric">
+                            </div>
                         </div>
-                        <div class="output">
-                            <h3>45 min Pause (ab):</h3>
-                            <div id="output-45min-pause">-</div>
-                        </div>
+                        <button type="button" class="btn-undo-mini" id="btn-undo" disabled title="Rückgängig">↺</button>
                     </div>
 
-                    <hr class="section-divider">
+                    <div class="smoke-bar" id="smoke-bar">
+                        <button type="button" class="smoke-step-btn" id="btn-sub-smoke">−</button>
+                        <div class="smoke-bar-info">🚬 Raucherpause: <span id="smoke-count-display">0× (-0m)</span></div>
+                        <button type="button" class="smoke-step-btn" id="btn-add-smoke">+</button>
+                    
 
-                    <div class="dual-manual-times">
-                        <div class="inputs-group-kg">
-                            <div class="kg-badge" title="Kommen">K</div>
-                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                <div class="pause-results-card">
+                        <div class="pause-row">
+                            <span>Ohne Pause bis:</span>
+                            <strong id="output-no-pause">-</strong>
                         </div>
-                        <div class="inputs-group-kg">
-                            <div class="kg-badge" title="Gehen">G</div>
-                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                        <div class="pause-row">
+                            <span>30 Min Pause:</span>
+                            <strong id="output-30min-pause-range">-</strong>
+                        </div>
+                        <div class="pause-row">
+                            <span>45 Min Pause ab:</span>
+                            <strong id="output-45min-pause">-</strong>
                         </div>
                     </div>
 
                     <div class="sessions-box" id="sessions-box" style="display: none;">
                         <div class="sessions-header">
-                            <span>Stempel-Blöcke heute</span>
-                            <span id="sessions-pres-sum">00:00 h</span>
+                            <span>Zeitblöcke heute</span>
+                            <span id="sessions-pres-sum">Anwesenheit: 00:00 h</span>
                         </div>
-                        <div id="sessions-list"></div>
+                        <div id="sessions-list">
+
+
+
+
+</div>
                         <div class="sessions-break-info" id="sessions-break-info" style="display: none;">
                             <span>Unterbrechung (abwesend):</span>
                             <strong id="sessions-gap-sum">0 min</strong>
@@ -1604,7 +1891,6 @@
                         <span>Monatsübersicht als PDF</span>
                     </button>
 
-                    <!-- AMPELKONTO STATUS-PILLE -->
                     <div class="glz-pill-wrap">
                         <div id="glzPill" class="glz-pill ampel-gruen">
                             <span class="glz-dot"></span>
@@ -1613,6 +1899,16 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: WIDGET-KATALOG -->
+    <div class="modal-overlay" id="widget-catalog-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="btn-close-widget-catalog">&times;</button>
+            <h2>Home-Widgets wählen</h2>
+            <div class="widget-catalog-list" id="widget-catalog-list"></div>
+            <button class="settings-save" id="btn-done-widget-catalog">Übernehmen</button>
         </div>
     </div>
 
@@ -1701,7 +1997,7 @@
         </div>
     </div>
 
-    <!-- MODAL: EINSTELLUNGEN (KOMPAKT + 2 UNTERMENÜS) -->
+    <!-- MODAL: EINSTELLUNGEN -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
@@ -1730,7 +2026,7 @@
                     <button type="button" class="settings-nav-card" id="btn-open-design-subpage">
                         <div class="settings-nav-info">
                             <strong>Darstellung & Design</strong>
-                            <span id="nav-design-summary">Klassisch · 2 Scribbles</span>
+                            <span id="nav-design-summary">Klassisch · 3 Widgets · 2 Scribbles</span>
                         </div>
                         <div class="settings-nav-right">
                             <div class="nav-color-preview">
@@ -1767,7 +2063,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.20</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.21</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -1806,7 +2102,7 @@
                 </div>
 
                 <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Raucherpausen auf Startseite</label>
+                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Raucherpausen im Menü</label>
                     <div class="setting-box-row" style="background:var(--white);">
                         <label class="toggle-label-nowrap" for="isSmokerCheck">
                             <input type="checkbox" id="isSmokerCheck">
@@ -1848,6 +2144,11 @@
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-design">← Zurück</button>
                     <h2>Darstellung & Design</h2>
+                </div>
+
+                <div class="design-sub-card">
+                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Home-Screen Widgets (Kommen & Gehen)</label>
+                    <button type="button" class="btn-backup-action" id="btn-open-home-widget-editor" style="width:100%;">⊞ Widgets auf Home-Screen anpassen</button>
                 </div>
 
                 <div class="design-sub-card">
@@ -1942,18 +2243,9 @@
                 return clamped;
             }
 
-            /* =========================================================
-               SYSTEM-BENACHRICHTIGUNG (MIT APP-ICON & SERVICE WORKER)
-               ========================================================= */
             async function showAppNotification(title, body, tag) {
                 if (!("Notification" in window) || Notification.permission !== "granted") return;
-                const options = {
-                    body,
-                    icon: "./favicon.png",
-                    badge: "./favicon.png",
-                    tag,
-                    renotify: true
-                };
+                const options = { body, icon: "./favicon.png", badge: "./favicon.png", tag, renotify: true };
                 try {
                     if ("serviceWorker" in navigator) {
                         const reg = await navigator.serviceWorker.ready;
@@ -1963,9 +2255,7 @@
                         }
                     }
                 } catch (e) {}
-                try {
-                    new Notification(title, options);
-                } catch (e) {}
+                try { new Notification(title, options); } catch (e) {}
             }
 
             const holidaysNds = {
@@ -1997,9 +2287,7 @@
                 return hasTimes || hasSmoke || hasNonFreeStatus;
             }
 
-            /* =========================================================
-               BACKUP-FUNKTIONEN (JSON EXPORT & IMPORT)
-               ========================================================= */
+            /* BACKUP-FUNKTIONEN */
             const backupStatusPill = document.getElementById("backup-status-pill");
             const backupFileInput = document.getElementById("backup-file-input");
 
@@ -2047,11 +2335,8 @@
                 const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                a.href = url; a.download = fileName;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(url), 1500);
 
                 localStorage.setItem("lastBackupDate", new Date().toISOString());
@@ -2093,9 +2378,7 @@
                 reader.readAsText(file);
             });
 
-            /* =========================================================
-               SCRIBBLE SVG-SET
-               ========================================================= */
+            /* SCRIBBLE SVG-SET */
             const SCRIBBLE_ICONS = [
                 { id: "bolt", label: "Blitz", inner: `<path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/>` },
                 { id: "loop-arrow", label: "Schleife", inner: `<path d="M5 24 C10 26, 22 23, 21 15 C20 10, 13 11, 14 17 C15 23, 25 22, 30 13 M24 12.5 L30.5 12.5 L29.5 19"/>` },
@@ -2168,8 +2451,373 @@
             applyThemeColors(appHue, appLightness);
 
             /* =========================================================
-               SCRIBBLE PICKER & SETTINGS NAVIGATION
+               WIDGET-SYSTEM (KOMMEN & GEHEN GEMEINSAM)
                ========================================================= */
+            const WIDGET_CATALOG = [
+                { id: "action", label: "Stempel-Action (Kommen / Gehen)", desc: "Haupt-Button für den aktuellen Modus", defaultSpan: 2, defaultSize: "l" },
+                { id: "clock", label: "Live-Uhrzeit", desc: "Große sekundengenaue Digitaluhr", defaultSpan: 1, defaultSize: "m" },
+                { id: "menu", label: "Menü-Button", desc: "Direkter Wechsel ins Hauptmenü", defaultSpan: 1, defaultSize: "m" },
+                { id: "kg_inputs", label: "K / G Direkt-Eingabe", desc: "Kommen & Gehen Stunden/Minuten direkt tippen", defaultSpan: 2, defaultSize: "m" },
+                { id: "pauses", label: "Pausen-Rechner", desc: "Keine Pause, 30 min und 45 min Feierabend", defaultSpan: 2, defaultSize: "m" },
+                { id: "day_balance", label: "Tages-Bilanz (Dezimal & +/-)", desc: "Aktuelle Netto-Zeit und Tagessaldo", defaultSpan: 2, defaultSize: "s" },
+                { id: "glz_ampel", label: "GLZ-Ampel-Status", desc: "Aktueller Gleitzeitstand & Ampelfarbe", defaultSpan: 2, defaultSize: "s" },
+                { id: "week_summary", label: "Wochen-Saldo", desc: "Wochen-Ist und Differenz zum Soll", defaultSpan: 1, defaultSize: "s" },
+                { id: "smoke", label: "Raucherpause", desc: "Zähler & +1 Pause direkt stempeln", defaultSpan: 1, defaultSize: "s" },
+                { id: "undo", label: "Rückgängig (Undo)", desc: "Letzte Stempel-Aktion widerrufen", defaultSpan: 1, defaultSize: "s" }
+            ];
+
+            const DEFAULT_HOME_WIDGETS = [
+                { id: "action", span: 2, size: "l" },
+                { id: "clock", span: 1, size: "m" },
+                { id: "menu", span: 1, size: "m" }
+            ];
+
+            let homeWidgets = JSON.parse(JSON.stringify(DEFAULT_HOME_WIDGETS));
+            try {
+                const rawW = JSON.parse(localStorage.getItem("homeWidgetsV1"));
+                if (Array.isArray(rawW) && rawW.length > 0) {
+                    const valid = rawW.filter(w => w && WIDGET_CATALOG.some(c => c.id === w.id)).map(w => ({
+                        id: w.id,
+                        span: w.span === 1 ? 1 : 2,
+                        size: ["s", "m", "l"].includes(w.size) ? w.size : "m"
+                    }));
+                    if (valid.length > 0) homeWidgets = valid;
+                }
+            } catch (e) {}
+
+            function saveHomeWidgets() {
+                localStorage.setItem("homeWidgetsV1", JSON.stringify(homeWidgets));
+            }
+
+            const homeWidgetGrid = document.getElementById("home-widget-grid");
+            const widgetEditorBar = document.getElementById("widget-editor-bar");
+            const btnToggleWidgetEdit = document.getElementById("btn-toggle-widget-edit");
+            let isEditingHomeWidgets = false;
+            let welcomeActionMode = "come";
+
+            function computeWidgetHarmonyStyle(idx, total, colStart, span, mode) {
+                const isGo = mode === "go";
+                const baseHue = isGo ? (appHue + 150) : appHue;
+                const altHue = isGo ? appHue : (appHue + 150);
+
+                const hueShift = idx === 0 ? baseHue : (idx % 2 === 1 ? altHue : baseHue + ((idx * 18) % 36) - 18);
+                const alpha = idx === 0 ? 0.78 : Math.max(0.56, 0.72 - idx * 0.03);
+                const bg = `hsla(${((hueShift % 360) + 360) % 360}, 64%, ${appLightness}%, ${alpha.toFixed(2)})`;
+
+                let radius = "20px";
+                if (appStyleMode === "asymmetric") {
+                    const k = appAsymIntensity / 100;
+                    const big = Math.round(18 + k * 24);
+                    const small = Math.max(6, Math.round(18 - k * 9));
+                    if (span === 2) {
+                        const even = (idx + (isGo ? 1 : 0)) % 2 === 0;
+                        radius = even ? `${big}px ${small}px ${big}px ${small}px` : `${small}px ${big}px ${small}px ${big}px`;
+                    } else {
+                        const isLeft = colStart === 0;
+                        const flip = isGo ? !isLeft : isLeft;
+                        radius = flip ? `${big}px ${small}px ${small}px ${big}px` : `${small}px ${big}px ${big}px ${small}px`;
+                    }
+                }
+                return { bg, radius };
+            }
+
+            function renderHomeWidgetGrid() {
+                if (!homeWidgetGrid) return;
+                homeWidgetGrid.innerHTML = "";
+
+                let colCursor = 0;
+                homeWidgets.forEach((wCfg, idx) => {
+                    if (wCfg.span === 2 && colCursor === 1) colCursor = 0;
+                    const colStart = colCursor;
+                    colCursor = (colCursor + wCfg.span) % 2;
+
+                    const { bg, radius } = computeWidgetHarmonyStyle(idx, homeWidgets.length, colStart, wCfg.span, welcomeActionMode);
+                    const card = document.createElement("div");
+                    card.className = `home-widget span-${wCfg.span} size-${wCfg.size}`;
+                    card.dataset.widgetId = wCfg.id;
+                    card.style.setProperty("--w-bg", bg);
+                    card.style.setProperty("--w-radius", radius);
+
+                    if (isEditingHomeWidgets) {
+                        const ctrl = document.createElement("div");
+                        ctrl.className = "widget-edit-controls";
+                        ctrl.innerHTML = `
+                            <div class="w-ctrl-group">
+                                <button type="button" class="w-ctrl-btn" data-act="up" title="Nach oben">▲</button>
+                                <button type="button" class="w-ctrl-btn" data-act="down" title="Nach unten">▼</button>
+                            </div>
+                            <div class="w-ctrl-group">
+                                <button type="button" class="w-ctrl-btn" data-act="span" title="Breite wechseln">${wCfg.span === 2 ? "Breit" : "Halb"}</button>
+                                <button type="button" class="w-ctrl-btn" data-act="size" title="Höhe wechseln">${wCfg.size.toUpperCase()}</button>
+                                ${homeWidgets.length > 1 ? `<button type="button" class="w-ctrl-btn danger" data-act="del" title="Entfernen">×</button>` : ""}
+                            </div>
+                        `;
+                        ctrl.querySelectorAll(".w-ctrl-btn").forEach(btn => {
+                            btn.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                const act = btn.getAttribute("data-act");
+                                if (act === "up" && idx > 0) {
+                                    [homeWidgets[idx - 1], homeWidgets[idx]] = [homeWidgets[idx], homeWidgets[idx - 1]];
+                                } else if (act === "down" && idx < homeWidgets.length - 1) {
+                                    [homeWidgets[idx + 1], homeWidgets[idx]] = [homeWidgets[idx], homeWidgets[idx + 1]];
+                                } else if (act === "span") {
+                                    wCfg.span = wCfg.span === 2 ? 1 : 2;
+                                } else if (act === "size") {
+                                    const order = ["s", "m", "l"];
+                                    wCfg.size = order[(order.indexOf(wCfg.size) + 1) % order.length];
+                                } else if (act === "del") {
+                                    homeWidgets.splice(idx, 1);
+                                }
+                                saveHomeWidgets();
+                                renderHomeWidgetGrid();
+                                updateHomeWidgetsLiveData();
+                            });
+                        });
+                        card.appendChild(ctrl);
+                    }
+
+                    const body = document.createElement("div");
+                    body.style.width = "100%";
+                    body.style.marginTop = isEditingHomeWidgets ? "18px" : "0";
+
+                    if (wCfg.id === "action") {
+                        const isGo = welcomeActionMode === "go";
+                        body.innerHTML = `<div class="w-title-lg">${isGo ? "Gehen" : "Kommen"}</div><div class="w-sub">${isGo ? "Jetzt direkt ausstempeln" : "Jetzt direkt einstempeln"}</div>`;
+                        if (!isEditingHomeWidgets) {
+                            card.classList.add("is-clickable");
+                            card.addEventListener("click", () => {
+                                if (welcomeActionMode === "go") triggerStampGoNow();
+                                else triggerStampComeNow();
+                                closeWelcomeScreen();
+                            });
+                        }
+                    } else if (wCfg.id === "clock") {
+                        const now = new Date();
+                        const tStr = `${format2(now.getHours())}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                        body.innerHTML = `<div class="w-kicker">Uhrzeit</div><div class="w-clock-val" data-w-live="clock">${tStr}</div>`;
+                    } else if (wCfg.id === "menu") {
+                        body.innerHTML = `<div class="w-title-lg" style="font-size:1.35em;">Menü →</div><div class="w-sub">Zeiten & Übersicht</div>`;
+                        if (!isEditingHomeWidgets) {
+                            card.classList.add("is-clickable");
+                            card.addEventListener("click", closeWelcomeScreen);
+                        }
+                    } else if (wCfg.id === "kg_inputs") {
+                        body.innerHTML = `
+                            <div class="w-kicker">Direkt-Eingabe (K / G)</div>
+                            <div class="w-kg-grid">
+                                <div class="w-kg-pair">
+                                    <div class="w-kg-tag">K</div>
+                                    <input type="number" inputmode="numeric" min="0" max="23" placeholder="hh" data-w-kg="sh" value="${startHoursInput.value}">
+                                    <input type="number" inputmode="numeric" min="0" max="59" placeholder="mm" data-w-kg="sm" value="${startMinutesInput.value}">
+                                </div>
+                                <div class="w-kg-pair">
+                                    <div class="w-kg-tag">G</div>
+                                    <input type="number" inputmode="numeric" min="0" max="23" placeholder="hh" data-w-kg="eh" value="${endHoursInput.value}">
+                                    <input type="number" inputmode="numeric" min="0" max="59" placeholder="mm" data-w-kg="em" value="${endMinutesInput.value}">
+                                </div>
+                            </div>
+                        `;
+                        body.querySelectorAll("input[data-w-kg]").forEach(inp => {
+                            inp.addEventListener("click", e => e.stopPropagation());
+                            inp.addEventListener("touchstart", e => e.stopPropagation(), { passive: true });
+                            inp.addEventListener("focus", () => { inp.select(); manualEditSnapshotTaken = false; });
+                            inp.addEventListener("input", () => {
+                                if (!manualEditSnapshotTaken) { pushUndoSnapshot(); manualEditSnapshotTaken = true; }
+                                if (inp.value.length > 2) inp.value = inp.value.slice(0, 2);
+                                const role = inp.getAttribute("data-w-kg");
+                                if (role === "sh") startHoursInput.value = inp.value;
+                                else if (role === "sm") startMinutesInput.value = inp.value;
+                                else if (role === "eh") endHoursInput.value = inp.value;
+                                else if (role === "em") endMinutesInput.value = inp.value;
+                                onManualTimeInputChange();
+                                calculateAllTimes();
+                                updateHomeWidgetsLiveData();
+                            });
+                            inp.addEventListener("blur", () => {
+                                clampInput(inp);
+                                const role = inp.getAttribute("data-w-kg");
+                                if (role === "sh") startHoursInput.value = inp.value;
+                                else if (role === "sm") startMinutesInput.value = inp.value;
+                                else if (role === "eh") endHoursInput.value = inp.value;
+                                else if (role === "em") endMinutesInput.value = inp.value;
+                                onManualTimeInputChange();
+                                calculateAllTimes();
+                                updateHomeWidgetsLiveData();
+                            });
+                        });
+                    } else if (wCfg.id === "pauses") {
+                        body.innerHTML = `
+                            <div class="w-kicker">Feierabend-Rechner</div>
+                            <div class="w-pause-triple">
+                                <div class="w-pause-cell"><span>0 Min</span><strong data-w-live="p0">-</strong></div>
+                                <div class="w-pause-cell"><span>30 Min</span><strong data-w-live="p30">-</strong></div>
+                                <div class="w-pause-cell"><span>45 Min</span><strong data-w-live="p45">-</strong></div>
+                            </div>
+                        `;
+                    } else if (wCfg.id === "day_balance") {
+                        body.innerHTML = `
+                            <div class="w-kicker">Tages-Bilanz</div>
+                            <div class="w-dual-row">
+                                <div class="w-mini-pill"><span>Heute</span><strong data-w-live="dayDec">-</strong></div>
+                                <div class="w-mini-pill"><span>Saldo</span><strong data-w-live="dayOver">-</strong></div>
+                            </div>
+                        `;
+                    } else if (wCfg.id === "glz_ampel") {
+                        body.innerHTML = `
+                            <div class="w-kicker">Ampelkonto</div>
+                            <div class="w-value-main" style="font-size:0.96em;" data-w-live="glzText">GLZ: +0,00h</div>
+                        `;
+                    } else if (wCfg.id === "week_summary") {
+                        body.innerHTML = `
+                            <div class="w-kicker">Woche</div>
+                            <div class="w-value-main" data-w-live="weekSaldo">+00:00 h</div>
+                            <div class="w-sub" data-w-live="weekWorked">Ist: 00:00 h</div>
+                        `;
+                    } else if (wCfg.id === "smoke") {
+                        body.innerHTML = `
+                            <div class="w-kicker">🚬 Raucherpause</div>
+                            <div class="w-value-main" data-w-live="smokeVal">${todaySmokeCount}× (-${todaySmokeCount * smokeMinutesPerBreak}m)</div>
+                            <div class="w-sub">+1 Pause tippen</div>
+                        `;
+                        if (!isEditingHomeWidgets) {
+                            card.classList.add("is-clickable");
+                            card.addEventListener("click", () => {
+                                pushUndoSnapshot();
+                                todaySmokeCount++;
+                                updateSmokerUI();
+                                saveTodaySmokeData();
+                                calculateAllTimes();
+                                updateHomeWidgetsLiveData();
+                            });
+                        }
+                    } else if (wCfg.id === "undo") {
+                        body.innerHTML = `
+                            <div class="w-kicker">Korrektur</div>
+                            <div class="w-value-main">↺ Undo</div>
+                            <div class="w-sub" data-w-live="undoSub">${undoStack.length > 0 ? "Letzte Aktion zurück" : "Keine Aktion"}</div>
+                        `;
+                        if (!isEditingHomeWidgets) {
+                            card.classList.add("is-clickable");
+                            card.addEventListener("click", () => {
+                                if (undoStack.length > 0) {
+                                    btnUndo.click();
+                                    updateHomeWidgetsLiveData();
+                                }
+                            });
+                        }
+                    }
+
+                    card.appendChild(body);
+                    homeWidgetGrid.appendChild(card);
+                });
+
+                updateHomeWidgetsLiveData();
+            }
+
+            function updateHomeWidgetsLiveData() {
+                if (!homeWidgetGrid) return;
+                const now = new Date();
+                const clockStr = `${format2(now.getHours())}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
+                homeWidgetGrid.querySelectorAll('[data-w-live="clock"]').forEach(el => el.textContent = clockStr);
+
+                const p0 = document.getElementById("output-no-pause").textContent || "-";
+                const p30Raw = document.getElementById("output-30min-pause-range").textContent || "-";
+                const p30 = p30Raw.includes(" bis ") ? p30Raw.split(" bis ")[0] : p30Raw;
+                const p45 = document.getElementById("output-45min-pause").textContent || "-";
+                homeWidgetGrid.querySelectorAll('[data-w-live="p0"]').forEach(el => el.textContent = p0);
+                homeWidgetGrid.querySelectorAll('[data-w-live="p30"]').forEach(el => el.textContent = p30);
+                homeWidgetGrid.querySelectorAll('[data-w-live="p45"]').forEach(el => el.textContent = p45);
+
+                const dayDec = document.getElementById("output-decimal-time").textContent || "-";
+                const dayOver = document.getElementById("output-overtime").textContent || "-";
+                homeWidgetGrid.querySelectorAll('[data-w-live="dayDec"]').forEach(el => el.textContent = dayDec);
+                homeWidgetGrid.querySelectorAll('[data-w-live="dayOver"]').forEach(el => el.textContent = dayOver);
+
+                const glzTxt = document.getElementById("glzPillText").textContent || "GLZ: +0,00h";
+                const glzPillEl = document.getElementById("glzPill");
+                let dotColor = "#22c55e";
+                if (glzPillEl && glzPillEl.classList.contains("ampel-gelb")) dotColor = "#f59e0b";
+                else if (glzPillEl && glzPillEl.classList.contains("ampel-rot")) dotColor = "#ef4444";
+                homeWidgetGrid.querySelectorAll('[data-w-live="glzText"]').forEach(el => {
+                    el.innerHTML = `<span class="w-ampel-dot" style="background:${dotColor};"></span>${glzTxt}`;
+                });
+
+                const weekW = document.getElementById("output-week-worked").textContent || "-";
+                const weekS = document.getElementById("output-week-total").textContent || "-";
+                homeWidgetGrid.querySelectorAll('[data-w-live="weekSaldo"]').forEach(el => el.textContent = weekS);
+                homeWidgetGrid.querySelectorAll('[data-w-live="weekWorked"]').forEach(el => el.textContent = `Ist: ${weekW}`);
+
+                homeWidgetGrid.querySelectorAll('[data-w-live="smokeVal"]').forEach(el => {
+                    el.textContent = `${todaySmokeCount}× (-${todaySmokeCount * smokeMinutesPerBreak}m)`;
+                });
+                homeWidgetGrid.querySelectorAll('[data-w-live="undoSub"]').forEach(el => {
+                    el.textContent = undoStack.length > 0 ? `${undoStack.length} Schritt(e) zurück` : "Keine Aktion";
+                });
+            }
+
+            function setWidgetEditMode(active) {
+                isEditingHomeWidgets = !!active;
+                btnToggleWidgetEdit.classList.toggle("active", isEditingHomeWidgets);
+                widgetEditorBar.classList.toggle("active", isEditingHomeWidgets);
+                welcomeOverlay.classList.toggle("is-editing", isEditingHomeWidgets);
+                renderHomeWidgetGrid();
+            }
+
+            btnToggleWidgetEdit.addEventListener("click", (e) => {
+                e.stopPropagation();
+                setWidgetEditMode(!isEditingHomeWidgets);
+            });
+            document.getElementById("btn-done-widget-edit").addEventListener("click", () => setWidgetEditMode(false));
+            document.getElementById("btn-preview-switch-mode").addEventListener("click", () => {
+                openWelcomeScreen(welcomeActionMode === "come" ? "go" : "come", true);
+            });
+            document.getElementById("btn-reset-widgets").addEventListener("click", () => {
+                homeWidgets = JSON.parse(JSON.stringify(DEFAULT_HOME_WIDGETS));
+                saveHomeWidgets();
+                renderHomeWidgetGrid();
+            });
+
+            /* WIDGET-KATALOG MODAL */
+            const widgetCatalogModal = document.getElementById("widget-catalog-modal");
+            const widgetCatalogList = document.getElementById("widget-catalog-list");
+
+            function renderWidgetCatalogModal() {
+                widgetCatalogList.innerHTML = "";
+                WIDGET_CATALOG.forEach(item => {
+                    const activeIdx = homeWidgets.findIndex(w => w.id === item.id);
+                    const isAdded = activeIdx >= 0;
+                    const row = document.createElement("div");
+                    row.className = "widget-catalog-item";
+                    row.innerHTML = `
+                        <div class="widget-catalog-info">
+                            <strong>${item.label}</strong>
+                            <span>${item.desc}</span>
+                        </div>
+                        <button type="button" class="btn-catalog-toggle ${isAdded ? "is-added" : ""}">${isAdded ? "✓ Aktiv" : "+ Hinzufügen"}</button>
+                    `;
+                    row.querySelector("button").addEventListener("click", () => {
+                        const idx = homeWidgets.findIndex(w => w.id === item.id);
+                        if (idx >= 0) {
+                            if (homeWidgets.length > 1) homeWidgets.splice(idx, 1);
+                        } else {
+                            homeWidgets.push({ id: item.id, span: item.defaultSpan, size: item.defaultSize });
+                        }
+                        saveHomeWidgets();
+                        renderWidgetCatalogModal();
+                        renderHomeWidgetGrid();
+                    });
+                    widgetCatalogList.appendChild(row);
+                });
+            }
+
+            document.getElementById("btn-open-widget-catalog").addEventListener("click", () => {
+                renderWidgetCatalogModal();
+                widgetCatalogModal.classList.add("active");
+            });
+            document.getElementById("btn-close-widget-catalog").addEventListener("click", () => widgetCatalogModal.classList.remove("active"));
+            document.getElementById("btn-done-widget-catalog").addEventListener("click", () => widgetCatalogModal.classList.remove("active"));
+
+            /* SCRIBBLE PICKER & SETTINGS NAVIGATION */
             const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
             const scribbleCountTag = document.getElementById("scribble-count-tag");
             const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
@@ -2185,7 +2833,7 @@
                 }
                 if (navDesignSummary) {
                     const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
-                    navDesignSummary.textContent = `${styleTxt} · ${selectedScribbles.length} Scribbles`;
+                    navDesignSummary.textContent = `${styleTxt} · ${homeWidgets.length} Widgets · ${selectedScribbles.length} Scribbles`;
                 }
             }
 
@@ -2218,19 +2866,14 @@
             });
 
             /* =========================================================
-               VOLLBILD-STEMPELBILDSCHIRM + SCRIBBLES + WISCHGESTEN
+               VOLLBILD-HOME-SCREEN + SCRIBBLES + 4-RICHTUNGS-GESTEN
                ========================================================= */
             const welcomeOverlay = document.getElementById("welcome-overlay");
             const welcomeScatterField = document.getElementById("welcome-scatter-field");
+            const welcomeModePill = document.getElementById("welcome-mode-pill");
             const welcomeGreetingEl = document.getElementById("welcome-greeting");
             const welcomeDateSubEl = document.getElementById("welcome-date-sub");
-            const welcomeBigClockEl = document.getElementById("welcome-big-clock");
-            const btnWelcomeAction = document.getElementById("btn-welcome-action");
-            const welcomeActionTitle = document.getElementById("welcome-action-title");
-            const welcomeActionSub = document.getElementById("welcome-action-sub");
-            const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
 
-            let welcomeActionMode = "come";
             let ambientAnimTimer = null;
 
             function createSeededRng(seedNum) {
@@ -2282,7 +2925,7 @@
                     const x = 5 + rng() * 90;
                     const y = 4 + rng() * 92;
 
-                    const inGreetingZone = (y > 8 && y < 22 && x > 14 && x < 86);
+                    const inGreetingZone = (y > 6 && y < 22 && x > 10 && x < 84);
                     if (inGreetingZone) continue;
 
                     let tooClose = false;
@@ -2356,44 +2999,46 @@
                 if (welcomeActionMode === "go") {
                     const salutation = hr >= 16 ? "Schönen Feierabend" : "Bis später";
                     welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+                    welcomeModePill.textContent = "Modus: Gehen";
                 } else {
                     let salutation = "Guten Tag";
                     if (hr < 11) salutation = "Guten Morgen";
                     else if (hr >= 18) salutation = "Guten Abend";
                     welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+                    welcomeModePill.textContent = "Modus: Kommen";
                 }
 
                 const dayName = weekdaysFull[now.getDay()];
                 welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
             }
 
-            function openWelcomeScreen(mode = "come") {
+            function openWelcomeScreen(mode = "come", keepEditState = false) {
                 welcomeActionMode = mode === "go" ? "go" : "come";
+                if (!keepEditState && isEditingHomeWidgets) {
+                    isEditingHomeWidgets = false;
+                    btnToggleWidgetEdit.classList.remove("active");
+                    widgetEditorBar.classList.remove("active");
+                    welcomeOverlay.classList.remove("is-editing");
+                }
                 welcomeOverlay.style.transform = "";
                 welcomeOverlay.style.opacity = "";
+                welcomeOverlay.classList.toggle("mode-go", welcomeActionMode === "go");
 
-                if (welcomeActionMode === "go") {
-                    btnWelcomeAction.classList.add("mode-go");
-                    btnWelcomeMenu.classList.add("mode-go");
-                    welcomeActionTitle.textContent = "Gehen";
-                    welcomeActionSub.textContent = "Jetzt direkt ausstempeln";
-                } else {
-                    btnWelcomeAction.classList.remove("mode-go");
-                    btnWelcomeMenu.classList.remove("mode-go");
-                    welcomeActionTitle.textContent = "Kommen";
-                    welcomeActionSub.textContent = "Jetzt direkt einstempeln";
+                if (metaThemeColor) {
+                    const barHue = welcomeActionMode === "go" ? (appHue + 150) : appHue;
+                    metaThemeColor.setAttribute("content", window.hslToHex(barHue, 44, 22));
                 }
-
-                if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 44, 22));
 
                 updateWelcomeGreetingText();
                 renderWelcomeScatter();
+                renderHomeWidgetGrid();
                 welcomeOverlay.classList.add("active");
                 startAmbientPixelAnimations();
             }
 
             function closeWelcomeScreen() {
                 stopAmbientPixelAnimations();
+                if (isEditingHomeWidgets) setWidgetEditMode(false);
                 welcomeOverlay.style.transform = "";
                 welcomeOverlay.style.opacity = "";
                 welcomeOverlay.classList.remove("active");
@@ -2401,25 +3046,38 @@
                 applyThemeColors(appHue, appLightness);
             }
 
+            /* 4-RICHTUNGS-GESTEN IM HOME-SCREEN (KOMMEN <-> GEHEN <-> MENÜ <-> WOCHE) */
             let welcomeTouchStartX = 0;
             let welcomeTouchStartY = 0;
             let welcomeSwiping = false;
+            let welcomeAxis = null;
 
             welcomeOverlay.addEventListener("touchstart", (e) => {
-                if (!gesturesEnabled || e.touches.length !== 1) return;
+                if (!gesturesEnabled || isEditingHomeWidgets || e.touches.length !== 1) return;
+                if (e.target.closest("input, select, textarea")) return;
+                const x = e.touches[0].clientX;
+                if (x < 24 || x > window.innerWidth - 24) return;
                 welcomeSwiping = true;
-                welcomeTouchStartX = e.touches[0].clientX;
+                welcomeAxis = null;
+                welcomeTouchStartX = x;
                 welcomeTouchStartY = e.touches[0].clientY;
             }, { passive: true });
 
             welcomeOverlay.addEventListener("touchmove", (e) => {
                 if (!gesturesEnabled || !welcomeSwiping || e.touches.length !== 1) return;
+                const dx = e.touches[0].clientX - welcomeTouchStartX;
                 const dy = e.touches[0].clientY - welcomeTouchStartY;
-                const allowDrag = (welcomeActionMode === "come" && dy > 0) || (welcomeActionMode === "go" && dy < 0);
-                if (allowDrag) {
-                    const dampedY = Math.max(-70, Math.min(70, dy * 0.4));
+                if (!welcomeAxis && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+                    welcomeAxis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+                }
+                if (welcomeAxis === "y") {
+                    const dampedY = Math.max(-65, Math.min(65, dy * 0.38));
                     welcomeOverlay.style.transition = "none";
                     welcomeOverlay.style.transform = `translateY(${dampedY}px)`;
+                } else if (welcomeAxis === "x") {
+                    const dampedX = Math.max(-75, Math.min(75, dx * 0.42));
+                    welcomeOverlay.style.transition = "none";
+                    welcomeOverlay.style.transform = `translateX(${dampedX}px)`;
                 }
             }, { passive: true });
 
@@ -2432,14 +3090,21 @@
                 welcomeOverlay.style.transition = "transform 0.2s ease-out";
                 welcomeOverlay.style.transform = "";
 
-                if (Math.abs(dy) > 65 && Math.abs(dy) > Math.abs(dx) * 1.3) {
-                    if (welcomeActionMode === "come" && dy > 0) closeWelcomeScreen();
-                    else if (welcomeActionMode === "go" && dy < 0) closeWelcomeScreen();
+                if (welcomeAxis === "y" && Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.25) {
+                    openWelcomeScreen(dy < 0 ? "come" : "go");
+                } else if (welcomeAxis === "x" && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+                    if (dx < 0) {
+                        closeWelcomeScreen();
+                        switchToClockView();
+                    } else {
+                        closeWelcomeScreen();
+                        switchToWeekView();
+                    }
                 }
             }, { passive: true });
 
             /* =========================================================
-               ANSICHTEN-NAVIGATION (UHR <-> WOCHE)
+               ANSICHTEN-NAVIGATION (MENÜ <-> WOCHENBILANZ)
                ========================================================= */
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
@@ -2574,11 +3239,13 @@
                 appStyleMode = styleModeSelect.value;
                 document.documentElement.setAttribute("data-style", appStyleMode);
                 syncStyleControlsUI();
+                if (welcomeOverlay.classList.contains("active")) renderHomeWidgetGrid();
             });
 
             asymIntensitySlider.addEventListener("input", () => {
                 appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
                 asymIntensityVal.textContent = appAsymIntensity;
+                if (welcomeOverlay.classList.contains("active")) renderHomeWidgetGrid();
             });
 
             function updatePauseNotifyUI() {
@@ -2596,9 +3263,7 @@
                         return;
                     }
                     let perm = Notification.permission;
-                    if (perm === "default") {
-                        perm = await Notification.requestPermission();
-                    }
+                    if (perm === "default") perm = await Notification.requestPermission();
                     if (perm !== "granted") {
                         alert("Benachrichtigungen wurden im Browser blockiert. Bitte erlaube sie in den Website-Einstellungen.");
                         pauseNotifyCheck.checked = false;
@@ -2693,6 +3358,7 @@
                 lightnessVal.textContent = appLightness;
                 applyThemeColors(appHue, appLightness);
                 drawColorWheel();
+                if (welcomeOverlay.classList.contains("active")) renderHomeWidgetGrid();
             });
 
             function handleColorPick(e) {
@@ -2706,6 +3372,7 @@
                 appHue = Math.round(angle);
                 applyThemeColors(appHue, appLightness);
                 drawColorWheel();
+                if (welcomeOverlay.classList.contains("active")) renderHomeWidgetGrid();
             }
 
             canvas.addEventListener("mousedown", (e) => {
@@ -2777,6 +3444,7 @@
                 checkPauseNotifications();
                 if (viewWeek.classList.contains("active")) buildWeekView();
                 else updateAmpelPill();
+                if (welcomeOverlay.classList.contains("active")) renderHomeWidgetGrid();
             }
 
             const settingsModal = document.getElementById("settings-modal");
@@ -2815,6 +3483,12 @@
                 updateBackupStatusBadge();
                 showSettingsSubpage("main");
                 settingsModal.classList.add("active");
+            });
+
+            document.getElementById("btn-open-home-widget-editor").addEventListener("click", () => {
+                closeSettings();
+                openWelcomeScreen(welcomeActionMode || "come");
+                setWidgetEditMode(true);
             });
 
             document.getElementById("btn-open-work-subpage").addEventListener("click", () => showSettingsSubpage("work"));
@@ -2931,7 +3605,6 @@
                 const todayStr = getTodayStr();
                 const leadSecs = pauseNotifyLeadMins * 60;
 
-                // 1) 30-Minuten-Grenze bei 06:30:00 (23.400 Sekunden Anwesenheit)
                 const limit30Secs = 23400;
                 if (totalPresSecs >= (limit30Secs - leadSecs) && totalPresSecs < (limit30Secs + 180)) {
                     const key30 = `notified_p30_${todayStr}`;
@@ -2949,7 +3622,6 @@
                     }
                 }
 
-                // 2) 45-Minuten-Grenze bei 09:45:00 (35.100 Sekunden Anwesenheit)
                 const limit45Secs = 35100;
                 if (totalPresSecs >= (limit45Secs - leadSecs) && totalPresSecs < (limit45Secs + 180)) {
                     const key45 = `notified_p45_${todayStr}`;
@@ -3087,7 +3759,11 @@
             }
 
             function setupInput(currentInput, nextInput, onUpdate) {
-                currentInput.addEventListener("focus", () => { currentInput.select(); manualEditSnapshotTaken = false; });
+                currentInput.addEventListener("focus", () => {
+                    currentInput.select();
+                    manualEditSnapshotTaken = false;
+                    setTimeout(() => currentInput.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
+                });
                 currentInput.addEventListener("input", () => {
                     if (!manualEditSnapshotTaken) { pushUndoSnapshot(); manualEditSnapshotTaken = true; }
                     if (currentInput.value.length > 2) currentInput.value = currentInput.value.slice(0, 2);
@@ -3140,12 +3816,6 @@
 
             document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
             document.getElementById("btn-now-end").addEventListener("click", triggerStampGoNow);
-            btnWelcomeAction.addEventListener("click", () => {
-                if (welcomeActionMode === "go") triggerStampGoNow();
-                else triggerStampComeNow();
-                closeWelcomeScreen();
-            });
-            btnWelcomeMenu.addEventListener("click", closeWelcomeScreen);
 
             const getTodaySmokeSecs = () => isSmoker ? todaySmokeCount * smokeMinutesPerBreak * 60 : 0;
 
@@ -3160,6 +3830,8 @@
             function calculateAllTimes() {
                 calculateEndTimes();
                 calculateWorkingTime();
+                updateAmpelPill();
+                if (welcomeOverlay.classList.contains("active")) updateHomeWidgetsLiveData();
             }
 
             function calculateEndTimes() {
@@ -3302,7 +3974,6 @@
                 return { presSecs: totalPresSecs, deductSecs: totalDeductSecs, netSecs, isLive };
             }
 
-            /* GESAMTSALDO AB STICHTAG + AMPEL-LOGIK (§ 5 GBV) */
             function computeTotalGlzHours() {
                 const todayStr = getTodayStr();
                 const nowSecs = getNowSecsOfDay();
@@ -3313,7 +3984,6 @@
                     const key = localStorage.key(i);
                     if (!key || !key.startsWith("day_")) continue;
                     const dateStr = key.slice(4);
-
                     if (glzBaseDate && dateStr < glzBaseDate) continue;
 
                     const parts = dateStr.split("-").map(Number);
@@ -3371,20 +4041,13 @@
                     infoText = `Grün · noch ${fmtPlain(gruenMax - gesamtSaldo)}h bis Gelb`;
                 } else if ((gesamtSaldo > gruenMax && gesamtSaldo <= gelbMax) || (gesamtSaldo < gruenMin && gesamtSaldo >= gelbMin)) {
                     statusClass = "ampel-gelb";
-                    if (gesamtSaldo > gruenMax) {
-                        infoText = `Gelb · noch ${fmtPlain(gelbMax - gesamtSaldo)}h bis Rot`;
-                    } else {
-                        infoText = `Gelb (Minus) · noch ${fmtPlain(gesamtSaldo - gelbMin)}h Puffer`;
-                    }
+                    if (gesamtSaldo > gruenMax) infoText = `Gelb · noch ${fmtPlain(gelbMax - gesamtSaldo)}h bis Rot`;
+                    else infoText = `Gelb (Minus) · noch ${fmtPlain(gesamtSaldo - gelbMin)}h Puffer`;
                 } else {
                     statusClass = "ampel-rot";
-                    if (gesamtSaldo > rotMax) {
-                        infoText = `Rot (> ${rotMax.toFixed(0)}h Max!)`;
-                    } else if (gesamtSaldo < gelbMin) {
-                        infoText = `Rot (Minus-Grenze!)`;
-                    } else {
-                        infoText = `Rot · Rückführung nötig`;
-                    }
+                    if (gesamtSaldo > rotMax) infoText = `Rot (> ${rotMax.toFixed(0)}h Max!)`;
+                    else if (gesamtSaldo < gelbMin) infoText = `Rot (Minus-Grenze!)`;
+                    else infoText = `Rot · Rückführung nötig`;
                 }
 
                 pill.classList.add(statusClass);
@@ -3733,6 +4396,7 @@
                 document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
 
                 updateAmpelPill();
+                if (welcomeOverlay.classList.contains("active")) updateHomeWidgetsLiveData();
             }
 
             function buildWeekView(animDir) {
@@ -3966,7 +4630,8 @@
             });
 
             /* =========================================================
-               TOUCH-GESTEN (HAUPTAPP)
+               TOUCH-GESTEN IN DER HAUPTAPP (MENÜ & WOCHENBILANZ)
+               Hoch = Kommen-Screen | Runter = Gehen-Screen | Links/Rechts = Menü/Woche
                ========================================================= */
             let touchStartX = 0, touchStartY = 0, touchBlocked = false, gestureAxis = null;
 
@@ -3975,14 +4640,16 @@
                     || settingsModal.classList.contains("active")
                     || dayEditorModal.classList.contains("active")
                     || pdfExportModal.classList.contains("active")
-                    || backfillModal.classList.contains("active");
-                if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
+                    || backfillModal.classList.contains("active")
+                    || widgetCatalogModal.classList.contains("active");
+                const x = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
+                if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea") || x < 24 || x > window.innerWidth - 24) {
                     touchBlocked = true;
                     return;
                 }
                 touchBlocked = false;
                 gestureAxis = null;
-                touchStartX = e.touches[0].clientX;
+                touchStartX = x;
                 touchStartY = e.touches[0].clientY;
             }, { passive: true });
 
@@ -3999,7 +4666,7 @@
 
                 if (gestureAxis === 'x') {
                     const activeEl = isClockActive ? viewClock : viewWeek;
-                    const allowedDx = (isClockActive && dx < 0) || (isWeekActive && dx > 0) ? dx : 0;
+                    const allowedDx = (isClockActive && dx > 0) || (isWeekActive && dx < 0) ? dx : 0;
                     if (allowedDx !== 0) {
                         const dampedX = Math.max(-130, Math.min(130, allowedDx * 0.65));
                         activeEl.style.transition = "none";
@@ -4007,16 +4674,10 @@
                         activeEl.style.opacity = String(Math.max(0.55, 1 - Math.abs(dampedX) / 260));
                     }
                 } else if (gestureAxis === 'y') {
-                    if (e.cancelable) e.preventDefault();
                     if (isClockActive) {
+                        if (e.cancelable) e.preventDefault();
                         viewClock.style.transition = "none";
                         viewClock.style.transform = `translateY(${Math.max(-44, Math.min(44, dy * 0.32))}px)`;
-                    } else if (isWeekActive) {
-                        const listCard = document.getElementById("week-days-container");
-                        if (listCard) {
-                            listCard.style.transition = "none";
-                            listCard.style.transform = `translateY(${Math.max(-45, Math.min(45, dy * 0.35))}px)`;
-                        }
                     }
                 }
             }, { passive: false });
@@ -4027,11 +4688,6 @@
                     el.style.transform = "";
                     el.style.opacity = "";
                 });
-                const listCard = document.getElementById("week-days-container");
-                if (listCard) {
-                    listCard.style.transition = "transform 0.2s ease-out";
-                    listCard.style.transform = "";
-                }
             }
 
             document.addEventListener("touchend", (e) => {
@@ -4042,15 +4698,17 @@
                 const isClockActive = viewClock.classList.contains("active");
                 const isWeekActive = viewWeek.classList.contains("active");
 
-                if (gestureAxis === 'x' && absX > 60 && absX > absY * 1.35) {
-                    if (isClockActive && dx < 0) { switchToWeekView(); return; }
-                    if (isWeekActive && dx > 0) { switchToClockView(); return; }
+                if (gestureAxis === 'x' && absX > 60 && absX > absY * 1.3) {
+                    if (isClockActive && dx > 0) { switchToWeekView(); return; }
+                    if (isWeekActive && dx < 0) { switchToClockView(); return; }
                 }
 
-                if (gestureAxis === 'y' && absY > 58 && absY > absX * 1.35) {
+                if (gestureAxis === 'y' && absY > 58 && absY > absX * 1.3) {
                     resetDragVisuals();
-                    if (isClockActive) { openWelcomeScreen(dy < 0 ? "come" : "go"); return; }
-                    if (isWeekActive) { changeWeek(dy < 0 ? 1 : -1); return; }
+                    if (isClockActive) {
+                        openWelcomeScreen(dy < 0 ? "come" : "go");
+                        return;
+                    }
                 }
                 resetDragVisuals();
             }, { passive: true });
@@ -4076,6 +4734,7 @@
             }
 
             updateAmpelPill();
+            buildWeekView();
 
             const todayAtInit = getTodayStr();
             const dismissedToday = localStorage.getItem("welcomeDismissedDate") === todayAtInit;
@@ -4094,11 +4753,13 @@
                 const hh = format2(now.getHours());
                 const timeStr = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
                 liveTimeEl.textContent = timeStr;
-                if (welcomeBigClockEl) welcomeBigClockEl.textContent = timeStr;
                 if (bgHourWatermark) bgHourWatermark.textContent = hh;
 
                 liveDayEl.textContent = `${weekdaysFull[now.getDay()]}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
-                if (welcomeOverlay.classList.contains("active")) updateWelcomeGreetingText();
+                if (welcomeOverlay.classList.contains("active")) {
+                    updateWelcomeGreetingText();
+                    updateHomeWidgetsLiveData();
+                }
 
                 if (startHoursInput.value !== "" && endHoursInput.value === "") {
                     checkPauseNotifications();
