@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.1
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.2
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.5.1)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.5.2)</title>
 
     <script>
-        const APP_VERSION = "1.5.1";
+        const APP_VERSION = "1.5.2";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -50,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=151">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=152">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -201,7 +201,7 @@
             height: var(--icon-size, 42px);
             stroke: #ffffff;
             fill: none;
-            stroke-width: 2.3;
+            stroke-width: 2.2;
             stroke-linecap: round;
             stroke-linejoin: round;
             opacity: var(--icon-alpha, 0.34);
@@ -1028,7 +1028,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             padding-right: 26px;
         }
         .btn-subpage-back {
@@ -1045,7 +1045,7 @@
             background: var(--primary-color);
             color: var(--white);
         }
-        .subpage-header h2 { margin: 0; font-size: 1.1em; }
+        .subpage-header h2 { margin: 0; font-size: 1.08em; }
 
         .settings-group { margin-bottom: 10px; text-align: left; }
         .settings-group label {
@@ -1097,8 +1097,8 @@
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-input);
-            padding: 11px 12px;
-            margin-bottom: 11px;
+            padding: 10px 12px;
+            margin-bottom: 9px;
         }
 
         .ampel-settings-grid {
@@ -1203,29 +1203,108 @@
 
         .soll-pair { display: flex; align-items: center; gap: 8px; }
 
+        /* AUF- UND ZUKLAPPBARE START-SCRIBBLES */
+        .scribble-accordion-card {
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-input);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .scribble-accordion-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .scribble-accordion-title-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .scribble-accordion-title {
+            font-weight: bold;
+            font-size: 0.92em;
+        }
+        .scribble-accordion-meta {
+            font-size: 0.75em;
+            opacity: 0.78;
+        }
+        .scribble-accordion-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .scribble-mini-strip {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: hsl(var(--hue), 44%, 22%);
+            padding: 4px 6px;
+            border-radius: 8px;
+            min-height: 26px;
+        }
+        .scribble-mini-strip svg {
+            width: 15px;
+            height: 15px;
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 2.3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .scribble-chevron {
+            font-size: 1.15em;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+        .scribble-accordion-card.is-open .scribble-chevron {
+            transform: rotate(90deg);
+        }
+        .scribble-accordion-body {
+            display: none;
+            padding: 0 11px 11px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .scribble-accordion-card.is-open .scribble-accordion-body {
+            display: block;
+            padding-top: 10px;
+        }
         .scribble-picker-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 7px;
         }
-        .scribble-picker-head label { margin-bottom: 0; }
-        .scribble-count-tag { font-size: 0.8em; font-weight: bold; opacity: 0.8; }
+        .scribble-count-tag { font-size: 0.8em; font-weight: bold; opacity: 0.85; }
         .scribble-svg-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
+            max-height: 218px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             background: hsl(var(--hue), 44%, 22%);
-            padding: 10px;
+            padding: 9px;
             border-radius: var(--radius-input);
         }
         .scribble-svg-chip {
-            aspect-ratio: 1;
+            min-height: 54px;
             border-radius: 10px;
             border: 1.5px solid rgba(255, 255, 255, 0.18);
             background: rgba(0, 0, 0, 0.24);
             color: #ffffff;
             cursor: pointer;
+            padding: 5px 2px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1237,15 +1316,22 @@
             background: rgba(255, 255, 255, 0.26);
         }
         .scribble-svg-chip svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             stroke: #ffffff;
             fill: none;
             stroke-width: 2.2;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-        .scribble-svg-chip span { font-size: 0.62em; opacity: 0.9; }
+        .scribble-svg-chip span {
+            font-size: 0.6em;
+            opacity: 0.92;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
 
         .color-wheel-container { display: flex; flex-direction: column; align-items: center; }
         canvas {
@@ -1461,7 +1547,7 @@
             <div class="nav-compass-hint" id="welcome-compass-hint">
                 <span>← Woche</span>
                 <span id="welcome-vertical-hint">↕ Kommen / Gehen</span>
-                <span>Menü →</span>
+                <span>Uhr →</span>
             </div>
         </div>
     </section>
@@ -1775,7 +1861,7 @@
                     <div class="setting-box-row">
                         <label class="toggle-label-nowrap" for="gesturesEnabledCheck">
                             <input type="checkbox" id="gesturesEnabledCheck" checked>
-                            <span>👆 4-Richtungs-Wischen aktiv</span>
+                            <span>👆 Wischsteuerung aktiv</span>
                         </label>
                     </div>
                 </div>
@@ -1795,7 +1881,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.1</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.2</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -1910,18 +1996,32 @@
                     </div>
                 </div>
 
-                <div class="design-sub-card">
-                    <div class="scribble-picker-head">
-                        <label style="font-weight:bold; font-size:0.9em;">Start-Scribbles</label>
-                        <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
-                    </div>
-                    <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
-                    <div class="slider-control">
-                        <label for="scribbleSizeSlider">
-                            <span>Symbolgröße:</span>
-                            <span><span id="scribbleSizeVal">50</span>%</span>
-                        </label>
-                        <input type="range" id="scribbleSizeSlider" min="15" max="100" value="50">
+                <!-- AUF- UND ZUKLAPPBARE START-SCRIBBLES -->
+                <div class="scribble-accordion-card" id="scribble-accordion-card">
+                    <button type="button" class="scribble-accordion-btn" id="btn-toggle-scribble-accordion" aria-expanded="false">
+                        <div class="scribble-accordion-title-wrap">
+                            <span class="scribble-accordion-title">Start-Scribbles (32 Motive)</span>
+                            <span class="scribble-accordion-meta" id="scribble-accordion-meta">2/5 aktiv · Größe 50% · Antippen zum Aufklappen</span>
+                        </div>
+                        <div class="scribble-accordion-right">
+                            <div class="scribble-mini-strip" id="scribble-mini-strip"></div>
+                            <span class="scribble-chevron" id="scribble-chevron">›</span>
+                        </div>
+                    </button>
+
+                    <div class="scribble-accordion-body" id="scribble-accordion-body">
+                        <div class="scribble-picker-head">
+                            <span style="font-size:0.8em; font-weight:bold;">Motive wählen (max. 5)</span>
+                            <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
+                        </div>
+                        <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
+                        <div class="slider-control">
+                            <label for="scribbleSizeSlider">
+                                <span>Symbolgröße:</span>
+                                <span><span id="scribbleSizeVal">50</span>%</span>
+                            </label>
+                            <input type="range" id="scribbleSizeSlider" min="15" max="100" value="50">
+                        </div>
                     </div>
                 </div>
 
@@ -2119,9 +2219,10 @@
             });
 
             /* =========================================================
-               SCRIBBLE SVG-SET
+               SCRIBBLE SVG-SET (32 MOTIVE AUS EINEM GUSS)
                ========================================================= */
             const SCRIBBLE_ICONS = [
+                // 1-12: Basis-Doodles & Symbole
                 { id: "bolt", label: "Blitz", inner: `<path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/>` },
                 { id: "loop-arrow", label: "Schleife", inner: `<path d="M5 24 C10 26, 22 23, 21 15 C20 10, 13 11, 14 17 C15 23, 25 22, 30 13 M24 12.5 L30.5 12.5 L29.5 19"/>` },
                 { id: "star", label: "Stern", inner: `<path d="M18 4 L21.4 13.4 L31.5 13.8 L23.5 19.8 L26.3 29.8 L18 23.8 L9.7 29.8 L12.5 19.8 L4.5 13.8 L14.6 13.4 Z"/>` },
@@ -2133,7 +2234,33 @@
                 { id: "sun", label: "Sonne", inner: `<circle cx="18" cy="18" r="6.5"/><path d="M18 4.5 V8 M18 28 V31.5 M4.5 18 H8 M28 18 H31.5 M8.5 8.5 L11 11 M25 25 L27.5 27.5 M27.5 8.5 L25 11 M11 25 L8.5 27.5"/>` },
                 { id: "note", label: "Musik", inner: `<path d="M14 26.5 V9.5 L27.5 6.5 V23.5 M14 14.5 L27.5 11.5"/><circle cx="10.8" cy="26.8" r="3.4"/><circle cx="24.3" cy="23.8" r="3.4"/>` },
                 { id: "clover", label: "Klee", inner: `<path d="M18 17.5 C13 15.5, 13.5 8.5, 18 8.5 C22.5 8.5, 23 15.5, 18 17.5 Z M18 17.5 C20 12.5, 27 13, 27 17.5 C27 22, 20 22.5, 18 17.5 Z M18 17.5 C16 12.5, 9 13, 9 17.5 C9 22, 16 22.5, 18 17.5 Z M18 17.5 C21 21, 19.5 28, 15.5 31.5"/>` },
-                { id: "planet", label: "Saturn", inner: `<circle cx="18" cy="18" r="7.5"/><path d="M5.5 22.5 C3.5 19.5, 8.5 15.5, 16.8 13.5 C25 11.5, 31.5 12, 30.8 15.2 C30 18.5, 24.5 22, 16.5 24 C10.5 25.5, 7 24.8, 5.5 22.5 Z"/>` }
+                { id: "planet", label: "Saturn", inner: `<circle cx="18" cy="18" r="7.5"/><path d="M5.5 22.5 C3.5 19.5, 8.5 15.5, 16.8 13.5 C25 11.5, 31.5 12, 30.8 15.2 C30 18.5, 24.5 22, 16.5 24 C10.5 25.5, 7 24.8, 5.5 22.5 Z"/>` },
+
+                // 13-20: Erweiterte Doodles & Markierungen
+                { id: "arrow-wave", label: "Wellenpfeil", inner: `<path d="M5 18 C8.5 13, 12 23, 15.5 18 C19 13, 22.5 23, 26 18 H31 M26.5 13.5 L31.5 18 L26.5 22.5"/>` },
+                { id: "check-mark", label: "Haken", inner: `<path d="M6.5 19 L14 26.5 L29.5 9.5"/>` },
+                { id: "cross-x", label: "Kreuz", inner: `<path d="M8.5 8.5 L27.5 27.5 M27.5 8.5 L8.5 27.5"/>` },
+                { id: "infinity", label: "Unendlich", inner: `<path d="M12.5 12.5 C7.5 12.5, 5.5 15.5, 5.5 18 C5.5 20.5, 7.5 23.5, 12.5 23.5 C16.5 23.5, 19.5 12.5, 23.5 12.5 C28.5 12.5, 30.5 15.5, 30.5 18 C30.5 20.5, 28.5 23.5, 23.5 23.5 C19.5 23.5, 16.5 12.5, 12.5 12.5 Z"/>` },
+                { id: "rainbow", label: "Regenbogen", inner: `<path d="M5.5 25 A12.5 12.5 0 0 1 30.5 25 M10 25 A8 8 0 0 1 26 25 M14.5 25 A3.5 3.5 0 0 1 21.5 25"/>` },
+                { id: "crescent", label: "Halbmond", inner: `<path d="M24.5 7.5 A12 12 0 1 0 27.5 25.5 A9.5 9.5 0 1 1 24.5 7.5 Z"/>` },
+                { id: "smiley", label: "Smiley", inner: `<circle cx="18" cy="18" r="11.5"/><circle cx="14" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="22" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><path d="M13 20.5 C14.5 23.5, 21.5 23.5, 23 20.5"/>` },
+                { id: "grid-hash", label: "Gitter", inner: `<path d="M14 7.5 V28.5 M22 7.5 V28.5 M7.5 14 H28.5 M7.5 22 H28.5"/>` },
+
+                // 21-28: Florales, Blätter & Schmetterling
+                { id: "blossom", label: "Blüte", inner: `<circle cx="18" cy="18" r="3.5"/><path d="M18 14.5 C15 11.5, 15 6.5, 18 6.5 C21 6.5, 21 11.5, 18 14.5 Z M21.5 18 C24.5 15, 29.5 15, 29.5 18 C29.5 21, 24.5 21, 21.5 18 Z M18 21.5 C21 24.5, 21 29.5, 18 29.5 C15 29.5, 15 24.5, 18 21.5 Z M14.5 18 C11.5 21, 6.5 21, 6.5 18 C6.5 15, 11.5 15, 14.5 18 Z"/>` },
+                { id: "stem-flower", label: "Blume", inner: `<path d="M18 31 V16 M18 25 C14 25, 12 22.5, 12 20.5 C15 20.5, 17 22.5, 18 25 Z M18 23 C22 23, 24 20.5, 24 18.5 C21 18.5, 19 20.5, 18 23 Z"/><path d="M12 11.5 C12 7.5, 15 5.5, 18 5.5 C21 5.5, 24 7.5, 24 11.5 C24 14.5, 21 16, 18 16 C15 16, 12 14.5, 12 11.5 Z"/>` },
+                { id: "leaf", label: "Blatt", inner: `<path d="M8 28 C8 15, 17 8, 28 8 C28 19, 21 28, 8 28 Z M6.5 29.5 L21 15"/>` },
+                { id: "butterfly", label: "Schmetterling", inner: `<path d="M18 11 V26 M18 15.5 C13.5 9.5, 6.5 10.5, 7.5 16.5 C8.2 20, 13.5 19.5, 18 18.5 M18 15.5 C22.5 9.5, 29.5 10.5, 28.5 16.5 C27.8 20, 22.5 19.5, 18 18.5 M18 18.5 C13.5 19, 9 22, 10.5 26.5 C11.8 29.5, 16.5 27.5, 18 23 M18 18.5 C22.5 19, 27 22, 25.5 26.5 C24.2 29.5, 19.5 27.5, 18 23"/>` },
+                { id: "sunflower", label: "Sonnenblume", inner: `<circle cx="18" cy="18" r="5"/><path d="M18 5.5 V11 M18 25 V30.5 M5.5 18 H11 M25 18 H30.5 M9 9 L13 13 M23 23 L27 27 M27 9 L23 13 M13 23 L9 27"/>` },
+                { id: "tulip", label: "Tulpe", inner: `<path d="M18 31 V19 M11 10 L14.5 14 L18 8.5 L21.5 14 L25 10 V15.5 C25 18.5, 21.8 20.5, 18 20.5 C14.2 20.5, 11 18.5, 11 15.5 Z"/>` },
+                { id: "sprout", label: "Keimling", inner: `<path d="M18 31 V17 M18 21 C12 21, 7.5 17, 7.5 12.5 C13.5 12.5, 17.5 16, 18 21 Z M18 18 C23.5 18, 28.5 14, 28.5 9.5 C22.5 9.5, 18.5 13, 18 18 Z"/>` },
+                { id: "daisy", label: "Gänseblümchen", inner: `<circle cx="18" cy="18" r="3.2"/><path d="M18 6.5 C20.5 6.5, 21.5 10.5, 19.5 14.5 M28.5 14.5 C29.5 17, 26.5 19.5, 21.5 18.5 M24.5 28 C22.5 29.5, 19.5 27, 18.5 21.5 M11.5 28 C9.5 26.5, 11 22.5, 15.5 20.5 M7.5 14.5 C6.5 12, 10.5 10.5, 15.5 15.5"/>` },
+
+                // 29-32: Weltraum (Rakete, Komet, Erde, Mondstation)
+                { id: "rocket", label: "Rakete", inner: `<path d="M18 5 C23.5 9.5, 24.5 16.5, 22 23.5 H14 C11.5 16.5, 12.5 9.5, 18 5 Z"/><circle cx="18" cy="14.5" r="2.8"/><path d="M14 19.5 L9.5 24 L14 23.5 M22 19.5 L26.5 24 L22 23.5 M15.5 25.5 L18 31 L20.5 25.5"/>` },
+                { id: "comet", label: "Komet", inner: `<circle cx="22.5" cy="14.5" r="5.5"/><path d="M17.5 12.5 L6.5 9.5 M17 15.5 L5 16.5 M18.5 18.5 L9 24.5 M20.5 20 L15.5 28.5"/>` },
+                { id: "earth", label: "Planet", inner: `<circle cx="18" cy="18" r="11"/><path d="M10.5 11.5 C13.5 12.5, 15 15, 13.5 17.5 C12 20, 14.5 22.5, 17 22 C19.5 21.5, 21 24, 22.5 26.5 M22 10.5 C20 12.5, 21.5 15.5, 25 15"/>` },
+                { id: "orbit", label: "Umlaufbahn", inner: `<circle cx="18" cy="18" r="5.5"/><ellipse cx="18" cy="18" rx="13.5" ry="5.5" transform="rotate(-24 18 18)"/><circle cx="29" cy="13" r="2.2"/>` }
             ];
             const makeScribbleSvg = (iconObj) => `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>`;
 
@@ -2182,6 +2309,8 @@
             if (isNaN(scribbleSizePct)) scribbleSizePct = 50;
             scribbleSizePct = Math.min(100, Math.max(15, scribbleSizePct));
 
+            let scribbleAccordionOpen = false;
+
             let todaySmokeCount = 0;
             const initialTodayData = getDayData(getTodayStr());
             if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
@@ -2192,12 +2321,36 @@
             applyAsymIntensity(appAsymIntensity);
             applyThemeColors(appHue, appLightness);
 
+            const scribbleAccordionCard = document.getElementById("scribble-accordion-card");
+            const btnToggleScribbleAccordion = document.getElementById("btn-toggle-scribble-accordion");
+            const scribbleAccordionMeta = document.getElementById("scribble-accordion-meta");
+            const scribbleMiniStrip = document.getElementById("scribble-mini-strip");
             const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
             const scribbleCountTag = document.getElementById("scribble-count-tag");
             const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
             const scribbleSizeVal = document.getElementById("scribbleSizeVal");
             const navWorkSummary = document.getElementById("nav-work-summary");
             const navDesignSummary = document.getElementById("nav-design-summary");
+
+            function syncScribbleAccordionUI() {
+                scribbleAccordionCard.classList.toggle("is-open", scribbleAccordionOpen);
+                btnToggleScribbleAccordion.setAttribute("aria-expanded", scribbleAccordionOpen ? "true" : "false");
+                scribbleAccordionMeta.textContent = `${selectedScribbles.length}/5 aktiv · Größe ${scribbleSizePct}% · ${scribbleAccordionOpen ? "Zuklappen" : "Aufklappen"}`;
+                scribbleMiniStrip.innerHTML = "";
+                if (selectedScribbles.length === 0) {
+                    scribbleMiniStrip.innerHTML = `<span style="font-size:0.68em; color:#fff; opacity:0.8;">aus</span>`;
+                } else {
+                    selectedScribbles.forEach(id => {
+                        const found = SCRIBBLE_ICONS.find(ic => ic.id === id);
+                        if (found) scribbleMiniStrip.innerHTML += makeScribbleSvg(found);
+                    });
+                }
+            }
+
+            btnToggleScribbleAccordion.addEventListener("click", () => {
+                scribbleAccordionOpen = !scribbleAccordionOpen;
+                syncScribbleAccordionUI();
+            });
 
             function updateSettingsNavPreviews() {
                 if (navWorkSummary) {
@@ -2212,8 +2365,9 @@
             }
 
             function renderScribblePicker() {
-                scribbleSvgGrid.innerHTML = "";
                 scribbleCountTag.textContent = `${selectedScribbles.length} / 5`;
+                syncScribbleAccordionUI();
+                scribbleSvgGrid.innerHTML = "";
                 SCRIBBLE_ICONS.forEach(item => {
                     const isSel = selectedScribbles.includes(item.id);
                     const btn = document.createElement("button");
@@ -2237,6 +2391,7 @@
             scribbleSizeSlider.addEventListener("input", () => {
                 scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
                 scribbleSizeVal.textContent = scribbleSizePct;
+                syncScribbleAccordionUI();
             });
 
             /* =========================================================
@@ -2633,6 +2788,7 @@
             });
 
             updateSmokerUI();
+            syncScribbleAccordionUI();
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
 
@@ -2752,6 +2908,7 @@
                 applyThemeColors(appHue, appLightness);
                 if (isSmoker) saveTodaySmokeData();
                 updateSmokerUI();
+                syncScribbleAccordionUI();
                 updateSettingsNavPreviews();
                 calculateAllTimes();
                 checkPauseNotifications();
@@ -2770,6 +2927,7 @@
                 settingsPageDesign.style.display = pageName === "design" ? "block" : "none";
 
                 if (pageName === "design") {
+                    scribbleAccordionOpen = false;
                     renderScribblePicker();
                     drawColorWheel();
                 } else if (pageName === "main") {
@@ -3940,19 +4098,19 @@
             });
 
             /* =========================================================
-               4-RICHTUNGS-STEUERUNG (OHNE VERRUTSCHEN)
+               4-RICHTUNGS-STEUERUNG (OHNE MENÜ BEIM WISCHEN)
                - Hoch / Runter: Start (Kommen) <-> Start (Gehen) direkt
-               - Links: Woche
-               - Rechts: Menü
+               - Links / Rechts: Woche <-> Uhr/Start (Menü ausgenommen)
                ========================================================= */
             let touchStartX = 0, touchStartY = 0, touchBlocked = false;
 
             document.addEventListener("touchstart", (e) => {
-                const subModalOpen = dayEditorModal.classList.contains("active")
+                const anyModalOpen = settingsModal.classList.contains("active")
+                    || dayEditorModal.classList.contains("active")
                     || pdfExportModal.classList.contains("active")
                     || backfillModal.classList.contains("active");
 
-                if (!gesturesEnabled || subModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
+                if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
                     touchBlocked = true;
                     return;
                 }
@@ -3968,21 +4126,15 @@
                 const absX = Math.abs(dx), absY = Math.abs(dy);
                 const threshold = 55;
 
-                // Horizontale Achse: Links = Woche, Rechts = Menü
+                // Horizontale Achse: Links -> Woche, Rechts -> Uhr/Start (Menü nicht über Wischen)
                 if (absX > threshold && absX > absY * 1.3) {
                     if (dx < 0) {
-                        // Wisch nach LINKS -> Woche
-                        if (settingsModal.classList.contains("active")) {
-                            closeSettings();
-                        } else {
-                            switchToWeekView();
-                        }
+                        switchToWeekView();
                     } else {
-                        // Wisch nach RECHTS -> Menü
                         if (viewWeek.classList.contains("active")) {
                             switchToClockView();
-                        } else if (!settingsModal.classList.contains("active")) {
-                            openSettingsMenu();
+                        } else if (welcomeOverlay.classList.contains("active")) {
+                            closeWelcomeScreen();
                         }
                     }
                     return;
@@ -3990,17 +4142,13 @@
 
                 // Vertikale Achse: Hoch / Runter = Start (Kommen <-> Gehen) direkt
                 if (absY > threshold && absY > absX * 1.3) {
-                    if (settingsModal.classList.contains("active")) return;
-
                     if (welcomeOverlay.classList.contains("active")) {
-                        // Direkt zwischen Kommen und Gehen wechseln, ohne Menü/Uhr dazwischen
                         if (dy < 0) {
                             openWelcomeScreen(welcomeActionMode === "come" ? "go" : "come");
                         } else {
                             openWelcomeScreen(welcomeActionMode === "go" ? "come" : "go");
                         }
                     } else if (viewClock.classList.contains("active")) {
-                        // Von Uhr direkt in Start (Hoch = Kommen, Runter = Gehen)
                         openWelcomeScreen(dy < 0 ? "come" : "go");
                     }
                 }
