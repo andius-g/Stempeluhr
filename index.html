@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.0
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.1
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.5.0)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.5.1)</title>
 
     <script>
-        const APP_VERSION = "1.5.0";
+        const APP_VERSION = "1.5.1";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -50,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=150">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=151">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -104,11 +104,13 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        html {
-            min-height: 100dvh;
+        html, body {
+            width: 100%;
+            height: 100dvh;
+            max-width: 100vw;
+            overflow: hidden;
+            overscroll-behavior: none;
             background-color: var(--bg-color);
-            overscroll-behavior-y: none;
-            transition: background-color 0.3s;
         }
 
         body {
@@ -118,10 +120,7 @@
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            min-height: 100dvh;
-            padding: calc(14px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
-            overflow-x: hidden;
-            overscroll-behavior-y: none;
+            padding: calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
         }
 
         .edge-bg-layer {
@@ -136,11 +135,13 @@
         }
 
         /* =========================================================
-           VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN)
+           SCREEN 1: START (VOLLBILD KOMMEN / GEHEN)
            ========================================================= */
         .welcome-overlay {
             position: fixed;
             inset: 0;
+            width: 100vw;
+            height: 100dvh;
             z-index: 2000;
             background: hsl(var(--hue), 44%, 22%);
             color: #ffffff;
@@ -148,18 +149,25 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: calc(30px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
+            padding: calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
             overflow: hidden;
             user-select: none;
             touch-action: none;
         }
         .welcome-overlay.active {
             display: flex;
-            animation: welcomeFadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: screenFadeIn 0.2s ease-out;
         }
-        @keyframes welcomeFadeIn {
-            from { opacity: 0; transform: scale(1.03); }
-            to { opacity: 1; transform: scale(1); }
+        @keyframes screenFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes modePulseSwitch {
+            0% { opacity: 0.72; transform: scale(0.985); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .welcome-mode-switch {
+            animation: modePulseSwitch 0.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .welcome-scatter-field {
@@ -231,7 +239,7 @@
             position: relative;
             z-index: 3;
             text-align: center;
-            margin-top: 6px;
+            margin-top: 4px;
             width: 100%;
             max-width: 390px;
             pointer-events: none;
@@ -257,7 +265,7 @@
             max-width: 390px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
         .btn-welcome-action,
@@ -279,7 +287,7 @@
         }
 
         .btn-welcome-action {
-            min-height: 140px;
+            min-height: 136px;
             border-radius: var(--welcome-btn-come-radius);
             background: hsla(var(--hue), 64%, var(--lightness), 0.72);
         }
@@ -289,7 +297,7 @@
         }
 
         .btn-welcome-menu {
-            min-height: 166px;
+            min-height: 158px;
             border-radius: var(--welcome-btn-go-radius);
             background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.66);
         }
@@ -323,21 +331,37 @@
             opacity: 0.94;
         }
 
+        .nav-compass-hint {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            font-size: 0.72em;
+            opacity: 0.78;
+            padding: 2px 6px 0;
+            pointer-events: none;
+        }
+
         /* =========================================================
-           HAUPTAPP
+           HAUPTAPP CONTAINER (UHR & WOCHE)
            ========================================================= */
         .container {
             max-width: 390px;
             width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
             text-align: center;
             position: relative;
+            overflow: hidden;
         }
 
         .top-header-card {
+            flex-shrink: 0;
             background-color: var(--card-bg);
             border-radius: var(--radius-card);
-            padding: 12px 14px;
-            margin-bottom: 14px;
+            padding: 11px 14px;
+            margin-bottom: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
@@ -354,14 +378,14 @@
             line-height: 1.15;
         }
         .live-time {
-            font-size: 1.65em;
+            font-size: 1.62em;
             font-weight: bold;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.5px;
         }
         .live-weekday {
-            font-size: 0.85em;
+            font-size: 0.83em;
             font-weight: bold;
             color: var(--text-color);
             opacity: 0.78;
@@ -390,38 +414,29 @@
         }
         .settings-btn:active, .tab-btn:active { transform: scale(0.94); }
 
-        .views-stage { position: relative; width: 100%; overflow: visible; }
-        .view-section { display: none; will-change: transform, opacity; }
-        .view-section.active { display: block; touch-action: pan-x; }
-
-        @keyframes slideInFromRight {
-            from { opacity: 0.35; transform: translateX(46px); }
-            to { opacity: 1; transform: translateX(0); }
+        .views-stage {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 6px;
         }
-        @keyframes slideInFromLeft {
-            from { opacity: 0.35; transform: translateX(-46px); }
-            to { opacity: 1; transform: translateX(0); }
+        .view-section {
+            display: none;
+            width: 100%;
         }
-        .anim-slide-from-right { animation: slideInFromRight 0.26s cubic-bezier(0.22, 1, 0.36, 1); }
-        .anim-slide-from-left { animation: slideInFromLeft 0.26s cubic-bezier(0.22, 1, 0.36, 1); }
-
-        @keyframes kwSlideUp {
-            from { opacity: 0.3; transform: translateY(22px); }
-            to { opacity: 1; transform: translateY(0); }
+        .view-section.active {
+            display: block;
+            animation: screenFadeIn 0.2s ease-out;
         }
-        @keyframes kwSlideDown {
-            from { opacity: 0.3; transform: translateY(-22px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .anim-kw-next { animation: kwSlideUp 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
-        .anim-kw-prev { animation: kwSlideDown 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
 
         .feature-section {
             position: relative;
             background-color: var(--card-bg);
             border-radius: var(--radius-card);
             padding: var(--card-pad);
-            margin-bottom: 14px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             transition: background-color 0.3s, border-radius 0.2s, padding 0.2s;
             overflow: hidden;
@@ -448,7 +463,7 @@
             display: grid;
             grid-template-columns: 1fr 48px;
             gap: 8px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             align-items: stretch;
         }
 
@@ -552,14 +567,14 @@
         .output-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 14px;
+            gap: 9px;
+            margin-bottom: 12px;
         }
 
         .output, .output-decimal {
             background-color: var(--primary-color);
             color: var(--white);
-            padding: 11px 14px;
+            padding: 10px 14px;
             border-radius: var(--output-radius);
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             text-align: center;
@@ -572,7 +587,7 @@
             font-weight: normal;
         }
         .output div, .output-decimal div {
-            font-size: 1.24em;
+            font-size: 1.22em;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
         }
@@ -588,14 +603,14 @@
             background-color: var(--border-color);
             height: var(--divider-height);
             opacity: 0.45;
-            margin: 14px 0;
+            margin: 12px 0;
         }
 
         .dual-manual-times {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .inputs-group-kg {
@@ -607,13 +622,13 @@
         }
 
         .kg-badge {
-            height: 48px;
+            height: 46px;
             border-radius: var(--radius-input);
             border: 2px solid var(--border-color);
             background-color: var(--bg-color);
             color: var(--text-color);
             font-weight: bold;
-            font-size: 1.08em;
+            font-size: 1.06em;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -623,9 +638,9 @@
         .inputs-group-kg input[type="number"] {
             width: 100%;
             min-width: 0;
-            height: 48px;
+            height: 46px;
             padding: 8px 1px;
-            font-size: 1.15em;
+            font-size: 1.14em;
             font-weight: bold;
         }
 
@@ -672,7 +687,7 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-input);
             padding: 8px 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             text-align: left;
             font-size: 0.84em;
         }
@@ -714,7 +729,9 @@
             justify-content: space-between;
         }
 
-        /* WOCHENÜBERSICHT */
+        /* =========================================================
+           SCREEN 3: WOCHE (WOCHENBILANZ)
+           ========================================================= */
         .week-header {
             display: flex;
             justify-content: space-between;
@@ -888,11 +905,11 @@
             gap: 6px;
         }
         .btn-add-day-entry {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             border: 1.5px dashed var(--primary-color);
         }
         .btn-open-pdf-export {
-            margin-top: 12px;
+            margin-top: 10px;
             border: 1.5px solid var(--border-color);
         }
         .balance-sub {
@@ -902,9 +919,7 @@
             margin-top: 2px;
         }
 
-        /* =========================================================
-           AMPELKONTO STATUS-PILLE (UNTER MONATS-PDF)
-           ========================================================= */
+        /* AMPELKONTO STATUS-PILLE */
         .glz-pill-wrap {
             display: flex;
             justify-content: center;
@@ -961,28 +976,33 @@
         }
 
         /* =========================================================
-           MODALS & EINSTELLUNGEN
+           SCREEN 4: MENÜ & MODALS (FEST IM VIEWPORT)
            ========================================================= */
         .modal-overlay {
             position: fixed;
             inset: 0;
+            width: 100vw;
+            height: 100dvh;
             background: rgba(0,0,0,0.52);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.22s;
-            z-index: 1000;
-            padding: 12px;
+            transition: opacity 0.18s;
+            z-index: 2500;
+            padding: calc(12px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom));
+            overflow: hidden;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content {
             background: var(--white);
             width: 100%;
             max-width: 365px;
-            max-height: 94dvh;
+            max-height: 100%;
             overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
             border-radius: var(--radius-card);
             padding: 18px;
             position: relative;
@@ -1418,8 +1438,8 @@
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
 
-    <!-- VOLLBILD-STEMPELBILDSCHIRM (KOMMEN / GEHEN) -->
-    <section class="welcome-overlay" id="welcome-overlay" aria-label="Stempelbildschirm">
+    <!-- SCREEN 1: START (KOMMEN / GEHEN) -->
+    <section class="welcome-overlay" id="welcome-overlay" aria-label="Start">
         <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
         <div class="welcome-top-area">
@@ -1435,11 +1455,18 @@
 
             <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
                 <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
-                <div class="welcome-menu-hint">Zum Menü →</div>
+                <div class="welcome-menu-hint">Zur Uhr →</div>
             </button>
+
+            <div class="nav-compass-hint" id="welcome-compass-hint">
+                <span>← Woche</span>
+                <span id="welcome-vertical-hint">↕ Kommen / Gehen</span>
+                <span>Menü →</span>
+            </div>
         </div>
     </section>
 
+    <!-- SCREEN 2 (UHR) & SCREEN 3 (WOCHE) -->
     <div class="container" id="app-container">
         <header class="top-header-card">
             <div class="live-clock-box">
@@ -1447,7 +1474,7 @@
                 <div class="live-weekday" id="live-clock-day">-</div>
             </div>
             <div class="header-actions">
-                <button class="tab-btn" id="btn-toggle-view" title="Wochenbilanz" aria-label="Wochenbilanz">
+                <button class="tab-btn" id="btn-toggle-view" title="Woche" aria-label="Woche">
                     <svg id="icon-view-week" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10"></line>
                         <line x1="12" y1="20" x2="12" y2="4"></line>
@@ -1458,7 +1485,7 @@
                         <polyline points="12 7 12 12 15 14"></polyline>
                     </svg>
                 </button>
-                <button class="settings-btn" id="btn-settings" title="Einstellungen" aria-label="Einstellungen">
+                <button class="settings-btn" id="btn-settings" title="Menü" aria-label="Menü">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                         <line x1="4" y1="6" x2="20" y2="6"></line>
                         <line x1="4" y1="12" x2="20" y2="12"></line>
@@ -1469,6 +1496,7 @@
         </header>
 
         <div class="views-stage" id="views-stage">
+            <!-- SCREEN 2: UHR -->
             <div id="view-clock" class="view-section active">
                 <div class="feature-section">
                     <div class="bg-hour-watermark" id="bg-hour-watermark">--</div>
@@ -1484,7 +1512,7 @@
                         </button>
                     </div>
 
-                    <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 14px;">
+                    <div class="time-input-pair" id="smoke-bar" style="display: none; margin-bottom: 12px;">
                         <button class="btn-now" id="btn-add-smoke">🚬 Raucherpause</button>
                         <div class="smoke-counter-box">
                             <span id="smoke-count-display">0× (-0m)</span>
@@ -1548,11 +1576,12 @@
                 </div>
             </div>
 
+            <!-- SCREEN 3: WOCHE -->
             <div id="view-week" class="view-section">
                 <div class="feature-section">
                     <div class="week-header">
                         <div class="week-title-col">
-                            <h2>Wochenbilanz</h2>
+                            <h2>Woche</h2>
                             <button type="button" class="btn-jump-today" id="btn-jump-today">↺ Heute</button>
                         </div>
                         <div class="week-nav-cluster">
@@ -1604,7 +1633,6 @@
                         <span>Monatsübersicht als PDF</span>
                     </button>
 
-                    <!-- AMPELKONTO STATUS-PILLE -->
                     <div class="glz-pill-wrap">
                         <div id="glzPill" class="glz-pill ampel-gruen">
                             <span class="glz-dot"></span>
@@ -1701,14 +1729,14 @@
         </div>
     </div>
 
-    <!-- MODAL: EINSTELLUNGEN (KOMPAKT + 2 UNTERMENÜS) -->
+    <!-- SCREEN 4: MENÜ (EINSTELLUNGEN + 2 UNTERMENÜS) -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
 
             <!-- HAUPTANSICHT -->
             <div id="settings-page-main">
-                <h2>Einstellungen</h2>
+                <h2>Menü</h2>
 
                 <div class="settings-group">
                     <input type="text" id="userNameInput" class="text-input-full" placeholder="Dein Name" aria-label="Dein Name">
@@ -1747,7 +1775,7 @@
                     <div class="setting-box-row">
                         <label class="toggle-label-nowrap" for="gesturesEnabledCheck">
                             <input type="checkbox" id="gesturesEnabledCheck" checked>
-                            <span>👆 Wischgesten aktiv</span>
+                            <span>👆 4-Richtungs-Wischen aktiv</span>
                         </label>
                     </div>
                 </div>
@@ -1767,7 +1795,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.0</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.1</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -1806,7 +1834,7 @@
                 </div>
 
                 <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Raucherpausen auf Startseite</label>
+                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Raucherpausen auf Uhr</label>
                     <div class="setting-box-row" style="background:var(--white);">
                         <label class="toggle-label-nowrap" for="isSmokerCheck">
                             <input type="checkbox" id="isSmokerCheck">
@@ -1884,7 +1912,7 @@
 
                 <div class="design-sub-card">
                     <div class="scribble-picker-head">
-                        <label style="font-weight:bold; font-size:0.9em;">Startbildschirm-Scribbles</label>
+                        <label style="font-weight:bold; font-size:0.9em;">Start-Scribbles</label>
                         <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
                     </div>
                     <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
@@ -2212,7 +2240,7 @@
             });
 
             /* =========================================================
-               VOLLBILD-STEMPELBILDSCHIRM + SCRIBBLES + WISCHGESTEN
+               SCREEN 1: START (KOMMEN / GEHEN) + SCRIBBLES
                ========================================================= */
             const welcomeOverlay = document.getElementById("welcome-overlay");
             const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -2362,9 +2390,9 @@
             }
 
             function openWelcomeScreen(mode = "come") {
-                welcomeActionMode = mode === "go" ? "go" : "come";
-                welcomeOverlay.style.transform = "";
-                welcomeOverlay.style.opacity = "";
+                const newMode = mode === "go" ? "go" : "come";
+                const wasAlreadyOpen = welcomeOverlay.classList.contains("active");
+                welcomeActionMode = newMode;
 
                 if (welcomeActionMode === "go") {
                     btnWelcomeAction.classList.add("mode-go");
@@ -2382,58 +2410,26 @@
 
                 updateWelcomeGreetingText();
                 renderWelcomeScatter();
-                welcomeOverlay.classList.add("active");
-                startAmbientPixelAnimations();
+
+                if (wasAlreadyOpen) {
+                    welcomeOverlay.classList.remove("welcome-mode-switch");
+                    void welcomeOverlay.offsetWidth;
+                    welcomeOverlay.classList.add("welcome-mode-switch");
+                } else {
+                    welcomeOverlay.classList.add("active");
+                    startAmbientPixelAnimations();
+                }
             }
 
             function closeWelcomeScreen() {
                 stopAmbientPixelAnimations();
-                welcomeOverlay.style.transform = "";
-                welcomeOverlay.style.opacity = "";
-                welcomeOverlay.classList.remove("active");
+                welcomeOverlay.classList.remove("active", "welcome-mode-switch");
                 localStorage.setItem("welcomeDismissedDate", getTodayStr());
                 applyThemeColors(appHue, appLightness);
             }
 
-            let welcomeTouchStartX = 0;
-            let welcomeTouchStartY = 0;
-            let welcomeSwiping = false;
-
-            welcomeOverlay.addEventListener("touchstart", (e) => {
-                if (!gesturesEnabled || e.touches.length !== 1) return;
-                welcomeSwiping = true;
-                welcomeTouchStartX = e.touches[0].clientX;
-                welcomeTouchStartY = e.touches[0].clientY;
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("touchmove", (e) => {
-                if (!gesturesEnabled || !welcomeSwiping || e.touches.length !== 1) return;
-                const dy = e.touches[0].clientY - welcomeTouchStartY;
-                const allowDrag = (welcomeActionMode === "come" && dy > 0) || (welcomeActionMode === "go" && dy < 0);
-                if (allowDrag) {
-                    const dampedY = Math.max(-70, Math.min(70, dy * 0.4));
-                    welcomeOverlay.style.transition = "none";
-                    welcomeOverlay.style.transform = `translateY(${dampedY}px)`;
-                }
-            }, { passive: true });
-
-            welcomeOverlay.addEventListener("touchend", (e) => {
-                if (!gesturesEnabled || !welcomeSwiping || e.changedTouches.length !== 1) return;
-                welcomeSwiping = false;
-                const dx = e.changedTouches[0].clientX - welcomeTouchStartX;
-                const dy = e.changedTouches[0].clientY - welcomeTouchStartY;
-
-                welcomeOverlay.style.transition = "transform 0.2s ease-out";
-                welcomeOverlay.style.transform = "";
-
-                if (Math.abs(dy) > 65 && Math.abs(dy) > Math.abs(dx) * 1.3) {
-                    if (welcomeActionMode === "come" && dy > 0) closeWelcomeScreen();
-                    else if (welcomeActionMode === "go" && dy < 0) closeWelcomeScreen();
-                }
-            }, { passive: true });
-
             /* =========================================================
-               ANSICHTEN-NAVIGATION (UHR <-> WOCHE)
+               SCREEN 2 (UHR) <-> SCREEN 3 (WOCHE) NAVIGATION
                ========================================================= */
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
@@ -2444,34 +2440,26 @@
             const weekDatePicker = document.getElementById("week-date-picker");
             let weekOffset = 0;
 
-            function playViewAnim(el, animClass) {
-                el.style.transform = "";
-                el.style.opacity = "";
-                el.style.transition = "";
-                el.classList.remove("anim-slide-from-right", "anim-slide-from-left");
-                void el.offsetWidth;
-                el.classList.add(animClass);
-            }
-
             function switchToClockView() {
                 if (viewClock.classList.contains("active")) return;
                 viewWeek.classList.remove("active");
                 viewClock.classList.add("active");
-                playViewAnim(viewClock, "anim-slide-from-left");
                 iconViewWeek.style.display = "block";
                 iconViewClock.style.display = "none";
-                toggleViewBtn.title = "Wochenbilanz";
+                toggleViewBtn.title = "Woche";
                 calculateAllTimes();
             }
 
             function switchToWeekView() {
+                if (welcomeOverlay.classList.contains("active")) {
+                    closeWelcomeScreen();
+                }
                 if (viewWeek.classList.contains("active")) return;
                 viewClock.classList.remove("active");
                 viewWeek.classList.add("active");
-                playViewAnim(viewWeek, "anim-slide-from-right");
                 iconViewWeek.style.display = "none";
                 iconViewClock.style.display = "block";
-                toggleViewBtn.title = "Stempeluhr";
+                toggleViewBtn.title = "Uhr";
                 weekOffset = 0;
                 buildWeekView();
             }
@@ -2483,14 +2471,13 @@
 
             function changeWeek(delta) {
                 weekOffset += delta;
-                buildWeekView(delta > 0 ? "next" : "prev");
+                buildWeekView();
             }
 
             function jumpToCurrentWeek() {
                 if (weekOffset === 0) return;
-                const dir = weekOffset > 0 ? "prev" : "next";
                 weekOffset = 0;
-                buildWeekView(dir);
+                buildWeekView();
             }
 
             function jumpToDateStr(dateStr) {
@@ -2501,10 +2488,8 @@
                 const targetMonday = getMonday(targetDate);
                 todayMonday.setHours(12, 0, 0, 0);
                 targetMonday.setHours(12, 0, 0, 0);
-                const diffWeeks = Math.round((targetMonday - todayMonday) / (7 * 86400000));
-                const dir = diffWeeks > weekOffset ? "next" : (diffWeeks < weekOffset ? "prev" : null);
-                weekOffset = diffWeeks;
-                buildWeekView(dir);
+                weekOffset = Math.round((targetMonday - todayMonday) / (7 * 86400000));
+                buildWeekView();
             }
 
             document.getElementById("btn-prev-week").addEventListener("click", () => changeWeek(-1));
@@ -2514,7 +2499,7 @@
             weekDatePicker.addEventListener("change", () => jumpToDateStr(weekDatePicker.value));
 
             /* =========================================================
-               EINSTELLUNGEN & UNTERMENÜS
+               SCREEN 4: MENÜ (EINSTELLUNGEN & UNTERMENÜS)
                ========================================================= */
             const userNameInput = document.getElementById("userNameInput");
             const sollHoursInput = document.getElementById("sollHours");
@@ -2678,10 +2663,8 @@
                     ctx.fillStyle = `hsl(${angle}, 100%, ${appLightness}%)`;
                     ctx.fill();
                 }
-                // Zwei sekundäre Kuller (kompaktere Größe)
                 drawWheelDot(appHue + 120, 4.5);
                 drawWheelDot(appHue + 240, 4.5);
-                // Haupt-Kuller (aktiver Primär-Farbton) deutlich größer
                 drawWheelDot(appHue, 8);
             }
 
@@ -2800,7 +2783,10 @@
                 showSettingsSubpage("main");
             }
 
-            document.getElementById("btn-settings").addEventListener("click", () => {
+            function openSettingsMenu() {
+                if (welcomeOverlay.classList.contains("active")) {
+                    closeWelcomeScreen();
+                }
                 userNameInput.value = userName;
                 weeklyHoursInput.value = weeklyHours;
                 glzBaseInput.value = glzBaseHours;
@@ -2812,7 +2798,9 @@
                 updateBackupStatusBadge();
                 showSettingsSubpage("main");
                 settingsModal.classList.add("active");
-            });
+            }
+
+            document.getElementById("btn-settings").addEventListener("click", openSettingsMenu);
 
             document.getElementById("btn-open-work-subpage").addEventListener("click", () => showSettingsSubpage("work"));
             document.getElementById("btn-open-design-subpage").addEventListener("click", () => showSettingsSubpage("design"));
@@ -3253,7 +3241,7 @@
             }
 
             /* =========================================================
-               WOCHENÜBERSICHT, AMPELKONTO, EDITOR & PDF-EXPORT
+               SCREEN 3: WOCHE, AMPELKONTO, EDITOR & PDF-EXPORT
                ========================================================= */
             function getMonday(d) {
                 d = new Date(d);
@@ -3727,14 +3715,9 @@
                 updateAmpelPill();
             }
 
-            function buildWeekView(animDir) {
+            function buildWeekView() {
                 const container = document.getElementById("week-days-container");
                 container.innerHTML = "";
-                if (animDir === "next" || animDir === "prev") {
-                    container.classList.remove("anim-kw-next", "anim-kw-prev");
-                    void container.offsetWidth;
-                    container.classList.add(animDir === "next" ? "anim-kw-next" : "anim-kw-prev");
-                }
 
                 btnJumpToday.classList.toggle("visible", weekOffset !== 0);
                 const todayStr = getTodayStr();
@@ -3957,96 +3940,73 @@
             });
 
             /* =========================================================
-               TOUCH-GESTEN (HAUPTAPP)
+               4-RICHTUNGS-STEUERUNG (OHNE VERRUTSCHEN)
+               - Hoch / Runter: Start (Kommen) <-> Start (Gehen) direkt
+               - Links: Woche
+               - Rechts: Menü
                ========================================================= */
-            let touchStartX = 0, touchStartY = 0, touchBlocked = false, gestureAxis = null;
+            let touchStartX = 0, touchStartY = 0, touchBlocked = false;
 
             document.addEventListener("touchstart", (e) => {
-                const anyModalOpen = welcomeOverlay.classList.contains("active")
-                    || settingsModal.classList.contains("active")
-                    || dayEditorModal.classList.contains("active")
+                const subModalOpen = dayEditorModal.classList.contains("active")
                     || pdfExportModal.classList.contains("active")
                     || backfillModal.classList.contains("active");
-                if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
+
+                if (!gesturesEnabled || subModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
                     touchBlocked = true;
                     return;
                 }
                 touchBlocked = false;
-                gestureAxis = null;
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             }, { passive: true });
-
-            document.addEventListener("touchmove", (e) => {
-                if (!gesturesEnabled || touchBlocked || e.touches.length !== 1) return;
-                const dx = e.touches[0].clientX - touchStartX;
-                const dy = e.touches[0].clientY - touchStartY;
-                if (!gestureAxis && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-                    gestureAxis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
-                }
-
-                const isClockActive = viewClock.classList.contains("active");
-                const isWeekActive = viewWeek.classList.contains("active");
-
-                if (gestureAxis === 'x') {
-                    const activeEl = isClockActive ? viewClock : viewWeek;
-                    const allowedDx = (isClockActive && dx < 0) || (isWeekActive && dx > 0) ? dx : 0;
-                    if (allowedDx !== 0) {
-                        const dampedX = Math.max(-130, Math.min(130, allowedDx * 0.65));
-                        activeEl.style.transition = "none";
-                        activeEl.style.transform = `translateX(${dampedX}px)`;
-                        activeEl.style.opacity = String(Math.max(0.55, 1 - Math.abs(dampedX) / 260));
-                    }
-                } else if (gestureAxis === 'y') {
-                    if (e.cancelable) e.preventDefault();
-                    if (isClockActive) {
-                        viewClock.style.transition = "none";
-                        viewClock.style.transform = `translateY(${Math.max(-44, Math.min(44, dy * 0.32))}px)`;
-                    } else if (isWeekActive) {
-                        const listCard = document.getElementById("week-days-container");
-                        if (listCard) {
-                            listCard.style.transition = "none";
-                            listCard.style.transform = `translateY(${Math.max(-45, Math.min(45, dy * 0.35))}px)`;
-                        }
-                    }
-                }
-            }, { passive: false });
-
-            function resetDragVisuals() {
-                [viewClock, viewWeek].forEach(el => {
-                    el.style.transition = "transform 0.2s ease-out, opacity 0.2s ease-out";
-                    el.style.transform = "";
-                    el.style.opacity = "";
-                });
-                const listCard = document.getElementById("week-days-container");
-                if (listCard) {
-                    listCard.style.transition = "transform 0.2s ease-out";
-                    listCard.style.transform = "";
-                }
-            }
 
             document.addEventListener("touchend", (e) => {
                 if (!gesturesEnabled || touchBlocked || e.changedTouches.length !== 1) return;
                 const dx = e.changedTouches[0].clientX - touchStartX;
                 const dy = e.changedTouches[0].clientY - touchStartY;
                 const absX = Math.abs(dx), absY = Math.abs(dy);
-                const isClockActive = viewClock.classList.contains("active");
-                const isWeekActive = viewWeek.classList.contains("active");
+                const threshold = 55;
 
-                if (gestureAxis === 'x' && absX > 60 && absX > absY * 1.35) {
-                    if (isClockActive && dx < 0) { switchToWeekView(); return; }
-                    if (isWeekActive && dx > 0) { switchToClockView(); return; }
+                // Horizontale Achse: Links = Woche, Rechts = Menü
+                if (absX > threshold && absX > absY * 1.3) {
+                    if (dx < 0) {
+                        // Wisch nach LINKS -> Woche
+                        if (settingsModal.classList.contains("active")) {
+                            closeSettings();
+                        } else {
+                            switchToWeekView();
+                        }
+                    } else {
+                        // Wisch nach RECHTS -> Menü
+                        if (viewWeek.classList.contains("active")) {
+                            switchToClockView();
+                        } else if (!settingsModal.classList.contains("active")) {
+                            openSettingsMenu();
+                        }
+                    }
+                    return;
                 }
 
-                if (gestureAxis === 'y' && absY > 58 && absY > absX * 1.35) {
-                    resetDragVisuals();
-                    if (isClockActive) { openWelcomeScreen(dy < 0 ? "come" : "go"); return; }
-                    if (isWeekActive) { changeWeek(dy < 0 ? 1 : -1); return; }
+                // Vertikale Achse: Hoch / Runter = Start (Kommen <-> Gehen) direkt
+                if (absY > threshold && absY > absX * 1.3) {
+                    if (settingsModal.classList.contains("active")) return;
+
+                    if (welcomeOverlay.classList.contains("active")) {
+                        // Direkt zwischen Kommen und Gehen wechseln, ohne Menü/Uhr dazwischen
+                        if (dy < 0) {
+                            openWelcomeScreen(welcomeActionMode === "come" ? "go" : "come");
+                        } else {
+                            openWelcomeScreen(welcomeActionMode === "go" ? "come" : "go");
+                        }
+                    } else if (viewClock.classList.contains("active")) {
+                        // Von Uhr direkt in Start (Hoch = Kommen, Runter = Gehen)
+                        openWelcomeScreen(dy < 0 ? "come" : "go");
+                    }
                 }
-                resetDragVisuals();
             }, { passive: true });
-            document.addEventListener("touchcancel", resetDragVisuals, { passive: true });
 
+            /* INITIALISIERUNG HEUTIGER SITZUNG */
             try {
                 const todayStr = getTodayStr();
                 const savedSessionsRaw = localStorage.getItem("savedTodaySessions");
@@ -4078,6 +4038,7 @@
 
             if (!dismissedToday && !hasTimesToday) openWelcomeScreen("come");
 
+            /* LIVE-UHR & TIMER */
             function tickLiveEngine() {
                 const now = new Date();
                 const hh = format2(now.getHours());
