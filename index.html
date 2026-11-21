@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.21
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.0
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.21)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.5.0)</title>
 
     <script>
-        const APP_VERSION = "1.21";
+        const APP_VERSION = "1.5.0";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -28,10 +28,9 @@
             const l = parseInt(localStorage.getItem("appLightness"), 10);
             const hue = isNaN(h) ? 195 : h;
             const light = isNaN(l) ? 46 : Math.min(52, Math.max(28, l));
-            const bgHex = window.hslToHex(hue + 120, 46, 95);
+            const bgHex = window.hslToHex(hue + 120, 50, 95);
 
-            const savedMode = localStorage.getItem("appStyleMode");
-            const styleMode = ["classic", "soft", "asymmetric"].includes(savedMode) ? savedMode : "soft";
+            const styleMode = localStorage.getItem("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
             const rawIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
             const intensity = isNaN(rawIntensity) ? 55 : Math.min(100, Math.max(0, rawIntensity));
 
@@ -51,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=121">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=150">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -63,20 +62,19 @@
             --lightness: 46%;
             --spread: 120;
             --asym-intensity: 0.55;
-            --primary-color: hsl(var(--hue), 58%, var(--lightness));
-            --secondary-action-color: hsl(calc(var(--hue) + 150), 58%, var(--lightness));
-            --bg-color: hsl(calc(var(--hue) + var(--spread)), 46%, 95%);
-            --card-bg: hsl(calc(var(--hue) + var(--spread)), 36%, 91%);
-            --text-color: hsl(calc(var(--hue) - var(--spread)), 62%, 22%);
-            --border-color: hsl(calc(var(--hue) - var(--spread)), 26%, 76%);
-            --white: #fffefa;
+            --primary-color: hsl(var(--hue), 64%, var(--lightness));
+            --secondary-action-color: hsl(calc(var(--hue) + 150), 64%, var(--lightness));
+            --bg-color: hsl(calc(var(--hue) + var(--spread)), 50%, 95%);
+            --card-bg: hsl(calc(var(--hue) + var(--spread)), 40%, 90%);
+            --text-color: hsl(calc(var(--hue) - var(--spread)), 70%, 20%);
+            --border-color: hsl(calc(var(--hue) - var(--spread)), 30%, 70%);
+            --white: #ffffff;
 
             --radius-card: 12px;
             --radius-btn: 8px;
             --radius-input: 8px;
             --radius-badge: 8px;
             --card-pad: 16px;
-            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             --btn-come-radius: 8px;
             --btn-go-radius: 8px;
             --welcome-btn-come-radius: 22px;
@@ -87,30 +85,6 @@
             --watermark-display: none;
         }
 
-        /* WEICH & CREMIG (NEUER STANDARD-LOOK FÜR SMARTPHONE-HOCHKANT) */
-        html[data-style="soft"] {
-            --primary-color: hsl(var(--hue), 52%, var(--lightness));
-            --secondary-action-color: hsl(calc(var(--hue) + 150), 52%, var(--lightness));
-            --bg-color: hsl(calc(var(--hue) + var(--spread)), 42%, 96%);
-            --card-bg: hsl(calc(var(--hue) + var(--spread)), 34%, 92%);
-            --border-color: hsl(calc(var(--hue) - var(--spread)), 22%, 80%);
-
-            --radius-card: 22px;
-            --radius-btn: 15px;
-            --radius-input: 14px;
-            --radius-badge: 12px;
-            --card-pad: 18px 16px;
-            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-            --btn-come-radius: 16px;
-            --btn-go-radius: 16px;
-            --welcome-btn-come-radius: 28px;
-            --welcome-btn-go-radius: 28px;
-            --output-radius: 15px;
-            --divider-height: 1px;
-            --week-card-radius: 18px;
-            --watermark-display: block;
-        }
-
         html[data-style="asymmetric"] {
             --k: var(--asym-intensity);
             --radius-card: calc(12px + var(--k) * 18px) calc(12px - var(--k) * 4px) calc(12px + var(--k) * 18px) calc(12px - var(--k) * 4px);
@@ -118,7 +92,6 @@
             --radius-input: calc(8px + var(--k) * 10px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 10px) calc(8px - var(--k) * 2px);
             --radius-badge: calc(8px + var(--k) * 6px) calc(8px - var(--k) * 4px) calc(8px + var(--k) * 6px) calc(8px - var(--k) * 4px);
             --card-pad: calc(16px + var(--k) * 2px) 16px;
-            --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
             --btn-come-radius: calc(8px + var(--k) * 18px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 18px) calc(8px - var(--k) * 2px);
             --btn-go-radius: calc(8px - var(--k) * 2px) calc(8px + var(--k) * 18px) calc(8px - var(--k) * 2px) calc(8px + var(--k) * 18px);
             --welcome-btn-come-radius: calc(22px + var(--k) * 28px) calc(22px - var(--k) * 10px) calc(22px + var(--k) * 28px) calc(22px - var(--k) * 10px);
@@ -139,17 +112,16 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             color: var(--text-color);
             background-color: transparent;
             display: flex;
             align-items: flex-start;
             justify-content: center;
             min-height: 100dvh;
-            padding: calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+            padding: calc(14px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
             overflow-x: hidden;
             overscroll-behavior-y: none;
-            -webkit-tap-highlight-color: transparent;
         }
 
         .edge-bg-layer {
@@ -170,7 +142,7 @@
             position: fixed;
             inset: 0;
             z-index: 2000;
-            background: hsl(var(--hue), 40%, 24%);
+            background: hsl(var(--hue), 44%, 22%);
             color: #ffffff;
             display: none;
             flex-direction: column;
@@ -293,7 +265,7 @@
             width: 100%;
             color: #ffffff;
             border: 1.5px solid rgba(255, 255, 255, 0.32);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             cursor: pointer;
@@ -302,28 +274,28 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
             transition: transform 0.14s, background-color 0.25s, border-radius 0.2s;
         }
 
         .btn-welcome-action {
-            min-height: 142px;
+            min-height: 140px;
             border-radius: var(--welcome-btn-come-radius);
-            background: hsla(var(--hue), 58%, var(--lightness), 0.74);
+            background: hsla(var(--hue), 64%, var(--lightness), 0.72);
         }
         .btn-welcome-action.mode-go {
             border-radius: var(--welcome-btn-go-radius);
-            background: hsla(calc(var(--hue) + 150), 58%, var(--lightness), 0.74);
+            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.72);
         }
 
         .btn-welcome-menu {
             min-height: 166px;
             border-radius: var(--welcome-btn-go-radius);
-            background: hsla(calc(var(--hue) + 150), 58%, var(--lightness), 0.68);
+            background: hsla(calc(var(--hue) + 150), 64%, var(--lightness), 0.66);
         }
         .btn-welcome-menu.mode-go {
             border-radius: var(--welcome-btn-come-radius);
-            background: hsla(var(--hue), 58%, var(--lightness), 0.68);
+            background: hsla(var(--hue), 64%, var(--lightness), 0.66);
         }
 
         .btn-welcome-action:active,
@@ -352,10 +324,10 @@
         }
 
         /* =========================================================
-           HAUPTAPP (REIN FÜR SMARTPHONE-HOCHKANT OPTIMIERT)
+           HAUPTAPP
            ========================================================= */
         .container {
-            max-width: 410px;
+            max-width: 390px;
             width: 100%;
             text-align: center;
             position: relative;
@@ -364,14 +336,14 @@
         .top-header-card {
             background-color: var(--card-bg);
             border-radius: var(--radius-card);
-            padding: 13px 15px;
+            padding: 12px 14px;
             margin-bottom: 14px;
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            transition: background-color 0.3s, border-radius 0.2s, box-shadow 0.25s;
+            transition: background-color 0.3s, border-radius 0.2s;
         }
 
         .live-clock-box {
@@ -382,15 +354,15 @@
             line-height: 1.15;
         }
         .live-time {
-            font-size: 1.68em;
+            font-size: 1.65em;
             font-weight: bold;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.5px;
         }
         .live-weekday {
             font-size: 0.85em;
-            font-weight: 600;
+            font-weight: bold;
             color: var(--text-color);
             opacity: 0.78;
             margin-top: 2px;
@@ -398,7 +370,7 @@
 
         .header-actions {
             display: flex;
-            gap: 9px;
+            gap: 8px;
             align-items: center;
         }
 
@@ -407,10 +379,10 @@
             color: var(--white);
             border: none;
             border-radius: var(--radius-btn);
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             cursor: pointer;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
             transition: transform 0.15s, background-color 0.3s, border-radius 0.2s;
             display: flex;
             align-items: center;
@@ -450,21 +422,21 @@
             border-radius: var(--radius-card);
             padding: var(--card-pad);
             margin-bottom: 14px;
-            box-shadow: var(--card-shadow);
-            transition: background-color 0.3s, border-radius 0.2s, padding 0.2s, box-shadow 0.25s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s, border-radius 0.2s, padding 0.2s;
             overflow: hidden;
         }
 
         .bg-hour-watermark {
             display: var(--watermark-display);
             position: absolute;
-            right: 14px;
+            right: 12px;
             bottom: 6px;
             font-size: 4.8em;
             font-weight: 900;
             line-height: 0.9;
             color: var(--text-color);
-            opacity: calc(0.02 + var(--asym-intensity) * 0.045);
+            opacity: calc(0.02 + var(--asym-intensity) * 0.055);
             pointer-events: none;
             user-select: none;
             font-variant-numeric: tabular-nums;
@@ -474,8 +446,8 @@
 
         .stamp-btn-row {
             display: grid;
-            grid-template-columns: 1fr 50px;
-            gap: 9px;
+            grid-template-columns: 1fr 48px;
+            gap: 8px;
             margin-bottom: 14px;
             align-items: stretch;
         }
@@ -484,12 +456,12 @@
             background-color: var(--primary-color);
             color: var(--white);
             border: none;
-            padding: 14px 12px;
+            padding: 13px 12px;
             border-radius: var(--radius-btn);
             font-weight: bold;
             cursor: pointer;
-            font-size: 1.08em;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            font-size: 1.06em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
             transition: transform 0.15s, opacity 0.2s, border-radius 0.2s, background-color 0.3s;
             white-space: nowrap;
         }
@@ -509,14 +481,14 @@
             grid-column: 2 / 3;
             background-color: var(--white);
             color: var(--text-color);
-            border: 1.5px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: var(--radius-btn);
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
             transition: transform 0.15s, opacity 0.2s, border-radius 0.2s;
         }
         .btn-undo:active:not(:disabled) { transform: scale(0.93); }
@@ -534,12 +506,12 @@
             background-color: var(--primary-color);
             color: var(--white);
             border: none;
-            padding: 12px 10px;
+            padding: 11px 10px;
             border-radius: var(--radius-btn);
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.94em;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.09);
+            font-size: 0.92em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             white-space: nowrap;
             width: 100%;
             text-align: center;
@@ -549,22 +521,22 @@
 
         .smoke-counter-box {
             width: 152px;
-            height: 44px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 6px 0 11px;
+            padding: 0 6px 0 10px;
             border-radius: var(--radius-btn);
-            border: 1.5px solid var(--border-color);
+            border: 2px solid var(--border-color);
             background: var(--white);
             color: var(--text-color);
             font-size: 0.86em;
             font-weight: bold;
         }
         .btn-smoke-minus {
-            width: 30px;
-            height: 30px;
-            border-radius: 9px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background: var(--bg-color);
             color: var(--text-color);
@@ -587,20 +559,20 @@
         .output, .output-decimal {
             background-color: var(--primary-color);
             color: var(--white);
-            padding: 12px 14px;
+            padding: 11px 14px;
             border-radius: var(--output-radius);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             text-align: center;
             transition: border-radius 0.2s;
         }
         .output h3, .output-decimal h3 {
-            font-size: 0.84em;
+            font-size: 0.83em;
             margin-bottom: 3px;
-            opacity: 0.92;
+            opacity: 0.9;
             font-weight: normal;
         }
         .output div, .output-decimal div {
-            font-size: 1.26em;
+            font-size: 1.24em;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
         }
@@ -615,7 +587,7 @@
             border: none;
             background-color: var(--border-color);
             height: var(--divider-height);
-            opacity: 0.4;
+            opacity: 0.45;
             margin: 14px 0;
         }
 
@@ -629,7 +601,7 @@
         .inputs-group-kg {
             display: grid;
             grid-template-columns: 38px 1fr 1fr;
-            gap: 5px;
+            gap: 4px;
             align-items: center;
             width: 100%;
         }
@@ -637,11 +609,11 @@
         .kg-badge {
             height: 48px;
             border-radius: var(--radius-input);
-            border: 1.5px solid var(--border-color);
+            border: 2px solid var(--border-color);
             background-color: var(--bg-color);
             color: var(--text-color);
             font-weight: bold;
-            font-size: 1.06em;
+            font-size: 1.08em;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -662,7 +634,7 @@
             padding: 10px 2px;
             font-size: 1.12em;
             border-radius: var(--radius-input);
-            border: 1.5px solid var(--border-color);
+            border: 2px solid var(--border-color);
             text-align: center;
             background: var(--white);
             color: var(--text-color);
@@ -671,7 +643,7 @@
         input:focus {
             border-color: var(--primary-color);
             outline: none;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            box-shadow: 0 0 8px rgba(0,0,0,0.12);
         }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -699,10 +671,10 @@
             background: var(--white);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-input);
-            padding: 9px 11px;
+            padding: 8px 10px;
             margin-bottom: 14px;
             text-align: left;
-            font-size: 0.85em;
+            font-size: 0.84em;
         }
         .sessions-header {
             display: flex;
@@ -711,14 +683,14 @@
             font-weight: bold;
             margin-bottom: 6px;
             padding-bottom: 4px;
-            border-bottom: 1px solid rgba(0,0,0,0.07);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
         }
         .session-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 4px 0;
-            border-bottom: 1px dashed rgba(0,0,0,0.07);
+            border-bottom: 1px dashed rgba(0,0,0,0.08);
         }
         .session-item:last-child { border-bottom: none; }
         .session-del-btn {
@@ -735,7 +707,7 @@
         .sessions-break-info {
             margin-top: 5px;
             padding-top: 4px;
-            border-top: 1px solid rgba(0,0,0,0.07);
+            border-top: 1px solid rgba(0,0,0,0.08);
             font-size: 0.92em;
             opacity: 0.85;
             display: flex;
@@ -764,16 +736,16 @@
             color: var(--white);
             border: none;
             border-radius: var(--radius-badge);
-            padding: 5px 10px;
+            padding: 5px 9px;
             font-size: 0.76em;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
             display: none;
         }
         .btn-jump-today.visible { display: inline-block; }
 
-        .date-jump-wrap { position: relative; width: 38px; height: 48px; }
+        .date-jump-wrap { position: relative; width: 36px; height: 46px; }
         .btn-date-jump {
             width: 100%;
             height: 100%;
@@ -804,7 +776,7 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-btn);
             overflow: hidden;
-            min-width: 94px;
+            min-width: 92px;
         }
         .kw-v-btn {
             width: 100%;
@@ -813,7 +785,7 @@
             border: none;
             font-size: 0.74em;
             font-weight: bold;
-            padding: 4px 8px;
+            padding: 3px 8px;
             cursor: pointer;
         }
         .kw-badge {
@@ -833,7 +805,7 @@
             border: 1px solid var(--border-color);
             overflow: hidden;
             margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
         .week-row {
@@ -841,8 +813,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 11px 14px;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
             cursor: pointer;
         }
         .week-row:last-child { border-bottom: none; }
@@ -903,7 +875,7 @@
 
         .btn-add-day-entry, .btn-open-pdf-export {
             width: 100%;
-            padding: 11px 12px;
+            padding: 10px 12px;
             border-radius: var(--radius-btn);
             background: var(--white);
             color: var(--text-color);
@@ -944,7 +916,7 @@
             justify-content: center;
             gap: 7px;
             width: 100%;
-            padding: 9px 12px;
+            padding: 8px 12px;
             border-radius: 999px;
             font-size: 0.82em;
             font-weight: bold;
@@ -994,7 +966,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.48);
+            background: rgba(0,0,0,0.52);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1008,13 +980,13 @@
         .modal-content {
             background: var(--white);
             width: 100%;
-            max-width: 375px;
+            max-width: 365px;
             max-height: 94dvh;
             overflow-y: auto;
             border-radius: var(--radius-card);
             padding: 18px;
             position: relative;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.24);
             text-align: left;
         }
         .modal-content h2 {
@@ -1066,7 +1038,7 @@
         .text-input-full {
             width: 100% !important;
             text-align: left !important;
-            padding: 10px 12px !important;
+            padding: 9px 11px !important;
             font-size: 0.96em !important;
         }
 
@@ -1079,7 +1051,7 @@
             background: var(--bg-color);
             border: 1.5px solid var(--border-color);
             border-radius: var(--radius-input);
-            padding: 11px 12px;
+            padding: 10px 12px;
             cursor: pointer;
             text-align: left;
             color: var(--text-color);
@@ -1105,7 +1077,7 @@
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-input);
-            padding: 12px;
+            padding: 11px 12px;
             margin-bottom: 11px;
         }
 
@@ -1135,7 +1107,7 @@
             background: var(--bg-color);
             border: 1.5px solid var(--border-color);
             border-radius: var(--radius-input);
-            padding: 10px 12px;
+            padding: 9px 11px;
         }
         .backup-card-top {
             display: flex;
@@ -1181,7 +1153,7 @@
             justify-content: space-between;
             gap: 8px;
             background: var(--bg-color);
-            padding: 10px 12px;
+            padding: 9px 11px;
             border-radius: var(--radius-input);
             border: 1px solid var(--border-color);
         }
@@ -1223,13 +1195,13 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            background: hsl(var(--hue), 40%, 24%);
+            background: hsl(var(--hue), 44%, 22%);
             padding: 10px;
             border-radius: var(--radius-input);
         }
         .scribble-svg-chip {
             aspect-ratio: 1;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1.5px solid rgba(255, 255, 255, 0.18);
             background: rgba(0, 0, 0, 0.24);
             color: #ffffff;
@@ -1278,7 +1250,7 @@
         .slider-control input[type="range"] { width: 100%; accent-color: var(--primary-color); }
         .harmony-select {
             width: 100%;
-            padding: 9px;
+            padding: 8px;
             border-radius: var(--radius-input);
             border: 1px solid var(--border-color);
             background: var(--white);
@@ -1294,7 +1266,7 @@
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-input);
-            padding: 8px 12px;
+            padding: 7px 11px;
             margin-bottom: 10px;
             font-size: 0.83em;
         }
@@ -1302,8 +1274,8 @@
             background: var(--white);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 5px 10px;
+            border-radius: 6px;
+            padding: 5px 9px;
             font-size: 0.85em;
             font-weight: bold;
             cursor: pointer;
@@ -1314,7 +1286,7 @@
             background: var(--primary-color);
             color: var(--white);
             border: none;
-            padding: 13px;
+            padding: 12px;
             border-radius: var(--radius-btn);
             font-size: 1.02em;
             font-weight: bold;
@@ -1368,7 +1340,7 @@
             background: var(--white);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 4px 9px;
             font-size: 0.84em;
             font-weight: bold;
@@ -1389,7 +1361,7 @@
             background: var(--white);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            border-radius: 7px;
+            border-radius: 6px;
             padding: 6px 0;
             font-size: 0.78em;
             font-weight: bold;
@@ -1677,7 +1649,7 @@
                 <label for="pdfUserNamePreview">Name auf dem Stundenzettel</label>
                 <input type="text" id="pdfUserNamePreview" class="text-input-full" placeholder="Dein Name">
             </div>
-            <div style="background:var(--bg-color); padding:10px 12px; border-radius:var(--radius-input); border:1px solid var(--border-color); font-size:0.84em; margin-bottom:10px; line-height:1.4;">
+            <div style="background:var(--bg-color); padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.84em; margin-bottom:10px; line-height:1.4;">
                 Erstellt eine druckfertige DIN-A4-PDF-Datei mit allen Tagen des Monats, Kommen/Gehen-Zeiten, Pausen, Status, Gesamtsaldo sowie Unterschriftszeile.
             </div>
             <div class="settings-group">
@@ -1720,7 +1692,7 @@
                 </div>
             </div>
 
-            <div id="day-editor-nonwork-note" style="display:none; background:var(--bg-color); padding:14px; border-radius:var(--radius-input); text-align:center; margin-bottom:14px; font-size:0.92em;">
+            <div id="day-editor-nonwork-note" style="display:none; background:var(--bg-color); padding:14px; border-radius:10px; text-align:center; margin-bottom:14px; font-size:0.92em;">
                 Für diesen Status wird keine Arbeitszeit gestempelt.
             </div>
 
@@ -1758,7 +1730,7 @@
                     <button type="button" class="settings-nav-card" id="btn-open-design-subpage">
                         <div class="settings-nav-info">
                             <strong>Darstellung & Design</strong>
-                            <span id="nav-design-summary">Weich & Cremig · 2 Scribbles</span>
+                            <span id="nav-design-summary">Klassisch · 2 Scribbles</span>
                         </div>
                         <div class="settings-nav-right">
                             <div class="nav-color-preview">
@@ -1795,7 +1767,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.21</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.0</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -1881,8 +1853,7 @@
                 <div class="design-sub-card">
                     <label for="styleModeSelect" style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:5px;">Form-Design</label>
                     <select id="styleModeSelect" class="harmony-select">
-                        <option value="soft" selected>Weich & Cremig (Soft)</option>
-                        <option value="classic">Klassisch (gleichmäßige Ecken)</option>
+                        <option value="classic" selected>Klassisch (gleichmäßige Ecken)</option>
                         <option value="asymmetric">Asymmetrisch & Organisch</option>
                     </select>
                     <div class="slider-control" id="asymSliderWrap" style="display: none;">
@@ -1959,7 +1930,7 @@
             function applyThemeColors(hue, lightness) {
                 document.documentElement.style.setProperty('--hue', hue);
                 document.documentElement.style.setProperty('--lightness', lightness + '%');
-                const bgHex = window.hslToHex(hue + 120, 46, 95);
+                const bgHex = window.hslToHex(hue + 120, 50, 95);
                 if (metaThemeColor) metaThemeColor.setAttribute("content", bgHex);
                 document.documentElement.style.backgroundColor = bgHex;
                 if (edgeBgLayer) edgeBgLayer.style.backgroundColor = bgHex;
@@ -1971,9 +1942,6 @@
                 return clamped;
             }
 
-            /* =========================================================
-               SYSTEM-BENACHRICHTIGUNG (MIT APP-ICON & SERVICE WORKER)
-               ========================================================= */
             async function showAppNotification(title, body, tag) {
                 if (!("Notification" in window) || Notification.permission !== "granted") return;
                 const options = {
@@ -2123,7 +2091,7 @@
             });
 
             /* =========================================================
-               SCRIBBLE SVG-SET (INKL. BLUME & MOND)
+               SCRIBBLE SVG-SET
                ========================================================= */
             const SCRIBBLE_ICONS = [
                 { id: "bolt", label: "Blitz", inner: `<path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/>` },
@@ -2136,14 +2104,13 @@
                 { id: "heart", label: "Herz", inner: `<path d="M18 30 C18 30, 5.5 21.5, 5.5 13.2 C5.5 8.8, 9.2 6, 13.2 6.5 C15.8 6.8, 17.4 8.6, 18 10.4 C18.6 8.6, 20.2 6.8, 22.8 6.5 C26.8 6, 30.5 8.8, 30.5 13.2 C30.5 21.5, 18 30, 18 30 Z"/>` },
                 { id: "sun", label: "Sonne", inner: `<circle cx="18" cy="18" r="6.5"/><path d="M18 4.5 V8 M18 28 V31.5 M4.5 18 H8 M28 18 H31.5 M8.5 8.5 L11 11 M25 25 L27.5 27.5 M27.5 8.5 L25 11 M11 25 L8.5 27.5"/>` },
                 { id: "note", label: "Musik", inner: `<path d="M14 26.5 V9.5 L27.5 6.5 V23.5 M14 14.5 L27.5 11.5"/><circle cx="10.8" cy="26.8" r="3.4"/><circle cx="24.3" cy="23.8" r="3.4"/>` },
-                { id: "flower", label: "Blume", inner: `<circle cx="18" cy="18" r="3.8"/><path d="M18 14.2 C15.2 9, 20.8 9, 18 14.2 Z M21.4 16.2 C26.8 14, 26.2 19.8, 21.4 18 Z M19.8 21.2 C22.5 26.5, 17 27.2, 18 21.8 Z M14.6 19.6 C9.5 22, 9.2 16.2, 14.2 17.6 Z M15.6 15 C11.5 11, 16.5 8, 17.4 14.2"/>` },
+                { id: "clover", label: "Klee", inner: `<path d="M18 17.5 C13 15.5, 13.5 8.5, 18 8.5 C22.5 8.5, 23 15.5, 18 17.5 Z M18 17.5 C20 12.5, 27 13, 27 17.5 C27 22, 20 22.5, 18 17.5 Z M18 17.5 C16 12.5, 9 13, 9 17.5 C9 22, 16 22.5, 18 17.5 Z M18 17.5 C21 21, 19.5 28, 15.5 31.5"/>` },
                 { id: "planet", label: "Saturn", inner: `<circle cx="18" cy="18" r="7.5"/><path d="M5.5 22.5 C3.5 19.5, 8.5 15.5, 16.8 13.5 C25 11.5, 31.5 12, 30.8 15.2 C30 18.5, 24.5 22, 16.5 24 C10.5 25.5, 7 24.8, 5.5 22.5 Z"/>` }
             ];
             const makeScribbleSvg = (iconObj) => `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>`;
 
             let userName = localStorage.getItem("userName") || "";
-            const storedStyle = localStorage.getItem("appStyleMode");
-            let appStyleMode = ["classic", "soft", "asymmetric"].includes(storedStyle) ? storedStyle : "soft";
+            let appStyleMode = localStorage.getItem("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
             let appAsymIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
             if (isNaN(appAsymIntensity)) appAsymIntensity = 55;
 
@@ -2197,9 +2164,6 @@
             applyAsymIntensity(appAsymIntensity);
             applyThemeColors(appHue, appLightness);
 
-            /* =========================================================
-               SCRIBBLE PICKER & SETTINGS NAVIGATION
-               ========================================================= */
             const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
             const scribbleCountTag = document.getElementById("scribble-count-tag");
             const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
@@ -2214,9 +2178,7 @@
                     navWorkSummary.textContent = `${format2(sollHours)}:${format2(sollMinutes)}/Tag · ${weeklyHours}h/Wo · ${smokeTxt}${pushTxt}`;
                 }
                 if (navDesignSummary) {
-                    const styleTxt = appStyleMode === "asymmetric"
-                        ? `Asymmetrisch (${appAsymIntensity}%)`
-                        : (appStyleMode === "soft" ? "Weich & Cremig" : "Klassisch");
+                    const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
                     navDesignSummary.textContent = `${styleTxt} · ${selectedScribbles.length} Scribbles`;
                 }
             }
@@ -2416,7 +2378,7 @@
                     welcomeActionSub.textContent = "Jetzt direkt einstempeln";
                 }
 
-                if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 40, 24));
+                if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 44, 22));
 
                 updateWelcomeGreetingText();
                 renderWelcomeScatter();
@@ -2689,7 +2651,7 @@
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
 
-            /* FARBRAD (120° TRIADISCH) */
+            /* FARBRAD (DREI KULLER, HAUPTPUNKT GRÖSSER) */
             const canvas = document.getElementById("colorWheel");
             const ctx = canvas.getContext("2d");
             const radius = canvas.width / 2;
@@ -2702,8 +2664,8 @@
                 ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI);
                 ctx.fillStyle = "white";
                 ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(0,0,0,0.6)";
+                ctx.lineWidth = dotRadius >= 7 ? 2.5 : 2;
+                ctx.strokeStyle = "rgba(0,0,0,0.65)";
                 ctx.stroke();
             }
 
@@ -2716,8 +2678,11 @@
                     ctx.fillStyle = `hsl(${angle}, 100%, ${appLightness}%)`;
                     ctx.fill();
                 }
-                drawWheelDot(appHue + 150, 5);
-                drawWheelDot(appHue, 7);
+                // Zwei sekundäre Kuller (kompaktere Größe)
+                drawWheelDot(appHue + 120, 4.5);
+                drawWheelDot(appHue + 240, 4.5);
+                // Haupt-Kuller (aktiver Primär-Farbton) deutlich größer
+                drawWheelDot(appHue, 8);
             }
 
             lightnessSlider.addEventListener("input", () => {
@@ -2963,7 +2928,6 @@
                 const todayStr = getTodayStr();
                 const leadSecs = pauseNotifyLeadMins * 60;
 
-                // 1) 30-Minuten-Grenze bei 06:30:00 (23.400 Sekunden Anwesenheit)
                 const limit30Secs = 23400;
                 if (totalPresSecs >= (limit30Secs - leadSecs) && totalPresSecs < (limit30Secs + 180)) {
                     const key30 = `notified_p30_${todayStr}`;
@@ -2981,7 +2945,6 @@
                     }
                 }
 
-                // 2) 45-Minuten-Grenze bei 09:45:00 (35.100 Sekunden Anwesenheit)
                 const limit45Secs = 35100;
                 if (totalPresSecs >= (limit45Secs - leadSecs) && totalPresSecs < (limit45Secs + 180)) {
                     const key45 = `notified_p45_${todayStr}`;
@@ -3334,7 +3297,6 @@
                 return { presSecs: totalPresSecs, deductSecs: totalDeductSecs, netSecs, isLive };
             }
 
-            /* GESAMTSALDO AB STICHTAG + AMPEL-LOGIK (§ 5 GBV) */
             function computeTotalGlzHours() {
                 const todayStr = getTodayStr();
                 const nowSecs = getNowSecsOfDay();
@@ -3466,7 +3428,6 @@
                 openEditorForAnyDate(chosen);
             });
 
-            /* TAGES-EDITOR */
             const dayEditorModal = document.getElementById("day-editor-modal");
             const dayEditorTitle = document.getElementById("day-editor-title");
             const dayEditorWorkArea = document.getElementById("day-editor-work-area");
@@ -3720,7 +3681,6 @@
                 buildWeekView();
             });
 
-            /* WOCHENANSICHT RENDERN */
             let weekStaticCreditedSecs = 0, weekTotalSollSecs = 0, weekHasLiveToday = false;
 
             function renderWeekSummaryLive() {
@@ -3843,7 +3803,6 @@
                 renderWeekSummaryLive();
             }
 
-            /* MONATS-PDF EXPORT */
             const pdfExportModal = document.getElementById("pdf-export-modal");
             const pdfMonthSelect = document.getElementById("pdfMonthSelect");
             const pdfUserNamePreview = document.getElementById("pdfUserNamePreview");
@@ -4088,7 +4047,6 @@
             }, { passive: true });
             document.addEventListener("touchcancel", resetDragVisuals, { passive: true });
 
-            /* INITIALISIERUNG HEUTIGER SITZUNG */
             try {
                 const todayStr = getTodayStr();
                 const savedSessionsRaw = localStorage.getItem("savedTodaySessions");
@@ -4120,7 +4078,6 @@
 
             if (!dismissedToday && !hasTimesToday) openWelcomeScreen("come");
 
-            /* LIVE-UHR & TIMER */
             function tickLiveEngine() {
                 const now = new Date();
                 const hh = format2(now.getHours());
