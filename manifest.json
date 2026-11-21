@@ -1,7 +1,7 @@
 {
   "name": "Stempeluhr",
   "short_name": "Stempeluhr",
-  "description": "Persönliche Stempeluhr mit Wochenübersicht, Scribbles und Design-Paketen",
+  "description": "Persönliche Stempeluhr mit Wisch-Steuerung, Wochenübersicht, Scribbles, Design-Paketen und Backup",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -12,7 +12,7 @@
   <link rel="manifest" href="./manifest.json" />
   <style>
     /* ==========================================================================
-       DESIGN-PAKETE (CREMIG & ONE-LINE-ART ALS STANDARD)
+       1. DESIGN-PAKETE (CREMIG & ONE-LINE-ART ALS STANDARD)
        ========================================================================== */
     :root,
     body[data-theme="creamy"] {
@@ -32,7 +32,7 @@
       --accent-pause: #C89B54;
       --accent-pause-soft: #F9F2E4;
 
-      --line-art-stroke: rgba(122, 112, 101, 0.26);
+      --line-art-stroke: rgba(122, 112, 101, 0.28);
       --shadow-soft: 0 8px 24px rgba(46, 41, 36, 0.05);
       --shadow-inset: none;
       --blur-surface: none;
@@ -113,7 +113,7 @@
     }
 
     /* ==========================================================================
-       GRUNDLAYOUT & SMARTPHONE-TOUCH-ERGONOMIE
+       2. GRUNDLAYOUT & MODERNE TOUCH-ERGONOMIE
        ========================================================================== */
     * {
       box-sizing: border-box;
@@ -140,7 +140,7 @@
       background: var(--bg-canvas);
     }
 
-    /* Deckende Ansichten -> kein Durchblitzen beim Wechseln/Wischen */
+    /* Deckende Ansichten -> kein Durchblitzen beim Wechseln */
     .su-view {
       display: none;
       width: 100%;
@@ -187,12 +187,12 @@
       justify-content: center;
       gap: 8px;
       min-height: var(--touch-std);
-      padding: 13px 18px;
+      padding: 13px 16px;
       border-radius: var(--radius-btn);
       border: 1px solid var(--border-subtle);
       background: var(--bg-surface);
       color: var(--text-primary);
-      font-size: 0.98rem;
+      font-size: 0.96rem;
       font-weight: 600;
       cursor: pointer;
       touch-action: manipulation;
@@ -204,6 +204,11 @@
     .su-btn:active {
       transform: scale(0.975);
       box-shadow: var(--shadow-inset);
+    }
+
+    .su-btn.is-active {
+      border-color: var(--accent-in);
+      background: var(--accent-in-soft);
     }
 
     .su-btn-primary-in,
@@ -229,12 +234,52 @@
       border-color: transparent;
     }
 
-    .su-btn.is-active {
-      border-color: var(--accent-in);
-      background: var(--accent-in-soft);
+    .su-input {
+      min-height: var(--touch-std);
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface-soft);
+      color: var(--text-primary);
+      font-size: 1.02rem;
+      font-weight: 600;
+      width: 100%;
     }
 
-    /* One-Line-Art */
+    /* ==========================================================================
+       3. WISCH-ZONE OBEN/UNTEN FÜR KOMMEN & GEHEN + ONE-LINE-ART
+       ========================================================================== */
+    .swipe-stamp-pad {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 122px;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 22px;
+      border: 1.5px dashed var(--border-subtle);
+      background: var(--bg-surface-soft);
+      text-align: center;
+      touch-action: none;
+      user-select: none;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .swipe-stamp-pad.is-pull-up {
+      background: var(--accent-in-soft);
+      border-color: var(--accent-in);
+      transform: translateY(-4px);
+    }
+
+    .swipe-stamp-pad.is-pull-down {
+      background: var(--accent-out-soft);
+      border-color: var(--accent-out);
+      transform: translateY(4px);
+    }
+
     .one-line-art {
       pointer-events: none;
       user-select: none;
@@ -253,7 +298,7 @@
       height: 112px;
     }
 
-    /* Layout-Modus (Kompakt vs. Detail) */
+    /* Layout-Umschalter Kompakt / Detail */
     .layout-mode-bar {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -268,7 +313,6 @@
       display: block;
     }
 
-    /* Heutige Stempel-Einträge */
     .entry-row {
       display: flex;
       justify-content: space-between;
@@ -293,7 +337,9 @@
       cursor: pointer;
     }
 
-    /* Wochenkalender */
+    /* ==========================================================================
+       4. WOCHENKALENDER
+       ========================================================================== */
     .week-toolbar {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -333,7 +379,50 @@
       background: var(--accent-in-soft);
     }
 
-    /* Design-Paket-Auswahl */
+    /* ==========================================================================
+       5. EIGENER SCHIRM FÜR SCRIBBLES + HANDKRITZEL-STEMPEL
+       ========================================================================== */
+    .scribble-canvas {
+      width: 100%;
+      height: 54dvh;
+      min-height: 320px;
+      border-radius: 22px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface-soft);
+      touch-action: none;
+      display: block;
+    }
+
+    .doodle-stamp-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .doodle-stamp-btn {
+      min-height: 48px;
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface-soft);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scribble-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    /* ==========================================================================
+       6. DESIGN-PAKETE, 5-FARBEN-PALETTEN & 120°-FARBRAD MIT 3 KULLERN
+       ========================================================================== */
     .theme-picker-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -365,17 +454,16 @@
 
     .theme-swatch-row {
       display: flex;
-      gap: 6px;
+      gap: 5px;
     }
 
     .theme-swatch {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
       border: 1px solid rgba(0, 0, 0, 0.14);
     }
 
-    /* 3-Punkt-Colorwheel */
     .colorwheel-wrap {
       display: flex;
       flex-direction: column;
@@ -423,12 +511,6 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
     }
 
-    .colorwheel-dot.is-selected {
-      transform: scale(1.16);
-      outline: 2px solid var(--text-primary);
-      outline-offset: 2px;
-    }
-
     .colorwheel-legend {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -436,46 +518,22 @@
       width: 100%;
     }
 
-    .color-slot-btn {
+    .color-slot-pill {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      min-height: 54px;
-      padding: 8px;
+      gap: 3px;
+      padding: 10px 6px;
       border-radius: 14px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-surface-soft);
-      color: var(--text-primary);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
-      cursor: pointer;
     }
 
-    .color-slot-btn.is-selected {
-      border-color: var(--accent-in);
-      background: var(--accent-in-soft);
-    }
-
-    /* Scribbles */
-    .scribble-canvas {
-      width: 100%;
-      height: 280px;
-      border-radius: 20px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-surface-soft);
-      touch-action: none;
-      display: block;
-    }
-
-    .scribble-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    /* Bottom-Navigation */
+    /* ==========================================================================
+       7. BOTTOM-NAVIGATION (4 SCHIRME OHNE DURCHBLITZEN)
+       ========================================================================== */
     .su-bottom-nav {
       position: fixed;
       left: 50%;
@@ -485,9 +543,9 @@
       bottom: 0;
       z-index: 40;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
       background: var(--bg-surface);
       border-top: 1px solid var(--border-subtle);
       backdrop-filter: var(--blur-surface);
@@ -500,7 +558,7 @@
       border-radius: 16px;
       background: transparent;
       color: var(--text-secondary);
-      font-size: 0.96rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.18s ease, color 0.18s ease;
@@ -515,7 +573,9 @@
 <body data-theme="creamy" data-home-layout="compact">
   <div class="su-app-shell" id="su-app-shell">
 
-    <!-- ANSICHT 1: HEUTE / STEMPELUHR -->
+    <!-- ========================================================================
+         SCHIRM 1: HEUTE (WISCH-SCHIRM OBEN/UNTEN + KOMMEN/GEHEN + MANUELL K/G)
+         ======================================================================== -->
     <section class="su-view is-active" data-view="home">
       <div class="su-stack">
         <div class="layout-mode-bar" role="group" aria-label="Startschirm-Layout">
@@ -534,7 +594,16 @@
             <strong id="home-live-clock" style="font-size: 1.3rem; font-variant-numeric: tabular-nums;">--:--</strong>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px;">
+          <!-- Erhaltener Wischschirm oben / unten für Kommen & Gehen -->
+          <div class="swipe-stamp-pad" id="swipe-stamp-pad" role="region" aria-label="Wischfeld für Kommen und Gehen">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-in);">↑ Nach oben wischen: Kommen</span>
+            <span id="swipe-pad-feedback" style="font-size: 0.9rem; color: var(--text-secondary);">
+              Hier wischen oder unten tippen
+            </span>
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-out);">↓ Nach unten wischen: Gehen</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;">
             <button type="button" class="su-btn su-btn-primary-in" id="btn-stamp-in">Kommen</button>
             <button type="button" class="su-btn su-btn-primary-out" id="btn-stamp-out">Gehen</button>
           </div>
@@ -544,6 +613,7 @@
           </svg>
         </div>
 
+        <!-- Heutige Zeiten -->
         <div class="su-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <strong>Heute erfasst</strong>
@@ -552,20 +622,46 @@
           <div id="today-entries-list"></div>
         </div>
 
+        <!-- Detail-Bereich: Pausen & manuelle K/G-Korrektur -->
         <div class="su-card home-detail-only">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <strong>Schnellaktionen &amp; Pause</strong>
+            <strong>Pausen &amp; manuelle Zeit (K / G)</strong>
             <span id="today-pause-badge" style="color: var(--text-secondary); font-size: 0.9rem;">Pause: 0 Min</span>
           </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+            <button type="button" class="su-btn su-btn-soft-pause" data-add-pause="15">+15m</button>
+            <button type="button" class="su-btn su-btn-soft-pause" data-add-pause="30">+30m</button>
+            <button type="button" class="su-btn" id="btn-reset-pause">Pause 0</button>
+          </div>
+
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button type="button" class="su-btn su-btn-soft-pause" id="btn-quick-pause">Pause +15 Min</button>
-            <button type="button" class="su-btn" id="btn-quick-undo">Letzte rückgängig</button>
+            <div>
+              <label for="manual-k-time" style="display: block; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 4px;">
+                Manuell Kommen (K)
+              </label>
+              <div style="display: flex; gap: 6px;">
+                <input type="time" id="manual-k-time" class="su-input" />
+                <button type="button" class="su-btn" id="btn-add-manual-k">K</button>
+              </div>
+            </div>
+            <div>
+              <label for="manual-g-time" style="display: block; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 4px;">
+                Manuell Gehen (G)
+              </label>
+              <div style="display: flex; gap: 6px;">
+                <input type="time" id="manual-g-time" class="su-input" />
+                <button type="button" class="su-btn" id="btn-add-manual-g">G</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ANSICHT 2: WOCHENKALENDER -->
+    <!-- ========================================================================
+         SCHIRM 2: WOCHENKALENDER
+         ======================================================================== -->
     <section class="su-view" data-view="week">
       <div class="su-card">
         <div class="week-toolbar">
@@ -583,42 +679,57 @@
       </div>
     </section>
 
-    <!-- ANSICHT 3: MENÜ (SCRIBBLES, DESIGN-PAKETE & 3-PUNKT-COLORWHEEL) -->
+    <!-- ========================================================================
+         SCHIRM 3: EIGENER VOLLFLÄCHIGER SCHIRM FÜR SCRIBBLES & DOODLES
+         ======================================================================== -->
+    <section class="su-view" data-view="scribbles">
+      <div class="su-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <h2 style="margin: 0; font-size: 1.25rem;">Scribbles</h2>
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Freihand &amp; kleine Doodles</span>
+          </div>
+          <span style="font-size: 0.82rem; color: var(--text-secondary);">Auto-Save</span>
+        </div>
+
+        <canvas id="scribble-canvas" class="scribble-canvas" width="640" height="520"></canvas>
+
+        <!-- Kleine Handkritzel-Doodle-Stempel (Stern, Herz, Spirale, Blume, Pfeil, Wolke) -->
+        <div class="doodle-stamp-row" aria-label="Doodle-Stempel einfügen">
+          <button type="button" class="doodle-stamp-btn" data-doodle="star" title="Stern">★</button>
+          <button type="button" class="doodle-stamp-btn" data-doodle="heart" title="Herz">♡</button>
+          <button type="button" class="doodle-stamp-btn" data-doodle="spiral" title="Spirale">◎</button>
+          <button type="button" class="doodle-stamp-btn" data-doodle="flower" title="Blume">✿</button>
+          <button type="button" class="doodle-stamp-btn" data-doodle="arrow" title="Pfeil">➜</button>
+          <button type="button" class="doodle-stamp-btn" data-doodle="cloud" title="Wolke">☁</button>
+        </div>
+
+        <div class="scribble-actions">
+          <button type="button" class="su-btn is-active" id="btn-scribble-pen">Stift</button>
+          <button type="button" class="su-btn" id="btn-scribble-eraser">Radierer</button>
+          <button type="button" class="su-btn" id="btn-scribble-clear">Leeren</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         SCHIRM 4: MENÜ (DESIGN-PAKETE, 5-FARBEN-PALETTEN, 120°-RAD, BACKUP & UPDATE)
+         ======================================================================== -->
     <section class="su-view" data-view="menu">
       <div class="su-stack">
+        <!-- Schnellzugriff auf Scribbles -->
         <div class="su-card">
           <h2 style="margin: 0 0 10px 0; font-size: 1.2rem;">Menü</h2>
-          <div style="display: grid; gap: 10px;">
-            <button type="button" class="su-btn" id="btn-open-scribbles">
-              Scribbles — Kritzel &amp; Notizen
-            </button>
-            <button type="button" class="su-btn" id="btn-open-themes">
-              Design-Pakete &amp; Farbrad
-            </button>
-          </div>
+          <button type="button" class="su-btn" style="width: 100%;" data-nav-target="scribbles">
+            Scribbles öffnen (Eigener Zeichenschirm)
+          </button>
         </div>
 
-        <!-- Scribbles -->
-        <div class="su-card" id="scribbles-panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; font-size: 1.08rem;">Scribbles</h3>
-            <span style="font-size: 0.85rem; color: var(--text-secondary);">Wird lokal gespeichert</span>
-          </div>
-
-          <canvas id="scribble-canvas" class="scribble-canvas" width="600" height="360"></canvas>
-
-          <div class="scribble-actions">
-            <button type="button" class="su-btn is-active" id="btn-scribble-pen">Stift</button>
-            <button type="button" class="su-btn" id="btn-scribble-eraser">Radierer</button>
-            <button type="button" class="su-btn" id="btn-scribble-clear">Leeren</button>
-          </div>
-        </div>
-
-        <!-- Wählbare Design-Pakete -->
-        <div class="su-card" id="themes-panel">
+        <!-- Design-Pakete -->
+        <div class="su-card">
           <h3 style="margin: 0 0 4px 0; font-size: 1.08rem;">Design-Pakete</h3>
           <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
-            Oberfläche frei wählbar
+            Grundstil der App wählen
           </p>
 
           <div class="theme-picker-grid">
@@ -660,40 +771,112 @@
           </div>
         </div>
 
-        <!-- 3-Punkt-Colorwheel -->
+        <!-- Kuratierte 5-Farben-Paletten -->
+        <div class="su-card">
+          <h3 style="margin: 0 0 4px 0; font-size: 1.08rem;">5-Farben-Paletten</h3>
+          <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+            Harmonisch abgestimmte Farbwelten
+          </p>
+
+          <div class="theme-picker-grid">
+            <button type="button" class="theme-option-btn" data-palette-choice="hafer">
+              <span class="theme-swatch-row">
+                <span class="theme-swatch" style="background:#F7F3EC;"></span>
+                <span class="theme-swatch" style="background:#FFFDF9;"></span>
+                <span class="theme-swatch" style="background:#6F8F72;"></span>
+                <span class="theme-swatch" style="background:#C97A5B;"></span>
+                <span class="theme-swatch" style="background:#2E2924;"></span>
+              </span>
+              <span>Hafer &amp; Salbei</span>
+            </button>
+
+            <button type="button" class="theme-option-btn" data-palette-choice="morgentau">
+              <span class="theme-swatch-row">
+                <span class="theme-swatch" style="background:#EFF2F0;"></span>
+                <span class="theme-swatch" style="background:#FAFDFB;"></span>
+                <span class="theme-swatch" style="background:#567D73;"></span>
+                <span class="theme-swatch" style="background:#B8845A;"></span>
+                <span class="theme-swatch" style="background:#24302D;"></span>
+              </span>
+              <span>Morgentau</span>
+            </button>
+
+            <button type="button" class="theme-option-btn" data-palette-choice="abendrot">
+              <span class="theme-swatch-row">
+                <span class="theme-swatch" style="background:#F9F1EB;"></span>
+                <span class="theme-swatch" style="background:#FFFAF6;"></span>
+                <span class="theme-swatch" style="background:#B86B52;"></span>
+                <span class="theme-swatch" style="background:#C7924E;"></span>
+                <span class="theme-swatch" style="background:#382620;"></span>
+              </span>
+              <span>Abendrot &amp; Lehm</span>
+            </button>
+
+            <button type="button" class="theme-option-btn" data-palette-choice="nachthimmel">
+              <span class="theme-swatch-row">
+                <span class="theme-swatch" style="background:#12151A;"></span>
+                <span class="theme-swatch" style="background:#1B2028;"></span>
+                <span class="theme-swatch" style="background:#7AA392;"></span>
+                <span class="theme-swatch" style="background:#D98A6C;"></span>
+                <span class="theme-swatch" style="background:#ECEAE4;"></span>
+              </span>
+              <span>Nachthimmel</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 120°-Farbrad mit 3 gekoppelten Kullern -->
         <div class="su-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <h3 style="margin: 0; font-size: 1.08rem;">Farbrad (3 Punkte = 3 Farben)</h3>
+            <h3 style="margin: 0; font-size: 1.08rem;">120°-Farbrad (3 Kuller)</h3>
             <button type="button" class="su-btn" id="btn-reset-wheel" style="min-height: 40px; padding: 6px 12px; font-size: 0.85rem;">
               Reset
             </button>
           </div>
           <p style="margin: 0 0 12px 0; font-size: 0.88rem; color: var(--text-secondary);">
-            Jeder Punkt im Rad steuert genau eine der drei Farben.
+            Alle 3 Kuller bleiben im 120°-Harmonieabstand gekoppelt.
           </p>
 
           <div class="colorwheel-wrap">
             <div class="colorwheel-stage" id="colorwheel-stage">
-              <div class="colorwheel-dot is-selected" data-color-slot="bg" title="Hintergrund">1</div>
-              <div class="colorwheel-dot" data-color-slot="surface" title="Karte">2</div>
-              <div class="colorwheel-dot" data-color-slot="accent" title="Akzent">3</div>
+              <div class="colorwheel-dot" data-wheel-dot="0">1</div>
+              <div class="colorwheel-dot" data-wheel-dot="1">2</div>
+              <div class="colorwheel-dot" data-wheel-dot="2">3</div>
             </div>
 
             <div class="colorwheel-legend">
-              <button type="button" class="color-slot-btn is-selected" data-select-slot="bg">
+              <div class="color-slot-pill">
                 <span>1 · Grund</span>
                 <small id="slot-hex-bg">#F7F3EC</small>
-              </button>
-              <button type="button" class="color-slot-btn" data-select-slot="surface">
-                <span>2 · Karte</span>
-                <small id="slot-hex-surface">#FFFDF9</small>
-              </button>
-              <button type="button" class="color-slot-btn" data-select-slot="accent">
-                <span>3 · Akzent</span>
-                <small id="slot-hex-accent">#6F8F72</small>
-              </button>
+              </div>
+              <div class="color-slot-pill">
+                <span>2 · Kommen</span>
+                <small id="slot-hex-in">#6F8F72</small>
+              </div>
+              <div class="color-slot-pill">
+                <span>3 · Gehen</span>
+                <small id="slot-hex-out">#C97A5B</small>
+              </div>
             </div>
           </div>
+        </div>
+
+        <!-- Backup & Update erzwingen -->
+        <div class="su-card">
+          <h3 style="margin: 0 0 6px 0; font-size: 1.08rem;">Backup &amp; App-Update</h3>
+          <p id="backup-status-msg" style="margin: 0 0 12px 0; color: var(--text-secondary); font-size: 0.88rem;">
+            Sichere deine Stempelzeiten &amp; Scribbles als JSON-Datei.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <button type="button" class="su-btn" id="btn-export-backup">Backup speichern</button>
+            <button type="button" class="su-btn" id="btn-import-backup">Backup laden</button>
+            <input type="file" id="input-import-file" accept=".json,application/json" style="display: none;" />
+          </div>
+
+          <button type="button" class="su-btn" id="btn-force-update" style="width: 100%;">
+            Update erzwingen (Cache leeren &amp; neu laden)
+          </button>
         </div>
       </div>
     </section>
@@ -702,13 +885,14 @@
     <nav class="su-bottom-nav" aria-label="Hauptnavigation">
       <button type="button" class="su-nav-tab is-active" data-nav-target="home">Heute</button>
       <button type="button" class="su-nav-tab" data-nav-target="week">Woche</button>
+      <button type="button" class="su-nav-tab" data-nav-target="scribbles">Scribbles</button>
       <button type="button" class="su-nav-tab" data-nav-target="menu">Menü</button>
     </nav>
   </div>
 
   <script>
     /* ==========================================================================
-       DATEN & STEMPEL-LOGIK
+       1. SPEICHERKEYS & DATEN-LOGIK
        ========================================================================== */
     const STORAGE_KEY = "stempeluhr_data_v2";
     const THEME_STORAGE_KEY = "stempeluhr_design_package_v2";
@@ -765,14 +949,14 @@
         totalMs += Math.max(0, nowMs - openIn);
       }
 
-      const rawMinutes = totalMs / 60000;
-      return Math.max(0, rawMinutes - (dayObj.pauseMinutes || 0));
+      return Math.max(0, totalMs / 60000 - (dayObj.pauseMinutes || 0));
     }
 
-    function stampNow(type) {
+    function stampAt(type, timestampMs = Date.now()) {
       const data = loadAppData();
       const day = ensureDay(data, dateKey());
-      day.stamps.push({ type, ts: Date.now() });
+      day.stamps.push({ type, ts: timestampMs });
+      day.stamps.sort((a, b) => a.ts - b.ts);
       saveAppData(data);
       renderToday();
       renderWeekCalendar();
@@ -790,12 +974,11 @@
       const last = day.stamps[day.stamps.length - 1];
       if (!last) {
         statusEl.textContent = "Noch nicht gestempelt";
-      } else if (last.type === "in") {
-        const t = new Date(last.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-        statusEl.textContent = `Eingestempelt seit ${t} Uhr`;
       } else {
         const t = new Date(last.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-        statusEl.textContent = `Ausgestempelt um ${t} Uhr`;
+        statusEl.textContent = last.type === "in"
+          ? `Eingestempelt seit ${t} Uhr`
+          : `Ausgestempelt um ${t} Uhr`;
       }
 
       totalEl.textContent = formatMinutes(calcWorkMinutes(day));
@@ -825,8 +1008,7 @@
         btn.addEventListener("click", () => {
           const idx = parseInt(btn.getAttribute("data-del-idx"), 10);
           const fresh = loadAppData();
-          const todayObj = ensureDay(fresh, dateKey());
-          todayObj.stamps.splice(idx, 1);
+          ensureDay(fresh, dateKey()).stamps.splice(idx, 1);
           saveAppData(fresh);
           renderToday();
           renderWeekCalendar();
@@ -835,53 +1017,68 @@
     }
 
     /* ==========================================================================
-       SCHRITT 1: DESIGN-PAKETE
+       2. WISCH-FELD OBEN/UNTEN FÜR KOMMEN & GEHEN
        ========================================================================== */
-    const VALID_THEMES = ["creamy", "glass", "neumorph", "oled"];
+    function initVerticalStampPad() {
+      const pad = document.getElementById("swipe-stamp-pad");
+      const feedback = document.getElementById("swipe-pad-feedback");
+      if (!pad || !feedback) return;
 
-    function resetCustomWheelOverrides() {
-      document.body.style.removeProperty("--bg-canvas");
-      document.body.style.removeProperty("--bg-surface");
-      document.body.style.removeProperty("--accent-in");
-    }
+      let startY = 0;
+      let active = false;
 
-    function applyDesignPackage(themeName) {
-      const chosen = VALID_THEMES.includes(themeName) ? themeName : "creamy";
-      resetCustomWheelOverrides();
-      document.body.setAttribute("data-theme", chosen);
-      localStorage.setItem(THEME_STORAGE_KEY, chosen);
-
-      document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
-        btn.classList.toggle("is-active", btn.getAttribute("data-theme-choice") === chosen);
+      pad.addEventListener("pointerdown", (e) => {
+        startY = e.clientY;
+        active = true;
+        pad.setPointerCapture(e.pointerId);
       });
 
-      const metaTheme = document.querySelector('meta[name="theme-color"]');
-      if (metaTheme) {
-        const barColors = {
-          creamy: "#F7F3EC",
-          glass: "#EAE6DF",
-          neumorph: "#ECE8E1",
-          oled: "#0D0D0D"
-        };
-        metaTheme.setAttribute("content", barColors[chosen]);
-      }
-    }
+      pad.addEventListener("pointermove", (e) => {
+        if (!active) return;
+        const dy = e.clientY - startY;
+        pad.classList.toggle("is-pull-up", dy < -24);
+        pad.classList.toggle("is-pull-down", dy > 24);
+        if (dy < -24) {
+          feedback.textContent = "Loslassen für Kommen";
+        } else if (dy > 24) {
+          feedback.textContent = "Loslassen für Gehen";
+        } else {
+          feedback.textContent = "Hier wischen oder unten tippen";
+        }
+      });
 
-    function initDesignPackages() {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY) || "creamy";
-      applyDesignPackage(saved);
+      const finish = (e) => {
+        if (!active) return;
+        active = false;
+        const dy = e.clientY - startY;
+        pad.classList.remove("is-pull-up", "is-pull-down");
 
-      document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          applyDesignPackage(btn.getAttribute("data-theme-choice"));
-        });
+        if (dy < -42) {
+          stampAt("in");
+          feedback.textContent = "Kommen gestempelt!";
+        } else if (dy > 42) {
+          stampAt("out");
+          feedback.textContent = "Gehen gestempelt!";
+        } else {
+          feedback.textContent = "Hier wischen oder unten tippen";
+        }
+
+        setTimeout(() => {
+          feedback.textContent = "Hier wischen oder unten tippen";
+        }, 1600);
+      };
+
+      pad.addEventListener("pointerup", finish);
+      pad.addEventListener("pointercancel", () => {
+        active = false;
+        pad.classList.remove("is-pull-up", "is-pull-down");
       });
     }
 
     /* ==========================================================================
-       SCHRITT 2: DECKENDE NAVIGATION & SAUBERES HORIZONTALES WISCHEN
+       3. DECKENDE NAVIGATION (OHNE DURCHBLITZEN)
        ========================================================================== */
-    const VIEW_ORDER = ["home", "week", "menu"];
+    const VIEW_ORDER = ["home", "week", "scribbles", "menu"];
     let activeView = "home";
 
     function switchView(targetView) {
@@ -892,7 +1089,7 @@
         section.classList.toggle("is-active", section.getAttribute("data-view") === targetView);
       });
 
-      document.querySelectorAll("[data-nav-target]").forEach((tab) => {
+      document.querySelectorAll(".su-nav-tab").forEach((tab) => {
         tab.classList.toggle("is-active", tab.getAttribute("data-nav-target") === targetView);
       });
 
@@ -900,9 +1097,9 @@
     }
 
     function initCleanNavigation() {
-      document.querySelectorAll("[data-nav-target]").forEach((tab) => {
-        tab.addEventListener("click", () => {
-          switchView(tab.getAttribute("data-nav-target"));
+      document.querySelectorAll("[data-nav-target]").forEach((el) => {
+        el.addEventListener("click", () => {
+          switchView(el.getAttribute("data-nav-target"));
         });
       });
 
@@ -911,36 +1108,31 @@
 
       let startX = 0;
       let startY = 0;
-      let isTracking = false;
+      let tracking = false;
 
       shell.addEventListener("touchstart", (e) => {
         if (e.touches.length !== 1) return;
-        if (e.target.closest("input, textarea, canvas, #colorwheel-stage, [data-no-swipe]")) return;
+        if (e.target.closest("input, textarea, canvas, #swipe-stamp-pad, #colorwheel-stage")) return;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
-        isTracking = true;
+        tracking = true;
       }, { passive: true });
 
       shell.addEventListener("touchend", (e) => {
-        if (!isTracking || e.changedTouches.length !== 1) return;
-        isTracking = false;
-
+        if (!tracking || e.changedTouches.length !== 1) return;
+        tracking = false;
         const dx = e.changedTouches[0].clientX - startX;
         const dy = e.changedTouches[0].clientY - startY;
-
-        if (Math.abs(dx) < 68 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+        if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
 
         const idx = VIEW_ORDER.indexOf(activeView);
-        if (dx < 0 && idx < VIEW_ORDER.length - 1) {
-          switchView(VIEW_ORDER[idx + 1]);
-        } else if (dx > 0 && idx > 0) {
-          switchView(VIEW_ORDER[idx - 1]);
-        }
+        if (dx < 0 && idx < VIEW_ORDER.length - 1) switchView(VIEW_ORDER[idx + 1]);
+        if (dx > 0 && idx > 0) switchView(VIEW_ORDER[idx - 1]);
       }, { passive: true });
     }
 
     /* ==========================================================================
-       SCHRITT 3: WOCHENKALENDER, 3-PUNKT-COLORWHEEL & SCRIBBLES
+       4. WOCHENKALENDER
        ========================================================================== */
     let weekOffset = 0;
 
@@ -948,8 +1140,8 @@
       const d = new Date(baseDate);
       d.setHours(0, 0, 0, 0);
       const day = d.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-      d.setDate(d.getDate() + diffToMonday + offsetWeeks * 7);
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff + offsetWeeks * 7);
       return d;
     }
 
@@ -1020,123 +1212,19 @@
       renderWeekCalendar();
     }
 
-    /* 3-Punkt-Colorwheel */
-    const wheelSlots = {
-      bg: { angle: 38, varName: "--bg-canvas", hexId: "slot-hex-bg" },
-      surface: { angle: 44, varName: "--bg-surface", hexId: "slot-hex-surface" },
-      accent: { angle: 126, varName: "--accent-in", hexId: "slot-hex-accent" }
-    };
-    let selectedWheelSlot = "bg";
-
-    function hslAngleToHex(angleDeg, lightness = 55) {
-      const h = ((angleDeg % 360) + 360) % 360;
-      const s = 46;
-      const l = lightness;
-      const a = (s / 100) * Math.min(l / 100, 1 - l / 100);
-      const f = (n) => {
-        const k = (n + h / 30) % 12;
-        const color = l / 100 - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-        return Math.round(255 * color).toString(16).padStart(2, "0");
-      };
-      return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
-    }
-
-    function renderThreePointWheel(applyToDom = false) {
-      const stage = document.getElementById("colorwheel-stage");
-      if (!stage) return;
-
-      const size = stage.clientWidth || 220;
-      const radiusPx = size / 2 - 22;
-      const center = size / 2;
-
-      Object.entries(wheelSlots).forEach(([key, cfg]) => {
-        const rad = (cfg.angle * Math.PI) / 180;
-        const x = center + Math.cos(rad) * radiusPx;
-        const y = center + Math.sin(rad) * radiusPx;
-
-        const hex = key === "bg"
-          ? hslAngleToHex(cfg.angle, 94)
-          : key === "surface"
-          ? hslAngleToHex(cfg.angle, 98)
-          : hslAngleToHex(cfg.angle, 48);
-
-        if (applyToDom) {
-          document.body.style.setProperty(cfg.varName, hex);
-        }
-
-        const dot = stage.querySelector(`[data-color-slot="${key}"]`);
-        if (dot) {
-          dot.style.left = `${x}px`;
-          dot.style.top = `${y}px`;
-          dot.style.background = hslAngleToHex(cfg.angle, 52);
-          dot.classList.toggle("is-selected", key === selectedWheelSlot);
-        }
-
-        const legendBtn = document.querySelector(`[data-select-slot="${key}"]`);
-        if (legendBtn) {
-          legendBtn.classList.toggle("is-selected", key === selectedWheelSlot);
-        }
-
-        const hexLabel = document.getElementById(cfg.hexId);
-        if (hexLabel) {
-          hexLabel.textContent = hex;
-        }
-      });
-    }
-
-    function initThreePointWheel() {
-      const stage = document.getElementById("colorwheel-stage");
-      if (!stage) return;
-
-      let draggingSlot = null;
-
-      const updateAngleFromPointer = (clientX, clientY, slotKey) => {
-        const rect = stage.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const deg = (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI;
-        wheelSlots[slotKey].angle = (deg + 360) % 360;
-        renderThreePointWheel(true);
-      };
-
-      document.querySelectorAll("[data-select-slot]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          selectedWheelSlot = btn.getAttribute("data-select-slot");
-          renderThreePointWheel(false);
-        });
-      });
-
-      stage.querySelectorAll("[data-color-slot]").forEach((dot) => {
-        dot.addEventListener("pointerdown", (e) => {
-          e.stopPropagation();
-          draggingSlot = dot.getAttribute("data-color-slot");
-          selectedWheelSlot = draggingSlot;
-          dot.setPointerCapture(e.pointerId);
-        });
-
-        dot.addEventListener("pointermove", (e) => {
-          if (draggingSlot !== dot.getAttribute("data-color-slot")) return;
-          updateAngleFromPointer(e.clientX, e.clientY, draggingSlot);
-        });
-
-        dot.addEventListener("pointerup", () => {
-          draggingSlot = null;
-        });
-      });
-
-      document.getElementById("btn-reset-wheel")?.addEventListener("click", () => {
-        applyDesignPackage(localStorage.getItem(THEME_STORAGE_KEY) || "creamy");
-        renderThreePointWheel(false);
-      });
-
-      renderThreePointWheel(false);
-    }
-
-    /* Scribbles */
+    /* ==========================================================================
+       5. SCRIBBLES & HANDKRITZEL-DOODLES
+       ========================================================================== */
     function initScribbles() {
       const canvas = document.getElementById("scribble-canvas");
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
+
+      const saveScribble = () => {
+        try {
+          localStorage.setItem(SCRIBBLE_STORAGE_KEY, canvas.toDataURL("image/png"));
+        } catch {}
+      };
 
       const savedDataUrl = localStorage.getItem(SCRIBBLE_STORAGE_KEY);
       if (savedDataUrl) {
@@ -1152,6 +1240,9 @@
 
       const penBtn = document.getElementById("btn-scribble-pen");
       const eraserBtn = document.getElementById("btn-scribble-eraser");
+
+      const getStrokeColor = () =>
+        document.body.getAttribute("data-theme") === "oled" ? "#F2EFE9" : "#2E2924";
 
       const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -1185,7 +1276,7 @@
         } else {
           ctx.globalCompositeOperation = "source-over";
           ctx.lineWidth = 3.5;
-          ctx.strokeStyle = document.body.getAttribute("data-theme") === "oled" ? "#F2EFE9" : "#2E2924";
+          ctx.strokeStyle = getStrokeColor();
         }
 
         ctx.stroke();
@@ -1193,17 +1284,15 @@
         lastY = pos.y;
       });
 
-      const stopDrawing = () => {
+      const stop = () => {
         if (!drawing) return;
         drawing = false;
         ctx.globalCompositeOperation = "source-over";
-        try {
-          localStorage.setItem(SCRIBBLE_STORAGE_KEY, canvas.toDataURL("image/png"));
-        } catch {}
+        saveScribble();
       };
 
-      canvas.addEventListener("pointerup", stopDrawing);
-      canvas.addEventListener("pointercancel", stopDrawing);
+      canvas.addEventListener("pointerup", stop);
+      canvas.addEventListener("pointercancel", stop);
 
       penBtn?.addEventListener("click", () => {
         mode = "pen";
@@ -1222,17 +1311,313 @@
         localStorage.removeItem(SCRIBBLE_STORAGE_KEY);
       });
 
-      document.getElementById("btn-open-scribbles")?.addEventListener("click", () => {
-        document.getElementById("scribbles-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      /* Doodle-Stempel auf die Zeichenfläche setzen */
+      document.querySelectorAll("[data-doodle]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const kind = btn.getAttribute("data-doodle");
+          const cx = 110 + Math.random() * (canvas.width - 220);
+          const cy = 110 + Math.random() * (canvas.height - 220);
 
-      document.getElementById("btn-open-themes")?.addEventListener("click", () => {
-        document.getElementById("themes-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          ctx.save();
+          ctx.globalCompositeOperation = "source-over";
+          ctx.strokeStyle = getStrokeColor();
+          ctx.lineWidth = 3;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.beginPath();
+
+          if (kind === "star") {
+            for (let i = 0; i < 10; i++) {
+              const r = i % 2 === 0 ? 28 : 12;
+              const a = (i * Math.PI) / 5 - Math.PI / 2;
+              const x = cx + Math.cos(a) * r;
+              const y = cy + Math.sin(a) * r;
+              i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+          } else if (kind === "heart") {
+            ctx.moveTo(cx, cy + 18);
+            ctx.bezierCurveTo(cx - 32, cy - 8, cx - 16, cy - 30, cx, cy - 12);
+            ctx.bezierCurveTo(cx + 16, cy - 30, cx + 32, cy - 8, cx, cy + 18);
+          } else if (kind === "spiral") {
+            for (let t = 0; t < 18; t += 0.35) {
+              const r = t * 1.7;
+              const x = cx + Math.cos(t) * r;
+              const y = cy + Math.sin(t) * r;
+              t === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+          } else if (kind === "flower") {
+            for (let p = 0; p < 6; p++) {
+              const a = (p * Math.PI) / 3;
+              ctx.moveTo(cx, cy);
+              ctx.arc(cx + Math.cos(a) * 15, cy + Math.sin(a) * 15, 11, 0, Math.PI * 2);
+            }
+          } else if (kind === "arrow") {
+            ctx.moveTo(cx - 28, cy + 6);
+            ctx.quadraticCurveTo(cx, cy - 14, cx + 28, cy);
+            ctx.lineTo(cx + 16, cy - 10);
+            ctx.moveTo(cx + 28, cy);
+            ctx.lineTo(cx + 17, cy + 11);
+          } else if (kind === "cloud") {
+            ctx.arc(cx - 14, cy + 4, 14, Math.PI * 0.5, Math.PI * 1.5);
+            ctx.arc(cx + 2, cy - 6, 16, Math.PI, 0);
+            ctx.arc(cx + 18, cy + 4, 13, Math.PI * 1.5, Math.PI * 0.5);
+            ctx.closePath();
+          }
+
+          ctx.stroke();
+          ctx.restore();
+          saveScribble();
+        });
       });
     }
 
     /* ==========================================================================
-       SCHRITT 4: FESTES LAYOUT (KOMPAKT / DETAIL) & START
+       6. DESIGN-PAKETE, 5-FARBEN-PALETTEN & 120°-FARBRAD MIT 3 KULLERN
+       ========================================================================== */
+    const VALID_THEMES = ["creamy", "glass", "neumorph", "oled"];
+
+    const FIVE_COLOR_PALETTES = {
+      hafer: {
+        canvas: "#F7F3EC",
+        surface: "#FFFDF9",
+        accentIn: "#6F8F72",
+        accentOut: "#C97A5B",
+        text: "#2E2924"
+      },
+      morgentau: {
+        canvas: "#EFF2F0",
+        surface: "#FAFDFB",
+        accentIn: "#567D73",
+        accentOut: "#B8845A",
+        text: "#24302D"
+      },
+      abendrot: {
+        canvas: "#F9F1EB",
+        surface: "#FFFAF6",
+        accentIn: "#B86B52",
+        accentOut: "#C7924E",
+        text: "#382620"
+      },
+      nachthimmel: {
+        canvas: "#12151A",
+        surface: "#1B2028",
+        accentIn: "#7AA392",
+        accentOut: "#D98A6C",
+        text: "#ECEAE4"
+      }
+    };
+
+    function clearCustomColorVars() {
+      ["--bg-canvas", "--bg-surface", "--accent-in", "--accent-out", "--text-primary"].forEach((v) =>
+        document.body.style.removeProperty(v)
+      );
+    }
+
+    function applyDesignPackage(themeName) {
+      const chosen = VALID_THEMES.includes(themeName) ? themeName : "creamy";
+      clearCustomColorVars();
+      document.body.setAttribute("data-theme", chosen);
+      localStorage.setItem(THEME_STORAGE_KEY, chosen);
+
+      document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.getAttribute("data-theme-choice") === chosen);
+      });
+      document.querySelectorAll("[data-palette-choice]").forEach((btn) => btn.classList.remove("is-active"));
+
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        const barColors = { creamy: "#F7F3EC", glass: "#EAE6DF", neumorph: "#ECE8E1", oled: "#0D0D0D" };
+        metaTheme.setAttribute("content", barColors[chosen]);
+      }
+    }
+
+    function applyFiveColorPalette(paletteKey) {
+      const p = FIVE_COLOR_PALETTES[paletteKey];
+      if (!p) return;
+
+      document.body.style.setProperty("--bg-canvas", p.canvas);
+      document.body.style.setProperty("--bg-surface", p.surface);
+      document.body.style.setProperty("--accent-in", p.accentIn);
+      document.body.style.setProperty("--accent-out", p.accentOut);
+      document.body.style.setProperty("--text-primary", p.text);
+
+      document.querySelectorAll("[data-palette-choice]").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.getAttribute("data-palette-choice") === paletteKey);
+      });
+
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute("content", p.canvas);
+    }
+
+    /* 120°-Farbrad: 3 Kuller drehen harmonisch gekoppelt mit */
+    let baseWheelAngle = 38;
+
+    function hslToHex(angleDeg, saturation, lightness) {
+      const h = ((angleDeg % 360) + 360) % 360;
+      const a = (saturation / 100) * Math.min(lightness / 100, 1 - lightness / 100);
+      const f = (n) => {
+        const k = (n + h / 30) % 12;
+        const c = lightness / 100 - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * c).toString(16).padStart(2, "0");
+      };
+      return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+    }
+
+    function renderTriadicWheel(applyColors = false) {
+      const stage = document.getElementById("colorwheel-stage");
+      if (!stage) return;
+
+      const size = stage.clientWidth || 220;
+      const radiusPx = size / 2 - 22;
+      const center = size / 2;
+
+      const angles = [
+        baseWheelAngle % 360,
+        (baseWheelAngle + 120) % 360,
+        (baseWheelAngle + 240) % 360
+      ];
+
+      angles.forEach((deg, idx) => {
+        const rad = (deg * Math.PI) / 180;
+        const dot = stage.querySelector(`[data-wheel-dot="${idx}"]`);
+        if (dot) {
+          dot.style.left = `${center + Math.cos(rad) * radiusPx}px`;
+          dot.style.top = `${center + Math.sin(rad) * radiusPx}px`;
+          dot.style.background = hslToHex(deg, 50, 52);
+        }
+      });
+
+      const bgHex = hslToHex(angles[0], 34, 94);
+      const inHex = hslToHex(angles[1], 36, 48);
+      const outHex = hslToHex(angles[2], 44, 54);
+
+      document.getElementById("slot-hex-bg").textContent = bgHex;
+      document.getElementById("slot-hex-in").textContent = inHex;
+      document.getElementById("slot-hex-out").textContent = outHex;
+
+      if (applyColors) {
+        document.body.style.setProperty("--bg-canvas", bgHex);
+        document.body.style.setProperty("--accent-in", inHex);
+        document.body.style.setProperty("--accent-out", outHex);
+      }
+    }
+
+    function initTriadicWheel() {
+      const stage = document.getElementById("colorwheel-stage");
+      if (!stage) return;
+
+      let draggingIndex = null;
+
+      stage.querySelectorAll("[data-wheel-dot]").forEach((dot) => {
+        dot.addEventListener("pointerdown", (e) => {
+          e.stopPropagation();
+          draggingIndex = parseInt(dot.getAttribute("data-wheel-dot"), 10);
+          dot.setPointerCapture(e.pointerId);
+        });
+
+        dot.addEventListener("pointermove", (e) => {
+          if (draggingIndex === null) return;
+          const rect = stage.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const pointerDeg = ((Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI + 360) % 360;
+          baseWheelAngle = (pointerDeg - draggingIndex * 120 + 360) % 360;
+          renderTriadicWheel(true);
+        });
+
+        dot.addEventListener("pointerup", () => {
+          draggingIndex = null;
+        });
+      });
+
+      document.getElementById("btn-reset-wheel")?.addEventListener("click", () => {
+        baseWheelAngle = 38;
+        applyDesignPackage(localStorage.getItem(THEME_STORAGE_KEY) || "creamy");
+        renderTriadicWheel(false);
+      });
+
+      renderTriadicWheel(false);
+    }
+
+    /* ==========================================================================
+       7. BACKUP (EXPORT/IMPORT) & UPDATE ERZWINGEN
+       ========================================================================== */
+    function initBackupAndUpdates() {
+      const statusMsg = document.getElementById("backup-status-msg");
+      const fileInput = document.getElementById("input-import-file");
+
+      document.getElementById("btn-export-backup")?.addEventListener("click", () => {
+        const payload = {
+          app: "Stempeluhr",
+          exportedAt: new Date().toISOString(),
+          data: loadAppData(),
+          theme: localStorage.getItem(THEME_STORAGE_KEY) || "creamy",
+          layout: localStorage.getItem(LAYOUT_STORAGE_KEY) || "compact",
+          scribble: localStorage.getItem(SCRIBBLE_STORAGE_KEY) || null
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `stempeluhr-backup-${dateKey()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        if (statusMsg) statusMsg.textContent = "Backup erfolgreich heruntergeladen.";
+      });
+
+      document.getElementById("btn-import-backup")?.addEventListener("click", () => {
+        fileInput?.click();
+      });
+
+      fileInput?.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result));
+            if (parsed.data?.days) {
+              saveAppData(parsed.data);
+            } else if (parsed.days) {
+              saveAppData(parsed);
+            }
+            if (parsed.theme) applyDesignPackage(parsed.theme);
+            if (parsed.layout) applyHomeLayout(parsed.layout);
+            if (parsed.scribble) {
+              localStorage.setItem(SCRIBBLE_STORAGE_KEY, parsed.scribble);
+            }
+            renderToday();
+            renderWeekCalendar();
+            if (statusMsg) statusMsg.textContent = "Backup erfolgreich eingespielt!";
+          } catch {
+            if (statusMsg) statusMsg.textContent = "Backup-Datei konnte nicht gelesen werden.";
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById("btn-force-update")?.addEventListener("click", async () => {
+        if (statusMsg) statusMsg.textContent = "Cache wird geleert und App neu geladen…";
+        try {
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+        } catch {}
+        window.location.reload();
+      });
+    }
+
+    /* ==========================================================================
+       8. START & INITIALISIERUNG
        ========================================================================== */
     function applyHomeLayout(mode) {
       const chosen = mode === "detail" ? "detail" : "compact";
@@ -1255,38 +1640,60 @@
 
     function updateHomeClock() {
       const el = document.getElementById("home-live-clock");
-      if (!el) return;
-      el.textContent = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+      if (el) el.textContent = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      initDesignPackages();
+      applyDesignPackage(localStorage.getItem(THEME_STORAGE_KEY) || "creamy");
+      document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+        btn.addEventListener("click", () => applyDesignPackage(btn.getAttribute("data-theme-choice")));
+      });
+      document.querySelectorAll("[data-palette-choice]").forEach((btn) => {
+        btn.addEventListener("click", () => applyFiveColorPalette(btn.getAttribute("data-palette-choice")));
+      });
+
+      initVerticalStampPad();
       initCleanNavigation();
       initWeekCalendar();
-      initThreePointWheel();
       initScribbles();
+      initTriadicWheel();
+      initBackupAndUpdates();
       initHomeLayout();
 
-      document.getElementById("btn-stamp-in")?.addEventListener("click", () => stampNow("in"));
-      document.getElementById("btn-stamp-out")?.addEventListener("click", () => stampNow("out"));
+      document.getElementById("btn-stamp-in")?.addEventListener("click", () => stampAt("in"));
+      document.getElementById("btn-stamp-out")?.addEventListener("click", () => stampAt("out"));
 
-      document.getElementById("btn-quick-pause")?.addEventListener("click", () => {
+      document.querySelectorAll("[data-add-pause]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const add = parseInt(btn.getAttribute("data-add-pause"), 10);
+          const data = loadAppData();
+          const day = ensureDay(data, dateKey());
+          day.pauseMinutes = (day.pauseMinutes || 0) + add;
+          saveAppData(data);
+          renderToday();
+          renderWeekCalendar();
+        });
+      });
+
+      document.getElementById("btn-reset-pause")?.addEventListener("click", () => {
         const data = loadAppData();
-        const day = ensureDay(data, dateKey());
-        day.pauseMinutes = (day.pauseMinutes || 0) + 15;
+        ensureDay(data, dateKey()).pauseMinutes = 0;
         saveAppData(data);
         renderToday();
         renderWeekCalendar();
       });
 
-      document.getElementById("btn-quick-undo")?.addEventListener("click", () => {
-        const data = loadAppData();
-        const day = ensureDay(data, dateKey());
-        day.stamps.pop();
-        saveAppData(data);
-        renderToday();
-        renderWeekCalendar();
-      });
+      const addManual = (type, inputId) => {
+        const val = document.getElementById(inputId)?.value;
+        if (!val) return;
+        const [hh, mm] = val.split(":").map(Number);
+        const dt = new Date();
+        dt.setHours(hh, mm, 0, 0);
+        stampAt(type, dt.getTime());
+      };
+
+      document.getElementById("btn-add-manual-k")?.addEventListener("click", () => addManual("in", "manual-k-time"));
+      document.getElementById("btn-add-manual-g")?.addEventListener("click", () => addManual("out", "manual-g-time"));
 
       renderToday();
       updateHomeClock();
