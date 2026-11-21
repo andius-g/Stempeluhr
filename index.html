@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.2
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.4
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.5.2)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.5.4)</title>
 
     <script>
-        const APP_VERSION = "1.5.2";
+        const APP_VERSION = "1.5.4";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -50,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=152">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=154">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -102,7 +102,12 @@
             --watermark-display: block;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         html, body {
             width: 100%;
@@ -152,6 +157,7 @@
             padding: calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
             overflow: hidden;
             user-select: none;
+            -webkit-user-select: none;
             touch-action: none;
         }
         .welcome-overlay.active {
@@ -182,7 +188,6 @@
             transform: translate(-50%, -50%);
             cursor: pointer;
             padding: 8px;
-            -webkit-tap-highlight-color: transparent;
         }
         .scatter-rot-wrap {
             display: flex;
@@ -606,42 +611,65 @@
             margin: 12px 0;
         }
 
-        .dual-manual-times {
+        /* ZWEI K/G PILLEN MIT AUTO-HH:MM & OHNE BROWSER-AUSWAHL */
+        .dual-manual-pills {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 12px;
         }
 
-        .inputs-group-kg {
-            display: grid;
-            grid-template-columns: 38px 1fr 1fr;
-            gap: 4px;
-            align-items: center;
-            width: 100%;
-        }
-
-        .kg-badge {
+        .kg-pill {
+            display: flex;
+            align-items: stretch;
             height: 46px;
-            border-radius: var(--radius-input);
+            border-radius: 999px;
             border: 2px solid var(--border-color);
-            background-color: var(--bg-color);
+            background: var(--white);
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .kg-pill.is-active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px hsla(var(--hue), 64%, var(--lightness), 0.18);
+        }
+        .kg-pill-tag {
+            width: 34px;
+            flex-shrink: 0;
+            background: var(--bg-color);
             color: var(--text-color);
             font-weight: bold;
-            font-size: 1.06em;
+            font-size: 1em;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-right: 1.5px solid var(--border-color);
             user-select: none;
+            -webkit-user-select: none;
         }
-
-        .inputs-group-kg input[type="number"] {
-            width: 100%;
+        .kg-pill-input {
+            flex: 1;
             min-width: 0;
-            height: 46px;
-            padding: 8px 1px;
-            font-size: 1.14em;
+            width: 100%;
+            height: 100%;
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-color);
+            font-size: 1.16em;
             font-weight: bold;
+            text-align: center;
+            padding: 0 8px !important;
+            font-variant-numeric: tabular-nums;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -webkit-touch-callout: none !important;
+            caret-color: transparent;
+            cursor: pointer;
+        }
+        .kg-pill-input:focus {
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         input[type="text"], input[type="number"], input[type="month"], input[type="date"] {
@@ -730,45 +758,182 @@
         }
 
         /* =========================================================
-           SCREEN 3: WOCHE (WOCHENBILANZ)
+           SCREEN 3: WOCHE (EIN GESCHLOSSENES FENSTER + WISCHBAR)
            ========================================================= */
-        .week-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 6px;
+        .week-window-card {
+            background: var(--white);
+            border-radius: var(--week-card-radius);
+            border: 1.5px solid var(--border-color);
+            overflow: hidden;
             margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .week-title-col {
+
+        .week-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 9px 13px;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+            cursor: pointer;
+        }
+        .week-row:active { background-color: var(--bg-color); }
+        .week-row.is-today {
+            background-color: var(--bg-color);
+            box-shadow: inset 4px 0 0 var(--primary-color);
+        }
+
+        .day-label {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 4px;
+            min-width: 68px;
+            text-align: left;
+            line-height: 1.2;
         }
-        .week-header h2 { font-size: 1.08em; }
-        .week-nav-cluster { display: flex; align-items: center; gap: 6px; }
+        .day-label strong { font-size: 0.95em; }
+        .day-label span { font-size: 0.74em; opacity: 0.78; white-space: nowrap; }
 
-        .btn-jump-today {
-            background: var(--primary-color);
-            color: var(--white);
-            border: none;
+        .day-time-display {
+            flex: 1;
+            font-size: 0.96em;
+            font-weight: bold;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+        .day-time-display.empty { opacity: 0.36; font-weight: normal; }
+
+        .day-status-note {
+            flex: 1;
+            font-size: 0.82em;
+            opacity: 0.78;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-badge-pill {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-badge);
-            padding: 5px 9px;
-            font-size: 0.76em;
+            padding: 4px 7px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-align: center;
+            min-width: 68px;
+        }
+        .status-badge-pill[data-status="vacation"],
+        .status-badge-pill[data-status="holiday"] {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+        .status-badge-pill[data-status="free"] { opacity: 0.72; }
+
+        /* GRAUER ABSCHLUSS IM SELBEN FENSTER OHNE GESTRICHELTEN STRICH */
+        .btn-add-day-entry {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-top: 1px solid var(--border-color);
+            border-radius: 0;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 0.88em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-add-day-entry:active {
+            background: var(--card-bg);
+        }
+
+        /* VERSCHMOLZENE KW-WISCHLEISTE */
+        .week-switcher-row {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .kw-merged-swipebar {
+            flex: 1;
+            min-width: 0;
+            min-height: 44px;
+            display: flex;
+            align-items: stretch;
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: 999px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            touch-action: pan-y;
+        }
+        .kw-edge-zone {
+            flex: 0 0 auto;
+            padding: 0 11px;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 0.8em;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-            display: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
-        .btn-jump-today.visible { display: inline-block; }
+        .kw-edge-zone:active {
+            background: var(--bg-color);
+        }
+        .kw-center-zone {
+            flex: 1;
+            min-width: 0;
+            padding: 5px 8px;
+            border: none;
+            border-left: 1px solid rgba(0,0,0,0.09);
+            border-right: 1px solid rgba(0,0,0,0.09);
+            background: var(--primary-color);
+            color: var(--white);
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.12;
+        }
+        .kw-center-zone:active {
+            filter: brightness(0.95);
+        }
+        .kw-center-title {
+            font-size: 0.84em;
+            white-space: nowrap;
+        }
+        .kw-center-hint {
+            font-size: 0.68em;
+            font-weight: normal;
+            opacity: 0.92;
+            white-space: nowrap;
+        }
 
-        .date-jump-wrap { position: relative; width: 36px; height: 46px; }
+        .date-jump-wrap {
+            position: relative;
+            width: 44px;
+            min-height: 44px;
+            flex-shrink: 0;
+        }
         .btn-date-jump {
             width: 100%;
             height: 100%;
             background: var(--white);
             color: var(--text-color);
-            border: 1px solid var(--border-color);
+            border: 1.5px solid var(--border-color);
             border-radius: var(--radius-btn);
             display: flex;
             align-items: center;
@@ -785,112 +950,7 @@
             border: none;
         }
 
-        .kw-vertical-nav {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-btn);
-            overflow: hidden;
-            min-width: 92px;
-        }
-        .kw-v-btn {
-            width: 100%;
-            background: var(--white);
-            color: var(--text-color);
-            border: none;
-            font-size: 0.74em;
-            font-weight: bold;
-            padding: 3px 8px;
-            cursor: pointer;
-        }
-        .kw-badge {
-            width: 100%;
-            font-size: 0.78em;
-            font-weight: bold;
-            background: var(--primary-color);
-            color: var(--white);
-            padding: 4px 8px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .week-list-card {
-            background: var(--white);
-            border-radius: var(--week-card-radius);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-
-        .week-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(0,0,0,0.07);
-            cursor: pointer;
-        }
-        .week-row:last-child { border-bottom: none; }
-        .week-row:active { background-color: var(--bg-color); }
-        .week-row.is-today {
-            background-color: var(--bg-color);
-            box-shadow: inset 4px 0 0 var(--primary-color);
-        }
-
-        .day-label {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            min-width: 72px;
-            text-align: left;
-            line-height: 1.22;
-        }
-        .day-label strong { font-size: 0.96em; }
-        .day-label span { font-size: 0.75em; opacity: 0.78; white-space: nowrap; }
-
-        .day-time-display {
-            flex: 1;
-            font-size: 0.98em;
-            font-weight: bold;
-            text-align: center;
-            font-variant-numeric: tabular-nums;
-        }
-        .day-time-display.empty { opacity: 0.38; font-weight: normal; }
-
-        .day-status-note {
-            flex: 1;
-            font-size: 0.85em;
-            opacity: 0.78;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .status-badge-pill {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-badge);
-            padding: 5px 8px;
-            font-size: 0.78em;
-            font-weight: bold;
-            text-align: center;
-            min-width: 72px;
-        }
-        .status-badge-pill[data-status="vacation"],
-        .status-badge-pill[data-status="holiday"] {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border-color: var(--primary-color);
-        }
-        .status-badge-pill[data-status="free"] { opacity: 0.72; }
-
-        .btn-add-day-entry, .btn-open-pdf-export {
+        .btn-open-pdf-export {
             width: 100%;
             padding: 10px 12px;
             border-radius: var(--radius-btn);
@@ -903,12 +963,6 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-        }
-        .btn-add-day-entry {
-            margin-bottom: 12px;
-            border: 1.5px dashed var(--primary-color);
-        }
-        .btn-open-pdf-export {
             margin-top: 10px;
             border: 1.5px solid var(--border-color);
         }
@@ -973,6 +1027,102 @@
         .glz-pill.ampel-rot .glz-dot {
             background: #ef4444;
             box-shadow: 0 0 6px rgba(239, 68, 68, 0.65);
+        }
+
+        /* =========================================================
+           EIGENE ZAHLENTASTATUR (CUSTOM KEYPAD SHEET)
+           ========================================================= */
+        .custom-keypad-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 3200;
+            background: var(--card-bg);
+            border-top: 2px solid var(--border-color);
+            border-radius: 18px 18px 0 0;
+            padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.22);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .custom-keypad-sheet.active {
+            display: flex;
+            animation: keypadSlideUp 0.16s ease-out;
+        }
+        @keyframes keypadSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .keypad-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 0 2px;
+        }
+        .keypad-target-badge {
+            font-size: 0.84em;
+            font-weight: bold;
+            color: var(--text-color);
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 4px 11px;
+        }
+        .keypad-close-btn {
+            background: var(--white);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 4px 11px;
+            font-size: 0.82em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .kp-key {
+            height: 48px;
+            border-radius: 11px;
+            border: 1.5px solid var(--border-color);
+            background: var(--white);
+            color: var(--text-color);
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            transition: transform 0.08s, background-color 0.15s;
+        }
+        .kp-key:active {
+            transform: scale(0.95);
+            background: var(--bg-color);
+        }
+        .kp-key.kp-op {
+            background: var(--bg-color);
+        }
+        .kp-key.kp-del {
+            background: #fff4f4;
+            color: #a61b1b;
+            border-color: rgba(166, 27, 27, 0.28);
+        }
+        .kp-key.kp-enter {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
         }
 
         /* =========================================================
@@ -1623,16 +1773,15 @@
 
                     <hr class="section-divider">
 
-                    <div class="dual-manual-times">
-                        <div class="inputs-group-kg">
-                            <div class="kg-badge" title="Kommen">K</div>
-                            <input type="number" id="startHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="startMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                    <!-- ZWEI K/G PILLEN MIT AUTO-HH:MM -->
+                    <div class="dual-manual-pills">
+                        <div class="kg-pill" id="pill-start">
+                            <div class="kg-pill-tag">K</div>
+                            <input type="text" id="startTimePill" class="kg-pill-input" value="" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" readonly placeholder="hh:mm" aria-label="Kommen hh:mm">
                         </div>
-                        <div class="inputs-group-kg">
-                            <div class="kg-badge" title="Gehen">G</div>
-                            <input type="number" id="endHours" min="0" max="23" value="" inputmode="numeric" placeholder="hh">
-                            <input type="number" id="endMinutes" min="0" max="59" value="" inputmode="numeric" placeholder="mm">
+                        <div class="kg-pill" id="pill-end">
+                            <div class="kg-pill-tag">G</div>
+                            <input type="text" id="endTimePill" class="kg-pill-input" value="" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" readonly placeholder="hh:mm" aria-label="Gehen hh:mm">
                         </div>
                     </div>
 
@@ -1664,37 +1813,37 @@
 
             <!-- SCREEN 3: WOCHE -->
             <div id="view-week" class="view-section">
-                <div class="feature-section">
-                    <div class="week-header">
-                        <div class="week-title-col">
-                            <h2>Woche</h2>
-                            <button type="button" class="btn-jump-today" id="btn-jump-today">↺ Heute</button>
-                        </div>
-                        <div class="week-nav-cluster">
-                            <div class="date-jump-wrap" title="Zu Datum springen">
-                                <div class="btn-date-jump">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                                    </svg>
-                                </div>
-                                <input type="date" class="hidden-date-picker" id="week-date-picker" aria-label="Datum auswählen">
-                            </div>
-                            <div class="kw-vertical-nav">
-                                <button type="button" class="kw-v-btn" id="btn-prev-week" title="Vorherige Woche">▲</button>
-                                <span class="kw-badge" id="week-kw-badge" title="Zur aktuellen Woche">KW -</span>
-                                <button type="button" class="kw-v-btn" id="btn-next-week" title="Nächste Woche">▼</button>
-                            </div>
-                        </div>
+                <div class="feature-section" id="week-feature-card">
+                    <!-- EIN GESCHLOSSENES FENSTER: TAGE + GRAUER NACHTRAGEN-ABSCHLUSS -->
+                    <div class="week-window-card">
+                        <div id="week-days-container"></div>
+                        <button type="button" class="btn-add-day-entry" id="btn-open-backfill-modal">
+                            <span>+ Tag / Wochenende nachtragen</span>
+                        </button>
                     </div>
 
-                    <div class="week-list-card" id="week-days-container"></div>
-
-                    <button type="button" class="btn-add-day-entry" id="btn-open-backfill-modal">
-                        <span>+ Tag / Wochenende nachtragen</span>
-                    </button>
+                    <!-- VERSCHMOLZENE KW-WISCHLEISTE -->
+                    <div class="week-switcher-row">
+                        <div class="kw-merged-swipebar" id="kw-merged-swipebar">
+                            <button type="button" class="kw-edge-zone" id="btn-prev-week" title="Vorherige KW">‹ Vorherige</button>
+                            <button type="button" class="kw-center-zone" id="week-kw-badge" title="Tippen für aktuelle KW">
+                                <span class="kw-center-title" id="week-kw-main">KW -</span>
+                                <span class="kw-center-hint" id="week-kw-sub">Wischen oder tippen</span>
+                            </button>
+                            <button type="button" class="kw-edge-zone" id="btn-next-week" title="Nächste KW">Nächste ›</button>
+                        </div>
+                        <div class="date-jump-wrap" title="Zu Datum springen">
+                            <div class="btn-date-jump">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                            <input type="date" class="hidden-date-picker" id="week-date-picker" aria-label="Datum auswählen">
+                        </div>
+                    </div>
 
                     <div class="output-decimal-container">
                         <div class="output-decimal">
@@ -1727,6 +1876,35 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- EIGENE ZAHLENTASTATUR -->
+    <div class="custom-keypad-sheet" id="custom-keypad-sheet" role="region" aria-label="Zahlentastatur">
+        <div class="keypad-topbar">
+            <span class="keypad-target-badge" id="keypad-target-badge">Kommen (hh:mm)</span>
+            <button type="button" class="keypad-close-btn" id="keypad-close-btn">Fertig</button>
+        </div>
+        <div class="keypad-grid">
+            <button type="button" class="kp-key" data-kp="1">1</button>
+            <button type="button" class="kp-key" data-kp="2">2</button>
+            <button type="button" class="kp-key" data-kp="3">3</button>
+            <button type="button" class="kp-key kp-op" data-kp="-" title="Minus">−</button>
+
+            <button type="button" class="kp-key" data-kp="4">4</button>
+            <button type="button" class="kp-key" data-kp="5">5</button>
+            <button type="button" class="kp-key" data-kp="6">6</button>
+            <button type="button" class="kp-key kp-op" data-kp="+" title="Plus">+</button>
+
+            <button type="button" class="kp-key" data-kp="7">7</button>
+            <button type="button" class="kp-key" data-kp="8">8</button>
+            <button type="button" class="kp-key" data-kp="9">9</button>
+            <button type="button" class="kp-key kp-del" data-kp="del" title="Löschen" aria-label="Löschen">⌫</button>
+
+            <button type="button" class="kp-key kp-op" data-kp=",0.">,0.</button>
+            <button type="button" class="kp-key" data-kp="0">0</button>
+            <button type="button" class="kp-key kp-op" data-kp="clear" title="Leeren">C</button>
+            <button type="button" class="kp-key kp-enter" data-kp="enter" title="Enter" aria-label="Enter">↵</button>
         </div>
     </div>
 
@@ -1881,7 +2059,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.2</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.4</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -2222,7 +2400,6 @@
                SCRIBBLE SVG-SET (32 MOTIVE AUS EINEM GUSS)
                ========================================================= */
             const SCRIBBLE_ICONS = [
-                // 1-12: Basis-Doodles & Symbole
                 { id: "bolt", label: "Blitz", inner: `<path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/>` },
                 { id: "loop-arrow", label: "Schleife", inner: `<path d="M5 24 C10 26, 22 23, 21 15 C20 10, 13 11, 14 17 C15 23, 25 22, 30 13 M24 12.5 L30.5 12.5 L29.5 19"/>` },
                 { id: "star", label: "Stern", inner: `<path d="M18 4 L21.4 13.4 L31.5 13.8 L23.5 19.8 L26.3 29.8 L18 23.8 L9.7 29.8 L12.5 19.8 L4.5 13.8 L14.6 13.4 Z"/>` },
@@ -2236,7 +2413,6 @@
                 { id: "clover", label: "Klee", inner: `<path d="M18 17.5 C13 15.5, 13.5 8.5, 18 8.5 C22.5 8.5, 23 15.5, 18 17.5 Z M18 17.5 C20 12.5, 27 13, 27 17.5 C27 22, 20 22.5, 18 17.5 Z M18 17.5 C16 12.5, 9 13, 9 17.5 C9 22, 16 22.5, 18 17.5 Z M18 17.5 C21 21, 19.5 28, 15.5 31.5"/>` },
                 { id: "planet", label: "Saturn", inner: `<circle cx="18" cy="18" r="7.5"/><path d="M5.5 22.5 C3.5 19.5, 8.5 15.5, 16.8 13.5 C25 11.5, 31.5 12, 30.8 15.2 C30 18.5, 24.5 22, 16.5 24 C10.5 25.5, 7 24.8, 5.5 22.5 Z"/>` },
 
-                // 13-20: Erweiterte Doodles & Markierungen
                 { id: "arrow-wave", label: "Wellenpfeil", inner: `<path d="M5 18 C8.5 13, 12 23, 15.5 18 C19 13, 22.5 23, 26 18 H31 M26.5 13.5 L31.5 18 L26.5 22.5"/>` },
                 { id: "check-mark", label: "Haken", inner: `<path d="M6.5 19 L14 26.5 L29.5 9.5"/>` },
                 { id: "cross-x", label: "Kreuz", inner: `<path d="M8.5 8.5 L27.5 27.5 M27.5 8.5 L8.5 27.5"/>` },
@@ -2246,7 +2422,6 @@
                 { id: "smiley", label: "Smiley", inner: `<circle cx="18" cy="18" r="11.5"/><circle cx="14" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="22" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><path d="M13 20.5 C14.5 23.5, 21.5 23.5, 23 20.5"/>` },
                 { id: "grid-hash", label: "Gitter", inner: `<path d="M14 7.5 V28.5 M22 7.5 V28.5 M7.5 14 H28.5 M7.5 22 H28.5"/>` },
 
-                // 21-28: Florales, Blätter & Schmetterling
                 { id: "blossom", label: "Blüte", inner: `<circle cx="18" cy="18" r="3.5"/><path d="M18 14.5 C15 11.5, 15 6.5, 18 6.5 C21 6.5, 21 11.5, 18 14.5 Z M21.5 18 C24.5 15, 29.5 15, 29.5 18 C29.5 21, 24.5 21, 21.5 18 Z M18 21.5 C21 24.5, 21 29.5, 18 29.5 C15 29.5, 15 24.5, 18 21.5 Z M14.5 18 C11.5 21, 6.5 21, 6.5 18 C6.5 15, 11.5 15, 14.5 18 Z"/>` },
                 { id: "stem-flower", label: "Blume", inner: `<path d="M18 31 V16 M18 25 C14 25, 12 22.5, 12 20.5 C15 20.5, 17 22.5, 18 25 Z M18 23 C22 23, 24 20.5, 24 18.5 C21 18.5, 19 20.5, 18 23 Z"/><path d="M12 11.5 C12 7.5, 15 5.5, 18 5.5 C21 5.5, 24 7.5, 24 11.5 C24 14.5, 21 16, 18 16 C15 16, 12 14.5, 12 11.5 Z"/>` },
                 { id: "leaf", label: "Blatt", inner: `<path d="M8 28 C8 15, 17 8, 28 8 C28 19, 21 28, 8 28 Z M6.5 29.5 L21 15"/>` },
@@ -2256,7 +2431,6 @@
                 { id: "sprout", label: "Keimling", inner: `<path d="M18 31 V17 M18 21 C12 21, 7.5 17, 7.5 12.5 C13.5 12.5, 17.5 16, 18 21 Z M18 18 C23.5 18, 28.5 14, 28.5 9.5 C22.5 9.5, 18.5 13, 18 18 Z"/>` },
                 { id: "daisy", label: "Gänseblümchen", inner: `<circle cx="18" cy="18" r="3.2"/><path d="M18 6.5 C20.5 6.5, 21.5 10.5, 19.5 14.5 M28.5 14.5 C29.5 17, 26.5 19.5, 21.5 18.5 M24.5 28 C22.5 29.5, 19.5 27, 18.5 21.5 M11.5 28 C9.5 26.5, 11 22.5, 15.5 20.5 M7.5 14.5 C6.5 12, 10.5 10.5, 15.5 15.5"/>` },
 
-                // 29-32: Weltraum (Rakete, Komet, Erde, Mondstation)
                 { id: "rocket", label: "Rakete", inner: `<path d="M18 5 C23.5 9.5, 24.5 16.5, 22 23.5 H14 C11.5 16.5, 12.5 9.5, 18 5 Z"/><circle cx="18" cy="14.5" r="2.8"/><path d="M14 19.5 L9.5 24 L14 23.5 M22 19.5 L26.5 24 L22 23.5 M15.5 25.5 L18 31 L20.5 25.5"/>` },
                 { id: "comet", label: "Komet", inner: `<circle cx="22.5" cy="14.5" r="5.5"/><path d="M17.5 12.5 L6.5 9.5 M17 15.5 L5 16.5 M18.5 18.5 L9 24.5 M20.5 20 L15.5 28.5"/>` },
                 { id: "earth", label: "Planet", inner: `<circle cx="18" cy="18" r="11"/><path d="M10.5 11.5 C13.5 12.5, 15 15, 13.5 17.5 C12 20, 14.5 22.5, 17 22 C19.5 21.5, 21 24, 22.5 26.5 M22 10.5 C20 12.5, 21.5 15.5, 25 15"/>` },
@@ -2586,12 +2760,12 @@
             /* =========================================================
                SCREEN 2 (UHR) <-> SCREEN 3 (WOCHE) NAVIGATION
                ========================================================= */
+            const viewsStage = document.getElementById("views-stage");
             const viewClock = document.getElementById("view-clock");
             const viewWeek = document.getElementById("view-week");
             const toggleViewBtn = document.getElementById("btn-toggle-view");
             const iconViewWeek = document.getElementById("icon-view-week");
             const iconViewClock = document.getElementById("icon-view-clock");
-            const btnJumpToday = document.getElementById("btn-jump-today");
             const weekDatePicker = document.getElementById("week-date-picker");
             let weekOffset = 0;
 
@@ -2599,6 +2773,7 @@
                 if (viewClock.classList.contains("active")) return;
                 viewWeek.classList.remove("active");
                 viewClock.classList.add("active");
+                viewsStage.scrollTop = 0;
                 iconViewWeek.style.display = "block";
                 iconViewClock.style.display = "none";
                 toggleViewBtn.title = "Woche";
@@ -2609,9 +2784,11 @@
                 if (welcomeOverlay.classList.contains("active")) {
                     closeWelcomeScreen();
                 }
+                closeCustomKeypad();
                 if (viewWeek.classList.contains("active")) return;
                 viewClock.classList.remove("active");
                 viewWeek.classList.add("active");
+                viewsStage.scrollTop = 0;
                 iconViewWeek.style.display = "none";
                 iconViewClock.style.display = "block";
                 toggleViewBtn.title = "Uhr";
@@ -2647,11 +2824,50 @@
                 buildWeekView();
             }
 
-            document.getElementById("btn-prev-week").addEventListener("click", () => changeWeek(-1));
-            document.getElementById("btn-next-week").addEventListener("click", () => changeWeek(1));
-            document.getElementById("week-kw-badge").addEventListener("click", jumpToCurrentWeek);
-            btnJumpToday.addEventListener("click", jumpToCurrentWeek);
+            document.getElementById("btn-prev-week").addEventListener("click", (e) => {
+                e.stopPropagation();
+                changeWeek(-1);
+            });
+            document.getElementById("btn-next-week").addEventListener("click", (e) => {
+                e.stopPropagation();
+                changeWeek(1);
+            });
+            document.getElementById("week-kw-badge").addEventListener("click", (e) => {
+                e.stopPropagation();
+                jumpToCurrentWeek();
+            });
             weekDatePicker.addEventListener("change", () => jumpToDateStr(weekDatePicker.value));
+
+            // Verschmolzene KW-Wischleiste
+            const kwMergedSwipebar = document.getElementById("kw-merged-swipebar");
+            let kwBarStartX = 0, kwBarDidSwipe = false;
+            kwMergedSwipebar.addEventListener("touchstart", (e) => {
+                if (e.touches.length === 1) {
+                    kwBarStartX = e.touches[0].clientX;
+                    kwBarDidSwipe = false;
+                }
+            }, { passive: true });
+            kwMergedSwipebar.addEventListener("touchmove", (e) => {
+                if (e.touches.length === 1 && Math.abs(e.touches[0].clientX - kwBarStartX) > 22) {
+                    kwBarDidSwipe = true;
+                }
+            }, { passive: true });
+            kwMergedSwipebar.addEventListener("touchend", (e) => {
+                if (e.changedTouches.length !== 1) return;
+                const dx = e.changedTouches[0].clientX - kwBarStartX;
+                if (Math.abs(dx) > 36) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    changeWeek(dx < 0 ? 1 : -1);
+                }
+            });
+            kwMergedSwipebar.addEventListener("click", (e) => {
+                if (kwBarDidSwipe) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    kwBarDidSwipe = false;
+                }
+            }, true);
 
             /* =========================================================
                SCREEN 4: MENÜ (EINSTELLUNGEN & UNTERMENÜS)
@@ -2945,6 +3161,7 @@
                 if (welcomeOverlay.classList.contains("active")) {
                     closeWelcomeScreen();
                 }
+                closeCustomKeypad();
                 userNameInput.value = userName;
                 weeklyHoursInput.value = weeklyHours;
                 glzBaseInput.value = glzBaseHours;
@@ -2992,12 +3209,19 @@
             });
 
             /* =========================================================
-               STEMPEL-LOGIK, PAUSEN-VORWARNUNG & ZEITBERECHNUNG
+               STEMPEL-LOGIK, K/G-PILLEN (AUTO HH:MM) & EIGENE TASTATUR
                ========================================================= */
-            const startHoursInput = document.getElementById("startHours");
-            const startMinutesInput = document.getElementById("startMinutes");
-            const endHoursInput = document.getElementById("endHours");
-            const endMinutesInput = document.getElementById("endMinutes");
+            const startTimePill = document.getElementById("startTimePill");
+            const endTimePill = document.getElementById("endTimePill");
+            const pillStartWrap = document.getElementById("pill-start");
+            const pillEndWrap = document.getElementById("pill-end");
+            const keypadSheet = document.getElementById("custom-keypad-sheet");
+            const keypadTargetBadge = document.getElementById("keypad-target-badge");
+
+            let activePillKey = null; // "start" | "end" | null
+            let pillRawBuffer = ""; // Rohe Ziffernfolge für Auto-hh:mm (z.B. "0225" -> "02:25", "815" -> "08:15")
+            let pillHasCustomText = false;
+
             const btnUndo = document.getElementById("btn-undo");
             const sessionsBox = document.getElementById("sessions-box");
             const sessionsList = document.getElementById("sessions-list");
@@ -3007,6 +3231,184 @@
 
             let todaySessions = [];
             let undoStack = [];
+
+            function formatRawDigitsToHhMm(digits) {
+                const clean = digits.replace(/\D/g, "").slice(0, 4);
+                if (!clean) return "";
+                if (clean.length === 1) {
+                    return `0${clean}:00`;
+                }
+                if (clean.length === 2) {
+                    const h = Math.min(23, parseInt(clean, 10));
+                    return `${format2(h)}:00`;
+                }
+                if (clean.length === 3) {
+                    const h = Math.min(23, parseInt(clean[0], 10));
+                    const m = Math.min(59, parseInt(clean.slice(1), 10));
+                    return `${format2(h)}:${format2(m)}`;
+                }
+                const h = Math.min(23, parseInt(clean.slice(0, 2), 10));
+                const m = Math.min(59, parseInt(clean.slice(2, 4), 10));
+                return `${format2(h)}:${format2(m)}`;
+            }
+
+            function parseHhMmString(str) {
+                if (!str) return null;
+                const trimmed = str.trim();
+                const colonMatch = trimmed.match(/^(\d{1,2})\s*[:.,]\s*(\d{1,2})$/);
+                if (colonMatch) {
+                    const h = Math.min(23, Math.max(0, parseInt(colonMatch[1], 10) || 0));
+                    const m = Math.min(59, Math.max(0, parseInt(colonMatch[2], 10) || 0));
+                    return { h: format2(h), m: format2(m) };
+                }
+                const digitsOnly = trimmed.replace(/\D/g, "");
+                if (!digitsOnly) return null;
+                const formatted = formatRawDigitsToHhMm(digitsOnly);
+                const [hh, mm] = formatted.split(":");
+                return { h: hh, m: mm };
+            }
+
+            function getParsedStart() {
+                if (pillHasCustomText && startTimePill.value.trim() !== "") {
+                    return parseHhMmString(startTimePill.value);
+                }
+                if (startTimePill.value.trim() !== "") {
+                    return parseHhMmString(startTimePill.value);
+                }
+                return null;
+            }
+
+            function getParsedEnd() {
+                if (endTimePill.value.trim() !== "") {
+                    return parseHhMmString(endTimePill.value);
+                }
+                return null;
+            }
+
+            function highlightActivePill() {
+                pillStartWrap.classList.toggle("is-active", activePillKey === "start");
+                pillEndWrap.classList.toggle("is-active", activePillKey === "end");
+            }
+
+            function openCustomKeypad(which) {
+                pushUndoSnapshot();
+                activePillKey = which;
+                pillHasCustomText = false;
+                const currentVal = which === "start" ? startTimePill.value : endTimePill.value;
+                const parsed = parseHhMmString(currentVal);
+                pillRawBuffer = parsed ? `${parsed.h}${parsed.m}` : "";
+                keypadTargetBadge.textContent = which === "start" ? "Kommen (hh:mm)" : "Gehen (hh:mm)";
+                highlightActivePill();
+                keypadSheet.classList.add("active");
+            }
+
+            function closeCustomKeypad() {
+                if (activePillKey !== null) {
+                    activePillKey = null;
+                    pillRawBuffer = "";
+                    pillHasCustomText = false;
+                    highlightActivePill();
+                    keypadSheet.classList.remove("active");
+                    onManualTimeInputChange();
+                    calculateAllTimes();
+                } else {
+                    keypadSheet.classList.remove("active");
+                }
+            }
+
+            startTimePill.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openCustomKeypad("start");
+            });
+            endTimePill.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openCustomKeypad("end");
+            });
+            document.getElementById("keypad-close-btn").addEventListener("click", closeCustomKeypad);
+
+            function shiftActiveTimeByMinutes(deltaMins) {
+                const targetInput = activePillKey === "start" ? startTimePill : endTimePill;
+                const parsed = parseHhMmString(targetInput.value) || { h: "08", m: "00" };
+                const total = Math.min(23 * 60 + 59, Math.max(0, (parseInt(parsed.h, 10) * 60) + parseInt(parsed.m, 10) + deltaMins));
+                const nh = format2(Math.floor(total / 60));
+                const nm = format2(total % 60);
+                pillRawBuffer = `${nh}${nm}`;
+                pillHasCustomText = false;
+                targetInput.value = `${nh}:${nm}`;
+                onManualTimeInputChange();
+                calculateAllTimes();
+            }
+
+            keypadSheet.querySelectorAll(".kp-key").forEach((keyBtn) => {
+                keyBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    if (!activePillKey) return;
+                    const action = keyBtn.getAttribute("data-kp");
+                    const targetInput = activePillKey === "start" ? startTimePill : endTimePill;
+
+                    if (/^[0-9]$/.test(action)) {
+                        if (pillRawBuffer.length >= 4) pillRawBuffer = action;
+                        else pillRawBuffer += action;
+                        pillHasCustomText = false;
+                        targetInput.value = formatRawDigitsToHhMm(pillRawBuffer);
+                        onManualTimeInputChange();
+                        calculateAllTimes();
+                    } else if (action === "del") {
+                        if (pillRawBuffer.length > 0) {
+                            pillRawBuffer = pillRawBuffer.slice(0, -1);
+                            pillHasCustomText = false;
+                            targetInput.value = pillRawBuffer ? formatRawDigitsToHhMm(pillRawBuffer) : "";
+                        } else {
+                            targetInput.value = "";
+                        }
+                        onManualTimeInputChange();
+                        calculateAllTimes();
+                    } else if (action === "clear") {
+                        pillRawBuffer = "";
+                        pillHasCustomText = false;
+                        targetInput.value = "";
+                        onManualTimeInputChange();
+                        calculateAllTimes();
+                    } else if (action === "-") {
+                        shiftActiveTimeByMinutes(-15);
+                    } else if (action === "+") {
+                        shiftActiveTimeByMinutes(15);
+                    } else if (action === ",0.") {
+                        const current = targetInput.value.trim();
+                        if (!current || /^\d{1,2}$/.test(current)) {
+                            const hVal = current ? format2(Math.min(23, parseInt(current, 10))) : "08";
+                            pillRawBuffer = `${hVal}00`;
+                            targetInput.value = `${hVal}:00`;
+                        } else if (!current.includes(":")) {
+                            targetInput.value = `${current},0.`;
+                            pillHasCustomText = true;
+                        } else {
+                            targetInput.value = `${current}0`;
+                            pillHasCustomText = true;
+                        }
+                        onManualTimeInputChange();
+                        calculateAllTimes();
+                    } else if (action === "enter") {
+                        const nextKey = activePillKey === "start" ? "end" : null;
+                        closeCustomKeypad();
+                        if (nextKey === "end") {
+                            openCustomKeypad("end");
+                        }
+                    }
+                });
+            });
+
+            // Tippen außerhalb von Pillen und Tastatur schließt die Tastatur
+            document.addEventListener("click", (e) => {
+                if (keypadSheet.classList.contains("active")
+                    && !e.target.closest("#custom-keypad-sheet")
+                    && !e.target.closest("#pill-start")
+                    && !e.target.closest("#pill-end")) {
+                    closeCustomKeypad();
+                }
+            });
 
             const updateUndoButtonState = () => { btnUndo.disabled = undoStack.length === 0; };
             function pushUndoSnapshot() {
@@ -3056,10 +3458,12 @@
 
             function checkPauseNotifications() {
                 if (!pauseNotifyEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
-                const stH = parseInt(startHoursInput.value, 10);
-                if (isNaN(stH) || endHoursInput.value !== "") return;
+                const parsedS = getParsedStart();
+                const parsedE = getParsedEnd();
+                if (!parsedS || parsedE) return;
 
-                const stM = parseInt(startMinutesInput.value, 10) || 0;
+                const stH = parseInt(parsedS.h, 10);
+                const stM = parseInt(parsedS.m, 10) || 0;
                 const stS = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
                 const startSecs = (stH * 3600) + (stM * 60) + stS;
                 const nowSecs = getNowSecsOfDay();
@@ -3149,15 +3553,13 @@
 
             function syncInputsFromSessions() {
                 if (todaySessions.length === 0) {
-                    startHoursInput.value = ""; startMinutesInput.value = "";
-                    endHoursInput.value = ""; endMinutesInput.value = "";
+                    startTimePill.value = "";
+                    endTimePill.value = "";
                     return;
                 }
-                startHoursInput.value = todaySessions[0].start.h;
-                startMinutesInput.value = todaySessions[0].start.m;
+                startTimePill.value = `${todaySessions[0].start.h}:${todaySessions[0].start.m || "00"}`;
                 const last = todaySessions[todaySessions.length - 1];
-                endHoursInput.value = last.end ? last.end.h : "";
-                endMinutesInput.value = last.end ? last.end.m : "";
+                endTimePill.value = last.end ? `${last.end.h}:${last.end.m || "00"}` : "";
             }
 
             function saveSessionsAndDay() {
@@ -3176,29 +3578,30 @@
                     return;
                 }
 
+                const pS = getParsedStart();
+                const pE = getParsedEnd();
                 const { totalPresSecs } = getSessionMetrics(null);
                 let currentDay = getDayData(todayStr) || { status: 'work' };
                 if (todaySessions.length > 0 && currentDay.status === 'free') currentDay.status = 'work';
-                currentDay.startH = startHoursInput.value;
-                currentDay.startM = startMinutesInput.value;
-                currentDay.endH = endHoursInput.value;
-                currentDay.endM = endMinutesInput.value;
+                currentDay.startH = pS ? pS.h : '';
+                currentDay.startM = pS ? pS.m : '';
+                currentDay.endH = pE ? pE.h : '';
+                currentDay.endM = pE ? pE.m : '';
                 currentDay.sessions = todaySessions;
                 currentDay.customPresSecs = totalPresSecs > 0 ? totalPresSecs : null;
                 saveDayData(todayStr, currentDay);
             }
 
-            let manualEditSnapshotTaken = false;
             function onManualTimeInputChange() {
-                const stH = startHoursInput.value;
-                const enH = endHoursInput.value;
-                if (stH === "" && enH === "") {
+                const pS = getParsedStart();
+                const pE = getParsedEnd();
+                if (!pS && !pE) {
                     todaySessions = [];
                     saveSessionsAndDay();
                     return;
                 }
-                const startObj = stH !== "" ? { h: format2(parseInt(stH, 10) || 0), m: format2(parseInt(startMinutesInput.value, 10) || 0), s: "00" } : null;
-                const endObj = enH !== "" ? { h: format2(parseInt(enH, 10) || 0), m: format2(parseInt(endMinutesInput.value, 10) || 0), s: "00" } : null;
+                const startObj = pS ? { h: pS.h, m: pS.m, s: "00" } : null;
+                const endObj = pE ? { h: pE.h, m: pE.m, s: "00" } : null;
 
                 if (todaySessions.length === 0) {
                     if (startObj) todaySessions.push({ start: startObj, end: endObj });
@@ -3226,26 +3629,6 @@
                 if (!isNaN(max) && val > max) val = max;
                 input.value = format2(val);
             }
-
-            function setupInput(currentInput, nextInput, onUpdate) {
-                currentInput.addEventListener("focus", () => { currentInput.select(); manualEditSnapshotTaken = false; });
-                currentInput.addEventListener("input", () => {
-                    if (!manualEditSnapshotTaken) { pushUndoSnapshot(); manualEditSnapshotTaken = true; }
-                    if (currentInput.value.length > 2) currentInput.value = currentInput.value.slice(0, 2);
-                    if (currentInput.value.length === 2 && nextInput) nextInput.focus();
-                    if (onUpdate) onUpdate();
-                    calculateAllTimes();
-                });
-                currentInput.addEventListener("blur", () => {
-                    clampInput(currentInput);
-                    if (onUpdate) onUpdate();
-                    calculateAllTimes();
-                });
-            }
-            setupInput(startHoursInput, startMinutesInput, onManualTimeInputChange);
-            setupInput(startMinutesInput, endHoursInput, onManualTimeInputChange);
-            setupInput(endHoursInput, endMinutesInput, onManualTimeInputChange);
-            setupInput(endMinutesInput, null, onManualTimeInputChange);
 
             function triggerStampComeNow() {
                 pushUndoSnapshot();
@@ -3304,16 +3687,17 @@
             }
 
             function calculateEndTimes() {
-                const hours = parseInt(startHoursInput.value, 10);
-                const minutes = parseInt(startMinutesInput.value, 10) || 0;
-                const seconds = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
-
-                if (isNaN(hours)) {
+                const pS = getParsedStart();
+                if (!pS) {
                     document.getElementById("output-no-pause").textContent = "-";
                     document.getElementById("output-30min-pause-range").textContent = "-";
                     document.getElementById("output-45min-pause").textContent = "-";
                     return;
                 }
+
+                const hours = parseInt(pS.h, 10);
+                const minutes = parseInt(pS.m, 10) || 0;
+                const seconds = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
 
                 const { totalGapSecs } = getSessionMetrics(null);
                 const startTime = new Date();
@@ -3328,17 +3712,15 @@
             }
 
             function calculateWorkingTime() {
-                const stH = parseInt(startHoursInput.value, 10);
-                const stM = parseInt(startMinutesInput.value, 10) || 0;
-                const enH = parseInt(endHoursInput.value, 10);
-                const enM = parseInt(endMinutesInput.value, 10) || 0;
+                const pS = getParsedStart();
+                const pE = getParsedEnd();
 
                 const labelDec = document.getElementById("label-decimal-time");
                 const labelOver = document.getElementById("label-overtime");
                 const decOutputEl = document.getElementById("output-decimal-time");
                 const pauseHintEl = document.getElementById("output-pause-hint");
 
-                if (isNaN(stH)) {
+                if (!pS) {
                     labelDec.textContent = "Dezimal (h)";
                     labelOver.textContent = "+/-";
                     decOutputEl.textContent = "-";
@@ -3347,7 +3729,10 @@
                     return;
                 }
 
-                const isLiveRunning = isNaN(enH);
+                const stH = parseInt(pS.h, 10);
+                const stM = parseInt(pS.m, 10) || 0;
+                const isLiveRunning = !pE;
+
                 const stS = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
                 const startSecs = (stH * 3600) + (stM * 60) + stS;
 
@@ -3357,6 +3742,8 @@
                     labelDec.innerHTML = `<span class="live-dot"></span>Bisher (Netto)`;
                     labelOver.innerHTML = `<span class="live-dot"></span>Bis Soll (+/-)`;
                 } else {
+                    const enH = parseInt(pE.h, 10);
+                    const enM = parseInt(pE.m, 10) || 0;
                     const lastSess = todaySessions[todaySessions.length - 1];
                     const enS = (lastSess && lastSess.end) ? (parseInt(lastSess.end.s, 10) || 0) : 0;
                     endSecs = (enH * 3600) + (enM * 60) + enS;
@@ -3399,7 +3786,7 @@
             }
 
             /* =========================================================
-               SCREEN 3: WOCHE, AMPELKONTO, EDITOR & PDF-EXPORT
+               SCREEN 3: WOCHE (SAMSTAG IMMER DABEI), AMPELKONTO & PDF
                ========================================================= */
             function getMonday(d) {
                 d = new Date(d);
@@ -3877,14 +4264,14 @@
                 const container = document.getElementById("week-days-container");
                 container.innerHTML = "";
 
-                btnJumpToday.classList.toggle("visible", weekOffset !== 0);
                 const todayStr = getTodayStr();
                 const refDate = new Date();
                 refDate.setDate(refDate.getDate() + (weekOffset * 7));
                 weekDatePicker.value = `${refDate.getFullYear()}-${format2(refDate.getMonth() + 1)}-${format2(refDate.getDate())}`;
 
                 const kwNum = getCalendarWeek(refDate);
-                document.getElementById("week-kw-badge").textContent = weekOffset === 0 ? `KW ${kwNum} · Aktuell` : `KW ${kwNum} (${refDate.getFullYear()})`;
+                document.getElementById("week-kw-main").textContent = `KW ${kwNum} · ${refDate.getFullYear()}`;
+                document.getElementById("week-kw-sub").textContent = weekOffset === 0 ? "Aktuelle KW · Wischen" : "Tippen = aktuelle KW";
 
                 const monday = getMonday(refDate);
                 const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
@@ -3899,13 +4286,16 @@
                     const dateStr = `${currDate.getFullYear()}-${format2(currDate.getMonth() + 1)}-${format2(currDate.getDate())}`;
                     const dateShort = `${format2(currDate.getDate())}.${format2(currDate.getMonth() + 1)}.`;
                     const holidayName = getHolidayName(dateStr);
-                    const isWeekend = (i === 5 || i === 6);
+                    const isSunday = (i === 6);
+                    const isSaturday = (i === 5);
 
                     const rawSaved = localStorage.getItem("day_" + dateStr);
-                    const defaultStatus = holidayName ? 'holiday' : (isWeekend ? 'free' : 'work');
+                    const defaultStatus = holidayName ? 'holiday' : ((isSaturday || isSunday) ? 'free' : 'work');
                     let saved = getDayData(dateStr) || { status: defaultStatus, startH: '', startM: '', endH: '', endM: '' };
                     if (holidayName && !rawSaved) saved.status = 'holiday';
-                    if (isWeekend && !hasWeekendBooking(saved)) continue;
+
+                    // Sonntag nur anzeigen, wenn gebucht; Samstag immer mit anzeigen
+                    if (isSunday && !hasWeekendBooking(saved)) continue;
 
                     const row = document.createElement("div");
                     row.className = "week-row" + (dateStr === todayStr ? " is-today" : "");
@@ -3927,11 +4317,11 @@
                     } else if (saved.status === 'vacation' || saved.status === 'sick') {
                         middleHtml = `<div class="day-status-note">Soll gutgeschrieben</div>`;
                     } else {
-                        middleHtml = `<div class="day-status-note">${isWeekend ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
+                        middleHtml = `<div class="day-status-note">${(isSaturday || isSunday) ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
                     }
 
                     row.innerHTML = `<div class="day-label"><strong>${dayShort[i]}</strong><span>${dateShort}${smokeSub}${splitSub}</span></div>${middleHtml}<div class="status-badge-pill" data-status="${saved.status}">${statusLabels[saved.status] || 'Arbeit'}</div>`;
-                    row.addEventListener("click", () => openDayEditor(dateStr, `${dayFullNames[i]}, ${dateShort}${currDate.getFullYear()}`, defaultStatus));
+                    row.addEventListener("click", () => openDayEditor(dateStr, `${dayFullNames[i]}, ${dateShort}${currDate.getFullYear()}`, isSaturday ? 'work' : defaultStatus));
                     container.appendChild(row);
 
                     if (saved.status === 'work') {
@@ -4099,10 +4489,10 @@
 
             /* =========================================================
                4-RICHTUNGS-STEUERUNG (OHNE MENÜ BEIM WISCHEN)
-               - Hoch / Runter: Start (Kommen) <-> Start (Gehen) direkt
-               - Links / Rechts: Woche <-> Uhr/Start (Menü ausgenommen)
+               - Hoch / Runter: Start (Kommen / Gehen) von Uhr & Woche
+               - Links / Rechts: Woche <-> Uhr/Start
                ========================================================= */
-            let touchStartX = 0, touchStartY = 0, touchBlocked = false;
+            let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
 
             document.addEventListener("touchstart", (e) => {
                 const anyModalOpen = settingsModal.classList.contains("active")
@@ -4110,13 +4500,14 @@
                     || pdfExportModal.classList.contains("active")
                     || backfillModal.classList.contains("active");
 
-                if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea")) {
+                if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
                     touchBlocked = true;
                     return;
                 }
                 touchBlocked = false;
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
+                stageScrollAtStart = viewsStage.scrollTop;
             }, { passive: true });
 
             document.addEventListener("touchend", (e) => {
@@ -4126,7 +4517,7 @@
                 const absX = Math.abs(dx), absY = Math.abs(dy);
                 const threshold = 55;
 
-                // Horizontale Achse: Links -> Woche, Rechts -> Uhr/Start (Menü nicht über Wischen)
+                // Horizontale Achse: Links -> Woche, Rechts -> Uhr/Start
                 if (absX > threshold && absX > absY * 1.3) {
                     if (dx < 0) {
                         switchToWeekView();
@@ -4140,7 +4531,7 @@
                     return;
                 }
 
-                // Vertikale Achse: Hoch / Runter = Start (Kommen <-> Gehen) direkt
+                // Vertikale Achse: Hoch / Runter = Start (Kommen / Gehen)
                 if (absY > threshold && absY > absX * 1.3) {
                     if (welcomeOverlay.classList.contains("active")) {
                         if (dy < 0) {
@@ -4150,6 +4541,15 @@
                         }
                     } else if (viewClock.classList.contains("active")) {
                         openWelcomeScreen(dy < 0 ? "come" : "go");
+                    } else if (viewWeek.classList.contains("active")) {
+                        const maxScroll = Math.max(0, viewsStage.scrollHeight - viewsStage.clientHeight);
+                        const scrolledDuringSwipe = Math.abs(viewsStage.scrollTop - stageScrollAtStart) > 12;
+                        const atTopPullingDown = dy > 0 && stageScrollAtStart <= 2 && viewsStage.scrollTop <= 2;
+                        const atBottomPullingUp = dy < 0 && (maxScroll - stageScrollAtStart) <= 8 && (maxScroll - viewsStage.scrollTop) <= 8;
+
+                        if (!scrolledDuringSwipe && (atTopPullingDown || atBottomPullingUp || maxScroll <= 4)) {
+                            openWelcomeScreen(dy < 0 ? "come" : "go");
+                        }
                     }
                 }
             }, { passive: true });
@@ -4198,7 +4598,9 @@
                 liveDayEl.textContent = `${weekdaysFull[now.getDay()]}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
                 if (welcomeOverlay.classList.contains("active")) updateWelcomeGreetingText();
 
-                if (startHoursInput.value !== "" && endHoursInput.value === "") {
+                const pS = getParsedStart();
+                const pE = getParsedEnd();
+                if (pS && !pE) {
                     checkPauseNotifications();
                     if (viewClock.classList.contains("active")) {
                         calculateWorkingTime();
