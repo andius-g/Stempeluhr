@@ -2,7 +2,7 @@
   "name": "Stempeluhr & Wochenübersicht",
   "short_name": "Stempeluhr",
   "description": "Zeiterfassung mit Kommen/Gehen, Pausenberechnung, Wochenübersicht, Gleitzeit-Ampel und PDF-Export",
-  "start_url": "./index.html?v=154",
+  "start_url": "./index.html?v=155",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

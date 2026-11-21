@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.4
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.5
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.5.4)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.5.5)</title>
 
     <script>
-        const APP_VERSION = "1.5.4";
+        const APP_VERSION = "1.5.5";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -50,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=154">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=155">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -202,8 +202,8 @@
             will-change: transform, opacity;
         }
         .scatter-anim-wrap svg {
-            width: var(--icon-size, 42px);
-            height: var(--icon-size, 42px);
+            width: var(--icon-size, 48px);
+            height: var(--icon-size, 48px);
             stroke: #ffffff;
             fill: none;
             stroke-width: 2.2;
@@ -692,8 +692,30 @@
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
 
-        .output-decimal-container { display: flex; gap: 10px; }
-        .output-decimal-container .output-decimal { flex: 1; }
+        .output-decimal-container {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .output-decimal-container .output-decimal {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* KOMPAKTE, GLEICH HOHE WOCHEN-KACHELN OHNE UNTERTEXT */
+        .week-summary-pair .output-decimal {
+            min-height: 54px;
+            padding: 8px 10px;
+        }
+        .week-summary-pair .output-decimal h3 {
+            margin-bottom: 2px;
+            font-size: 0.78em;
+        }
+        .week-summary-pair .output-decimal div {
+            font-size: 1.12em;
+        }
 
         .live-dot {
             display: inline-block;
@@ -758,7 +780,7 @@
         }
 
         /* =========================================================
-           SCREEN 3: WOCHE (EIN GESCHLOSSENES FENSTER + WISCHBAR)
+           SCREEN 3: WOCHE (EIN GESCHLOSSENES FENSTER + GROSSE WISCHBAR)
            ========================================================= */
         .week-window-card {
             background: var(--white);
@@ -774,7 +796,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 9px 13px;
+            padding: 8px 13px;
             border-bottom: 1px solid rgba(0,0,0,0.07);
             cursor: pointer;
         }
@@ -790,14 +812,14 @@
             align-items: flex-start;
             min-width: 68px;
             text-align: left;
-            line-height: 1.2;
+            line-height: 1.18;
         }
-        .day-label strong { font-size: 0.95em; }
-        .day-label span { font-size: 0.74em; opacity: 0.78; white-space: nowrap; }
+        .day-label strong { font-size: 0.94em; }
+        .day-label span { font-size: 0.73em; opacity: 0.78; white-space: nowrap; }
 
         .day-time-display {
             flex: 1;
-            font-size: 0.96em;
+            font-size: 0.94em;
             font-weight: bold;
             text-align: center;
             font-variant-numeric: tabular-nums;
@@ -806,7 +828,7 @@
 
         .day-status-note {
             flex: 1;
-            font-size: 0.82em;
+            font-size: 0.8em;
             opacity: 0.78;
             text-align: center;
             white-space: nowrap;
@@ -820,10 +842,10 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-badge);
             padding: 4px 7px;
-            font-size: 0.75em;
+            font-size: 0.74em;
             font-weight: bold;
             text-align: center;
-            min-width: 68px;
+            min-width: 66px;
         }
         .status-badge-pill[data-status="vacation"],
         .status-badge-pill[data-status="holiday"] {
@@ -833,17 +855,16 @@
         }
         .status-badge-pill[data-status="free"] { opacity: 0.72; }
 
-        /* GRAUER ABSCHLUSS IM SELBEN FENSTER OHNE GESTRICHELTEN STRICH */
         .btn-add-day-entry {
             width: 100%;
-            padding: 10px 12px;
+            padding: 9px 12px;
             border: none;
             border-top: 1px solid var(--border-color);
             border-radius: 0;
             background: var(--bg-color);
             color: var(--text-color);
             font-weight: bold;
-            font-size: 0.88em;
+            font-size: 0.86em;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -854,33 +875,33 @@
             background: var(--card-bg);
         }
 
-        /* VERSCHMOLZENE KW-WISCHLEISTE */
+        /* GRÖSSERE KW-WISCHLEISTE MIT NUR KW · JJJJ */
         .week-switcher-row {
             display: flex;
             align-items: stretch;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .kw-merged-swipebar {
             flex: 1;
             min-width: 0;
-            min-height: 44px;
+            min-height: 52px;
             display: flex;
             align-items: stretch;
             background: var(--white);
             border: 1.5px solid var(--border-color);
             border-radius: 999px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 7px rgba(0,0,0,0.06);
             touch-action: pan-y;
         }
         .kw-edge-zone {
             flex: 0 0 auto;
-            padding: 0 11px;
+            padding: 0 13px;
             border: none;
             background: transparent;
             color: var(--text-color);
-            font-size: 0.8em;
+            font-size: 0.84em;
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -894,7 +915,7 @@
         .kw-center-zone {
             flex: 1;
             min-width: 0;
-            padding: 5px 8px;
+            padding: 6px 10px;
             border: none;
             border-left: 1px solid rgba(0,0,0,0.09);
             border-right: 1px solid rgba(0,0,0,0.09);
@@ -903,29 +924,22 @@
             font-weight: bold;
             cursor: pointer;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            line-height: 1.12;
         }
         .kw-center-zone:active {
             filter: brightness(0.95);
         }
         .kw-center-title {
-            font-size: 0.84em;
-            white-space: nowrap;
-        }
-        .kw-center-hint {
-            font-size: 0.68em;
-            font-weight: normal;
-            opacity: 0.92;
+            font-size: 0.98em;
+            letter-spacing: 0.2px;
             white-space: nowrap;
         }
 
         .date-jump-wrap {
             position: relative;
-            width: 44px;
-            min-height: 44px;
+            width: 52px;
+            min-height: 52px;
             flex-shrink: 0;
         }
         .btn-date-jump {
@@ -952,25 +966,24 @@
 
         .btn-open-pdf-export {
             width: 100%;
-            padding: 10px 12px;
+            padding: 9px 12px;
             border-radius: var(--radius-btn);
             background: var(--white);
             color: var(--text-color);
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 0.86em;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            margin-top: 10px;
+            margin-top: 8px;
             border: 1.5px solid var(--border-color);
         }
-        .balance-sub {
-            font-size: 0.74em !important;
-            font-weight: normal !important;
-            opacity: 0.88;
-            margin-top: 2px;
+        .btn-open-pdf-export:active {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
         }
 
         /* AMPELKONTO STATUS-PILLE */
@@ -1822,19 +1835,18 @@
                         </button>
                     </div>
 
-                    <!-- VERSCHMOLZENE KW-WISCHLEISTE -->
+                    <!-- GRÖSSERE VERSCHMOLZENE KW-WISCHLEISTE (NUR KW · JJJJ) -->
                     <div class="week-switcher-row">
                         <div class="kw-merged-swipebar" id="kw-merged-swipebar">
                             <button type="button" class="kw-edge-zone" id="btn-prev-week" title="Vorherige KW">‹ Vorherige</button>
                             <button type="button" class="kw-center-zone" id="week-kw-badge" title="Tippen für aktuelle KW">
                                 <span class="kw-center-title" id="week-kw-main">KW -</span>
-                                <span class="kw-center-hint" id="week-kw-sub">Wischen oder tippen</span>
                             </button>
                             <button type="button" class="kw-edge-zone" id="btn-next-week" title="Nächste KW">Nächste ›</button>
                         </div>
                         <div class="date-jump-wrap" title="Zu Datum springen">
                             <div class="btn-date-jump">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                     <line x1="16" y1="2" x2="16" y2="6"></line>
                                     <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -1845,28 +1857,17 @@
                         </div>
                     </div>
 
-                    <div class="output-decimal-container">
+                    <!-- BEIDE BUTTONS GLEICHE HÖHE, KOMPAKTER, OHNE SOLL/DEZ-UNTERTEXT -->
+                    <div class="output-decimal-container week-summary-pair">
                         <div class="output-decimal">
                             <h3 id="label-week-worked">Geleistet (Ist)</h3>
                             <div id="output-week-worked">-</div>
-                            <div class="balance-sub" id="output-week-soll">von 40:00 h Soll</div>
                         </div>
                         <div class="output-decimal">
                             <h3 id="label-week-total">Wochen-Saldo</h3>
                             <div id="output-week-total">-</div>
-                            <div class="balance-sub" id="output-week-decimal">0,00 h</div>
                         </div>
                     </div>
-
-                    <button type="button" class="btn-open-pdf-export" id="btn-open-pdf-modal">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="12" y1="18" x2="12" y2="12"></line>
-                            <polyline points="9 15 12 18 15 15"></polyline>
-                        </svg>
-                        <span>Monatsübersicht als PDF</span>
-                    </button>
 
                     <div class="glz-pill-wrap">
                         <div id="glzPill" class="glz-pill ampel-gruen">
@@ -1901,7 +1902,7 @@
             <button type="button" class="kp-key" data-kp="9">9</button>
             <button type="button" class="kp-key kp-del" data-kp="del" title="Löschen" aria-label="Löschen">⌫</button>
 
-            <button type="button" class="kp-key kp-op" data-kp=",0.">,0.</button>
+            <button type="button" class="kp-key kp-op" data-kp=".0,">.0,</button>
             <button type="button" class="kp-key" data-kp="0">0</button>
             <button type="button" class="kp-key kp-op" data-kp="clear" title="Leeren">C</button>
             <button type="button" class="kp-key kp-enter" data-kp="enter" title="Enter" aria-label="Enter">↵</button>
@@ -2054,12 +2055,21 @@
                             <button type="button" class="btn-backup-action" id="btn-export-backup">💾 Sichern</button>
                             <button type="button" class="btn-backup-action" id="btn-import-backup">📂 Laden</button>
                         </div>
+                        <button type="button" class="btn-open-pdf-export" id="btn-open-pdf-modal">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <polyline points="9 15 12 18 15 15"></polyline>
+                            </svg>
+                            <span>Monatsübersicht als PDF</span>
+                        </button>
                         <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;">
                     </div>
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.4</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.5</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -2195,7 +2205,7 @@
                         <div class="scribble-svg-grid" id="scribble-svg-grid"></div>
                         <div class="slider-control">
                             <label for="scribbleSizeSlider">
-                                <span>Symbolgröße:</span>
+                                <span>Scribble-Größe:</span>
                                 <span><span id="scribbleSizeVal">50</span>%</span>
                             </label>
                             <input type="range" id="scribbleSizeSlider" min="15" max="100" value="50">
@@ -2620,20 +2630,22 @@
                 const todaySeed = parseInt(getTodayStr().replace(/-/g, ""), 10) + selectedScribbles.join("").length * 131 + modeOffset;
                 const rng = createSeededRng(todaySeed);
 
-                const scaleFactor = 0.62 + (scribbleSizePct / 100) * 0.98;
-                const basePx = Math.round(42 * scaleFactor);
-                const minDistPct = Math.max(7.5, 6.5 + (scribbleSizePct / 100) * 5.5);
-                const targetCount = Math.round(34 - (scribbleSizePct / 100) * 12);
+                // Bei 100 % deutlich größer (bis über 120px)
+                const sizeNorm = scribbleSizePct / 100;
+                const scaleFactor = 0.58 + Math.pow(sizeNorm, 1.15) * 1.78;
+                const basePx = Math.round(54 * scaleFactor);
+                const minDistPct = Math.max(7.2, 6.2 + sizeNorm * 7.5);
+                const targetCount = Math.max(10, Math.round(32 - sizeNorm * 16));
 
                 const placed = [];
                 let attempts = 0;
 
-                while (placed.length < targetCount && attempts < 650) {
+                while (placed.length < targetCount && attempts < 700) {
                     attempts++;
-                    const x = 5 + rng() * 90;
-                    const y = 4 + rng() * 92;
+                    const x = 6 + rng() * 88;
+                    const y = 5 + rng() * 90;
 
-                    const inGreetingZone = (y > 8 && y < 22 && x > 14 && x < 86);
+                    const inGreetingZone = (y > 7 && y < 22 && x > 14 && x < 86);
                     if (inGreetingZone) continue;
 
                     let tooClose = false;
@@ -2652,9 +2664,9 @@
                 placed.forEach((pt, idx) => {
                     const iconObj = activeIcons[idx % activeIcons.length];
                     const rotDeg = Math.round((rng() - 0.5) * 90);
-                    const sizeJitter = 0.50 + rng() * 1.05;
+                    const sizeJitter = 0.55 + rng() * 0.95;
                     const finalPx = Math.round(basePx * sizeJitter);
-                    const alpha = (0.24 + rng() * 0.26).toFixed(2);
+                    const alpha = (0.25 + rng() * 0.25).toFixed(2);
 
                     const node = document.createElement("div");
                     node.className = "scatter-node";
@@ -2838,7 +2850,6 @@
             });
             weekDatePicker.addEventListener("change", () => jumpToDateStr(weekDatePicker.value));
 
-            // Verschmolzene KW-Wischleiste
             const kwMergedSwipebar = document.getElementById("kw-merged-swipebar");
             let kwBarStartX = 0, kwBarDidSwipe = false;
             kwMergedSwipebar.addEventListener("touchstart", (e) => {
@@ -3218,8 +3229,8 @@
             const keypadSheet = document.getElementById("custom-keypad-sheet");
             const keypadTargetBadge = document.getElementById("keypad-target-badge");
 
-            let activePillKey = null; // "start" | "end" | null
-            let pillRawBuffer = ""; // Rohe Ziffernfolge für Auto-hh:mm (z.B. "0225" -> "02:25", "815" -> "08:15")
+            let activePillKey = null;
+            let pillRawBuffer = "";
             let pillHasCustomText = false;
 
             const btnUndo = document.getElementById("btn-undo");
@@ -3269,9 +3280,6 @@
             }
 
             function getParsedStart() {
-                if (pillHasCustomText && startTimePill.value.trim() !== "") {
-                    return parseHhMmString(startTimePill.value);
-                }
                 if (startTimePill.value.trim() !== "") {
                     return parseHhMmString(startTimePill.value);
                 }
@@ -3375,17 +3383,18 @@
                         shiftActiveTimeByMinutes(-15);
                     } else if (action === "+") {
                         shiftActiveTimeByMinutes(15);
-                    } else if (action === ",0.") {
+                    } else if (action === ".0,") {
                         const current = targetInput.value.trim();
                         if (!current || /^\d{1,2}$/.test(current)) {
                             const hVal = current ? format2(Math.min(23, parseInt(current, 10))) : "08";
                             pillRawBuffer = `${hVal}00`;
+                            pillHasCustomText = false;
                             targetInput.value = `${hVal}:00`;
                         } else if (!current.includes(":")) {
-                            targetInput.value = `${current},0.`;
+                            targetInput.value = `${current}.0,`;
                             pillHasCustomText = true;
                         } else {
-                            targetInput.value = `${current}0`;
+                            targetInput.value = `${current}.0,`;
                             pillHasCustomText = true;
                         }
                         onManualTimeInputChange();
@@ -3400,7 +3409,6 @@
                 });
             });
 
-            // Tippen außerhalb von Pillen und Tastatur schließt die Tastatur
             document.addEventListener("click", (e) => {
                 if (keypadSheet.classList.contains("active")
                     && !e.target.closest("#custom-keypad-sheet")
@@ -4232,7 +4240,7 @@
                 const totalCreditedSecs = weekStaticCreditedSecs + liveTodaySecs;
                 const diffSecs = totalCreditedSecs - weekTotalSollSecs;
                 const sign = diffSecs < 0 ? "-" : "+";
-                const diffDec = (diffSecs / 3600).toFixed(2).replace('.', ',');
+                const absDiffSecs = Math.abs(diffSecs);
 
                 const fmtHM = (s) => `${format2(Math.floor(Math.abs(s) / 3600))}:${format2(Math.floor((Math.abs(s) % 3600) / 60))} h`;
                 const fmtHMS = (s) => {
@@ -4247,15 +4255,13 @@
                     lblWorked.innerHTML = `<span class="live-dot"></span>Geleistet (Live)`;
                     lblTotal.innerHTML = `<span class="live-dot"></span>Wochen-Saldo`;
                     document.getElementById("output-week-worked").textContent = fmtHMS(totalCreditedSecs);
-                    document.getElementById("output-week-total").textContent = `${sign}${fmtHMS(diffSecs)}`;
+                    document.getElementById("output-week-total").textContent = `${sign}${fmtHMS(absDiffSecs)}`;
                 } else {
                     lblWorked.textContent = "Geleistet (Ist)";
                     lblTotal.textContent = "Wochen-Saldo";
                     document.getElementById("output-week-worked").textContent = fmtHM(totalCreditedSecs);
-                    document.getElementById("output-week-total").textContent = `${sign}${fmtHM(diffSecs)}`;
+                    document.getElementById("output-week-total").textContent = `${sign}${fmtHM(absDiffSecs)}`;
                 }
-                document.getElementById("output-week-soll").textContent = `von ${fmtHM(weekTotalSollSecs)} Soll`;
-                document.getElementById("output-week-decimal").textContent = `${sign}${diffDec} h dez.`;
 
                 updateAmpelPill();
             }
@@ -4271,7 +4277,6 @@
 
                 const kwNum = getCalendarWeek(refDate);
                 document.getElementById("week-kw-main").textContent = `KW ${kwNum} · ${refDate.getFullYear()}`;
-                document.getElementById("week-kw-sub").textContent = weekOffset === 0 ? "Aktuelle KW · Wischen" : "Tippen = aktuelle KW";
 
                 const monday = getMonday(refDate);
                 const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
@@ -4294,7 +4299,6 @@
                     let saved = getDayData(dateStr) || { status: defaultStatus, startH: '', startM: '', endH: '', endM: '' };
                     if (holidayName && !rawSaved) saved.status = 'holiday';
 
-                    // Sonntag nur anzeigen, wenn gebucht; Samstag immer mit anzeigen
                     if (isSunday && !hasWeekendBooking(saved)) continue;
 
                     const row = document.createElement("div");
@@ -4488,9 +4492,7 @@
             });
 
             /* =========================================================
-               4-RICHTUNGS-STEUERUNG (OHNE MENÜ BEIM WISCHEN)
-               - Hoch / Runter: Start (Kommen / Gehen) von Uhr & Woche
-               - Links / Rechts: Woche <-> Uhr/Start
+               4-RICHTUNGS-STEUERUNG
                ========================================================= */
             let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
 
@@ -4517,7 +4519,6 @@
                 const absX = Math.abs(dx), absY = Math.abs(dy);
                 const threshold = 55;
 
-                // Horizontale Achse: Links -> Woche, Rechts -> Uhr/Start
                 if (absX > threshold && absX > absY * 1.3) {
                     if (dx < 0) {
                         switchToWeekView();
@@ -4531,7 +4532,6 @@
                     return;
                 }
 
-                // Vertikale Achse: Hoch / Runter = Start (Kommen / Gehen)
                 if (absY > threshold && absY > absX * 1.3) {
                     if (welcomeOverlay.classList.contains("active")) {
                         if (dy < 0) {
