@@ -1521,16 +1521,6 @@
             gap: 8px;
         }
 
-        .btn-weekend-quick {
-            padding: 10px;
-            border-radius: var(--radius-input);
-            border: 1.5px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-weight: bold;
-            cursor: pointer;
-        }
-
         /* TAGES-EDITOR */
         .day-status-grid {
             display: grid;
@@ -1787,9 +1777,9 @@
                         <button type="button" class="smoke-step-btn" id="btn-sub-smoke">−</button>
                         <div class="smoke-bar-info">🚬 Raucherpause: <span id="smoke-count-display">0× (-0m)</span></div>
                         <button type="button" class="smoke-step-btn" id="btn-add-smoke">+</button>
-                    
+                    </div>
 
-                <div class="pause-results-card">
+                    <div class="pause-results-card">
                         <div class="pause-row">
                             <span>Ohne Pause bis:</span>
                             <strong id="output-no-pause">-</strong>
@@ -1809,12 +1799,7 @@
                             <span>Zeitblöcke heute</span>
                             <span id="sessions-pres-sum">Anwesenheit: 00:00 h</span>
                         </div>
-                        <div id="sessions-list">
-
-
-
-
-</div>
+                        <div id="sessions-list"></div>
                         <div class="sessions-break-info" id="sessions-break-info" style="display: none;">
                             <span>Unterbrechung (abwesend):</span>
                             <strong id="sessions-gap-sum">0 min</strong>
