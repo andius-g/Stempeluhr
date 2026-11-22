@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.5.7
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.6
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.5.5)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.6)</title>
 
     <script>
-        const APP_VERSION = "1.5.5";
+        const APP_VERSION = "1.6";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -50,7 +50,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=155">
+    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=160">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -611,7 +611,7 @@
             margin: 12px 0;
         }
 
-        /* ZWEI K/G PILLEN MIT AUTO-HH:MM & OHNE BROWSER-AUSWAHL */
+        /* ZWEI K/G PILLEN MIT AUTO-HH:MM & GLOBALER ZAHLENTASTATUR */
         .dual-manual-pills {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -630,9 +630,10 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .kg-pill.is-active {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px hsla(var(--hue), 64%, var(--lightness), 0.18);
+        .kg-pill.is-active,
+        .keypad-bound-input.kp-focused {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 3px hsla(var(--hue), 64%, var(--lightness), 0.22) !important;
         }
         .kg-pill-tag {
             width: 34px;
@@ -670,6 +671,14 @@
         .kg-pill-input:focus {
             outline: none !important;
             box-shadow: none !important;
+        }
+
+        .keypad-bound-input {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -webkit-touch-callout: none !important;
+            caret-color: transparent;
+            cursor: pointer;
         }
 
         input[type="text"], input[type="number"], input[type="month"], input[type="date"] {
@@ -1043,19 +1052,19 @@
         }
 
         /* =========================================================
-           EIGENE ZAHLENTASTATUR (CUSTOM KEYPAD SHEET)
+           GLOBALE ZAHLENTASTATUR (CUSTOM KEYPAD SHEET)
            ========================================================= */
         .custom-keypad-sheet {
             position: fixed;
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 3200;
+            z-index: 3600;
             background: var(--card-bg);
             border-top: 2px solid var(--border-color);
             border-radius: 18px 18px 0 0;
             padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.22);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
             display: none;
             flex-direction: column;
             gap: 8px;
@@ -1158,6 +1167,10 @@
             overflow: hidden;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-overlay.keypad-open-shift {
+            align-items: flex-start;
+            padding-bottom: 275px;
+        }
         .modal-content {
             background: var(--white);
             width: 100%;
@@ -1619,7 +1632,7 @@
         .editor-time-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .editor-time-col span.lbl { font-size: 0.8em; font-weight: bold; opacity: 0.8; }
         .editor-hhmm-pair { display: flex; align-items: center; gap: 4px; width: 100%; }
-        .editor-hhmm-pair input[type="number"] {
+        .editor-hhmm-pair input {
             width: 100%;
             height: 48px;
             font-size: 1.22em;
@@ -1790,11 +1803,11 @@
                     <div class="dual-manual-pills">
                         <div class="kg-pill" id="pill-start">
                             <div class="kg-pill-tag">K</div>
-                            <input type="text" id="startTimePill" class="kg-pill-input" value="" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" readonly placeholder="hh:mm" aria-label="Kommen hh:mm">
+                            <input type="text" id="startTimePill" class="kg-pill-input keypad-bound-input" value="" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" readonly placeholder="hh:mm" aria-label="Kommen hh:mm">
                         </div>
                         <div class="kg-pill" id="pill-end">
                             <div class="kg-pill-tag">G</div>
-                            <input type="text" id="endTimePill" class="kg-pill-input" value="" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" readonly placeholder="hh:mm" aria-label="Gehen hh:mm">
+                            <input type="text" id="endTimePill" class="kg-pill-input keypad-bound-input" value="" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" readonly placeholder="hh:mm" aria-label="Gehen hh:mm">
                         </div>
                     </div>
 
@@ -1880,7 +1893,7 @@
         </div>
     </div>
 
-    <!-- EIGENE ZAHLENTASTATUR -->
+    <!-- GLOBALE ZAHLENTASTATUR -->
     <div class="custom-keypad-sheet" id="custom-keypad-sheet" role="region" aria-label="Zahlentastatur">
         <div class="keypad-topbar">
             <span class="keypad-target-badge" id="keypad-target-badge">Kommen (hh:mm)</span>
@@ -1902,7 +1915,7 @@
             <button type="button" class="kp-key" data-kp="9">9</button>
             <button type="button" class="kp-key kp-del" data-kp="del" title="Löschen" aria-label="Löschen">⌫</button>
 
-            <button type="button" class="kp-key kp-op" data-kp=".0,">.0,</button>
+            <button type="button" class="kp-key kp-op" data-kp=",0.">,0.</button>
             <button type="button" class="kp-key" data-kp="0">0</button>
             <button type="button" class="kp-key kp-op" data-kp="clear" title="Leeren">C</button>
             <button type="button" class="kp-key kp-enter" data-kp="enter" title="Enter" aria-label="Enter">↵</button>
@@ -2069,7 +2082,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.5.5</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.6</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -2086,9 +2099,9 @@
                 <div class="design-sub-card">
                     <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Tägliche Sollarbeitszeit (Mo–Fr)</label>
                     <div class="soll-pair">
-                        <input type="number" id="sollHours" min="0" max="24" value="8" inputmode="numeric">
+                        <input type="text" id="sollHours" class="keypad-bound-input" value="8" inputmode="none" readonly aria-label="Soll Stunden">
                         <span style="font-weight:bold;">:</span>
-                        <input type="number" id="sollMinutes" min="0" max="59" value="0" inputmode="numeric">
+                        <input type="text" id="sollMinutes" class="keypad-bound-input" value="0" inputmode="none" readonly aria-label="Soll Minuten">
                         <span style="font-size:0.86em; opacity:0.8;">Std : Min</span>
                     </div>
                 </div>
@@ -2101,7 +2114,7 @@
                             <span>🔔 Vor 30m/45m warnen</span>
                         </label>
                         <div class="smoker-mins-wrap" id="pauseNotifyMinsWrap">
-                            <input type="number" id="pauseNotifyLeadInput" min="1" max="60" value="10" inputmode="numeric">
+                            <input type="text" id="pauseNotifyLeadInput" class="keypad-bound-input" value="10" inputmode="none" readonly aria-label="Vorwarnzeit Minuten">
                             <span>Min vorher</span>
                         </div>
                     </div>
@@ -2115,7 +2128,7 @@
                             <span>🚬 Button anzeigen</span>
                         </label>
                         <div class="smoker-mins-wrap" id="smokerMinsWrap">
-                            <input type="number" id="smokeMinutesInput" min="1" max="60" value="5" inputmode="numeric">
+                            <input type="text" id="smokeMinutesInput" class="keypad-bound-input" value="5" inputmode="none" readonly aria-label="Raucherpause Minuten">
                             <span>Min/Gang</span>
                         </div>
                     </div>
@@ -2129,7 +2142,7 @@
                     <div class="ampel-settings-grid">
                         <div class="ampel-field-box">
                             <span>GLZ-Startsaldo (h)</span>
-                            <input type="number" id="glzBaseInput" step="0.01" value="0" inputmode="decimal">
+                            <input type="text" id="glzBaseInput" class="keypad-bound-input" value="0" inputmode="none" readonly aria-label="GLZ Startsaldo">
                         </div>
                         <div class="ampel-field-box">
                             <span>Stichtag (ab Datum)</span>
@@ -2137,7 +2150,7 @@
                         </div>
                         <div class="ampel-field-box" style="grid-column: 1 / -1; margin-top: 2px;">
                             <span>Vertragliche Wochenstunden</span>
-                            <input type="number" id="weeklyHoursInput" step="0.5" min="1" max="48" value="40" inputmode="decimal">
+                            <input type="text" id="weeklyHoursInput" class="keypad-bound-input" value="40" inputmode="none" readonly aria-label="Wochenstunden">
                         </div>
                     </div>
                 </div>
@@ -2630,7 +2643,6 @@
                 const todaySeed = parseInt(getTodayStr().replace(/-/g, ""), 10) + selectedScribbles.join("").length * 131 + modeOffset;
                 const rng = createSeededRng(todaySeed);
 
-                // Bei 100 % deutlich größer (bis über 120px)
                 const sizeNorm = scribbleSizePct / 100;
                 const scaleFactor = 0.58 + Math.pow(sizeNorm, 1.15) * 1.78;
                 const basePx = Math.round(54 * scaleFactor);
@@ -2910,8 +2922,8 @@
             userNameInput.value = userName;
             sollHoursInput.value = sollHours;
             sollMinutesInput.value = sollMinutes;
-            weeklyHoursInput.value = weeklyHours;
-            glzBaseInput.value = glzBaseHours;
+            weeklyHoursInput.value = String(weeklyHours).replace(".", ",");
+            glzBaseInput.value = String(glzBaseHours).replace(".", ",");
             glzBaseDateInput.value = glzBaseDate;
             pauseNotifyCheck.checked = pauseNotifyEnabled;
             pauseNotifyLeadInput.value = pauseNotifyLeadMins;
@@ -3019,7 +3031,7 @@
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
 
-            /* FARBRAD (DREI KULLER, HAUPTPUNKT GRÖSSER) */
+            /* FARBRAD */
             const canvas = document.getElementById("colorWheel");
             const ctx = canvas.getContext("2d");
             const radius = canvas.width / 2;
@@ -3092,11 +3104,11 @@
 
                 const parsedWeekly = parseFloat(String(weeklyHoursInput.value).replace(',', '.'));
                 weeklyHours = (!isNaN(parsedWeekly) && parsedWeekly > 0 && parsedWeekly <= 48) ? parsedWeekly : 40;
-                weeklyHoursInput.value = weeklyHours;
+                weeklyHoursInput.value = String(weeklyHours).replace('.', ',');
 
                 const parsedGlzBase = parseFloat(String(glzBaseInput.value).replace(',', '.'));
                 glzBaseHours = !isNaN(parsedGlzBase) ? parsedGlzBase : 0;
-                glzBaseInput.value = glzBaseHours;
+                glzBaseInput.value = String(glzBaseHours).replace('.', ',');
 
                 glzBaseDate = glzBaseDateInput.value || "";
 
@@ -3149,6 +3161,7 @@
             const settingsPageDesign = document.getElementById("settings-page-design");
 
             function showSettingsSubpage(pageName) {
+                closeCustomKeypad();
                 settingsPageMain.style.display = pageName === "main" ? "block" : "none";
                 settingsPageWork.style.display = pageName === "work" ? "block" : "none";
                 settingsPageDesign.style.display = pageName === "design" ? "block" : "none";
@@ -3164,6 +3177,7 @@
             }
 
             function leaveSubpageAndSave() {
+                closeCustomKeypad();
                 persistAllSettings();
                 showSettingsSubpage("main");
             }
@@ -3174,8 +3188,8 @@
                 }
                 closeCustomKeypad();
                 userNameInput.value = userName;
-                weeklyHoursInput.value = weeklyHours;
-                glzBaseInput.value = glzBaseHours;
+                weeklyHoursInput.value = String(weeklyHours).replace('.', ',');
+                glzBaseInput.value = String(glzBaseHours).replace('.', ',');
                 glzBaseDateInput.value = glzBaseDate;
                 pauseNotifyCheck.checked = pauseNotifyEnabled;
                 pauseNotifyLeadInput.value = pauseNotifyLeadMins;
@@ -3196,6 +3210,7 @@
             document.getElementById("btn-done-design").addEventListener("click", leaveSubpageAndSave);
 
             function closeSettings() {
+                closeCustomKeypad();
                 persistAllSettings();
                 settingsModal.classList.remove("active");
             }
@@ -3220,7 +3235,7 @@
             });
 
             /* =========================================================
-               STEMPEL-LOGIK, K/G-PILLEN (AUTO HH:MM) & EIGENE TASTATUR
+               GLOBALE ZAHLENTASTATUR-ENGINE (UHR, MENÜ & TAGES-EDITOR)
                ========================================================= */
             const startTimePill = document.getElementById("startTimePill");
             const endTimePill = document.getElementById("endTimePill");
@@ -3229,30 +3244,13 @@
             const keypadSheet = document.getElementById("custom-keypad-sheet");
             const keypadTargetBadge = document.getElementById("keypad-target-badge");
 
-            let activePillKey = null;
-            let pillRawBuffer = "";
-            let pillHasCustomText = false;
-
-            const btnUndo = document.getElementById("btn-undo");
-            const sessionsBox = document.getElementById("sessions-box");
-            const sessionsList = document.getElementById("sessions-list");
-            const sessionsPresSum = document.getElementById("sessions-pres-sum");
-            const sessionsBreakInfo = document.getElementById("sessions-break-info");
-            const sessionsGapSum = document.getElementById("sessions-gap-sum");
-
-            let todaySessions = [];
-            let undoStack = [];
+            let kpState = null;
 
             function formatRawDigitsToHhMm(digits) {
                 const clean = digits.replace(/\D/g, "").slice(0, 4);
                 if (!clean) return "";
-                if (clean.length === 1) {
-                    return `0${clean}:00`;
-                }
-                if (clean.length === 2) {
-                    const h = Math.min(23, parseInt(clean, 10));
-                    return `${format2(h)}:00`;
-                }
+                if (clean.length === 1) return `0${clean}:00`;
+                if (clean.length === 2) return `${format2(Math.min(23, parseInt(clean, 10)))}:00`;
                 if (clean.length === 3) {
                     const h = Math.min(23, parseInt(clean[0], 10));
                     const m = Math.min(59, parseInt(clean.slice(1), 10));
@@ -3280,143 +3278,345 @@
             }
 
             function getParsedStart() {
-                if (startTimePill.value.trim() !== "") {
-                    return parseHhMmString(startTimePill.value);
-                }
-                return null;
+                return startTimePill.value.trim() !== "" ? parseHhMmString(startTimePill.value) : null;
             }
-
             function getParsedEnd() {
-                if (endTimePill.value.trim() !== "") {
-                    return parseHhMmString(endTimePill.value);
+                return endTimePill.value.trim() !== "" ? parseHhMmString(endTimePill.value) : null;
+            }
+
+            function clearAllKeypadHighlights() {
+                pillStartWrap.classList.remove("is-active");
+                pillEndWrap.classList.remove("is-active");
+                document.querySelectorAll(".keypad-bound-input.kp-focused").forEach(el => el.classList.remove("kp-focused"));
+                settingsModal.classList.remove("keypad-open-shift");
+                dayEditorModal.classList.remove("keypad-open-shift");
+            }
+
+            function openGlobalKeypad(config) {
+                if (kpState && kpState.onCommit) {
+                    kpState.onCommit(kpState.el, true);
                 }
-                return null;
-            }
+                clearAllKeypadHighlights();
 
-            function highlightActivePill() {
-                pillStartWrap.classList.toggle("is-active", activePillKey === "start");
-                pillEndWrap.classList.toggle("is-active", activePillKey === "end");
-            }
+                kpState = {
+                    el: config.el,
+                    mode: config.mode || "number",
+                    label: config.label || "Eingabe",
+                    min: config.min !== undefined ? config.min : null,
+                    max: config.max !== undefined ? config.max : null,
+                    allowDecimal: !!config.allowDecimal,
+                    allowNegative: !!config.allowNegative,
+                    step: config.step || 1,
+                    nextEl: config.nextEl || null,
+                    onCommit: config.onCommit || null,
+                    fresh: true,
+                    buffer: ""
+                };
 
-            function openCustomKeypad(which) {
-                pushUndoSnapshot();
-                activePillKey = which;
-                pillHasCustomText = false;
-                const currentVal = which === "start" ? startTimePill.value : endTimePill.value;
-                const parsed = parseHhMmString(currentVal);
-                pillRawBuffer = parsed ? `${parsed.h}${parsed.m}` : "";
-                keypadTargetBadge.textContent = which === "start" ? "Kommen (hh:mm)" : "Gehen (hh:mm)";
-                highlightActivePill();
+                if (kpState.mode === "hhmm") {
+                    const parsed = parseHhMmString(kpState.el.value);
+                    kpState.buffer = parsed ? `${parsed.h}${parsed.m}` : "";
+                } else {
+                    kpState.buffer = (kpState.el.value || "").trim();
+                }
+
+                keypadTargetBadge.textContent = kpState.label;
+                if (kpState.el === startTimePill) pillStartWrap.classList.add("is-active");
+                else if (kpState.el === endTimePill) pillEndWrap.classList.add("is-active");
+                else kpState.el.classList.add("kp-focused");
+
+                if (settingsModal.classList.contains("active")) settingsModal.classList.add("keypad-open-shift");
+                if (dayEditorModal.classList.contains("active")) dayEditorModal.classList.add("keypad-open-shift");
+
                 keypadSheet.classList.add("active");
+                setTimeout(() => {
+                    if (kpState && kpState.el && kpState.el.scrollIntoView) {
+                        kpState.el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    }
+                }, 40);
             }
 
             function closeCustomKeypad() {
-                if (activePillKey !== null) {
-                    activePillKey = null;
-                    pillRawBuffer = "";
-                    pillHasCustomText = false;
-                    highlightActivePill();
+                if (kpState) {
+                    const closingState = kpState;
+                    kpState = null;
+                    clearAllKeypadHighlights();
                     keypadSheet.classList.remove("active");
-                    onManualTimeInputChange();
-                    calculateAllTimes();
+                    if (closingState.onCommit) closingState.onCommit(closingState.el, true);
                 } else {
+                    clearAllKeypadHighlights();
                     keypadSheet.classList.remove("active");
                 }
+            }
+
+            function bindNumberKeypadInput(el, opts) {
+                if (!el) return;
+                el.dataset.kpBound = "1";
+                el._kpOpts = opts;
+                el.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (el.disabled) return;
+                    openGlobalKeypad({ el, ...opts });
+                });
             }
 
             startTimePill.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                openCustomKeypad("start");
+                pushUndoSnapshot();
+                openGlobalKeypad({
+                    el: startTimePill,
+                    mode: "hhmm",
+                    label: "Kommen (hh:mm)",
+                    nextEl: endTimePill,
+                    onCommit: () => {
+                        onManualTimeInputChange();
+                        calculateAllTimes();
+                    }
+                });
             });
+
             endTimePill.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                openCustomKeypad("end");
+                pushUndoSnapshot();
+                openGlobalKeypad({
+                    el: endTimePill,
+                    mode: "hhmm",
+                    label: "Gehen (hh:mm)",
+                    onCommit: () => {
+                        onManualTimeInputChange();
+                        calculateAllTimes();
+                    }
+                });
             });
+
+            bindNumberKeypadInput(sollHoursInput, {
+                mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput
+            });
+            bindNumberKeypadInput(sollMinutesInput, {
+                mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5
+            });
+            bindNumberKeypadInput(pauseNotifyLeadInput, {
+                mode: "number", label: "Vorwarnung (Minuten)", min: 1, max: 60, step: 5
+            });
+            bindNumberKeypadInput(smokeMinutesInput, {
+                mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1
+            });
+            bindNumberKeypadInput(glzBaseInput, {
+                mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true
+            });
+            bindNumberKeypadInput(weeklyHoursInput, {
+                mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true
+            });
+
             document.getElementById("keypad-close-btn").addEventListener("click", closeCustomKeypad);
 
-            function shiftActiveTimeByMinutes(deltaMins) {
-                const targetInput = activePillKey === "start" ? startTimePill : endTimePill;
-                const parsed = parseHhMmString(targetInput.value) || { h: "08", m: "00" };
-                const total = Math.min(23 * 60 + 59, Math.max(0, (parseInt(parsed.h, 10) * 60) + parseInt(parsed.m, 10) + deltaMins));
-                const nh = format2(Math.floor(total / 60));
-                const nm = format2(total % 60);
-                pillRawBuffer = `${nh}${nm}`;
-                pillHasCustomText = false;
-                targetInput.value = `${nh}:${nm}`;
-                onManualTimeInputChange();
-                calculateAllTimes();
+            function handleKeypadPress(action) {
+                if (!kpState) return;
+                const st = kpState;
+                const el = st.el;
+
+                if (st.mode === "hhmm") {
+                    if (/^[0-9]$/.test(action)) {
+                        if (st.fresh || st.buffer.length >= 4) {
+                            st.buffer = action;
+                            st.fresh = false;
+                        } else {
+                            st.buffer += action;
+                        }
+                        el.value = formatRawDigitsToHhMm(st.buffer);
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "del") {
+                        st.fresh = false;
+                        st.buffer = st.buffer.slice(0, -1);
+                        el.value = st.buffer ? formatRawDigitsToHhMm(st.buffer) : "";
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "clear") {
+                        st.fresh = false;
+                        st.buffer = "";
+                        el.value = "";
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "-" || action === "+") {
+                        const delta = action === "-" ? -15 : 15;
+                        const parsed = parseHhMmString(el.value) || { h: "08", m: "00" };
+                        const total = Math.min(23 * 60 + 59, Math.max(0, (parseInt(parsed.h, 10) * 60) + parseInt(parsed.m, 10) + delta));
+                        const nh = format2(Math.floor(total / 60));
+                        const nm = format2(total % 60);
+                        st.buffer = `${nh}${nm}`;
+                        st.fresh = false;
+                        el.value = `${nh}:${nm}`;
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === ",0.") {
+                        const cur = el.value.trim();
+                        if (!cur) {
+                            st.buffer = "0800";
+                            el.value = "08:00";
+                        } else {
+                            const p = parseHhMmString(cur);
+                            if (p) {
+                                st.buffer = `${p.h}00`;
+                                el.value = `${p.h}:00`;
+                            }
+                        }
+                        st.fresh = false;
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "enter") {
+                        const nextTarget = st.nextEl;
+                        closeCustomKeypad();
+                        if (nextTarget && !nextTarget.disabled) {
+                            nextTarget.click();
+                        }
+                    }
+                    return;
+                }
+
+                if (st.mode === "twoDigit") {
+                    if (/^[0-9]$/.test(action)) {
+                        if (st.fresh || st.buffer.length >= 2) {
+                            st.buffer = action;
+                            st.fresh = false;
+                        } else {
+                            st.buffer += action;
+                        }
+                        let num = parseInt(st.buffer, 10);
+                        if (!isNaN(num)) {
+                            if (st.max !== null && num > st.max) num = st.max;
+                            if (st.min !== null && num < st.min) num = st.min;
+                            el.value = st.buffer.length === 2 ? format2(num) : String(num);
+                        }
+                        if (st.onCommit) st.onCommit(el, false);
+                        if (st.buffer.length === 2 && st.nextEl) {
+                            const nextTarget = st.nextEl;
+                            closeCustomKeypad();
+                            nextTarget.click();
+                        }
+                    } else if (action === "del") {
+                        st.fresh = false;
+                        st.buffer = st.buffer.slice(0, -1);
+                        el.value = st.buffer;
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "clear") {
+                        st.fresh = false;
+                        st.buffer = "";
+                        el.value = "";
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "-" || action === "+") {
+                        const step = st.step || 1;
+                        let cur = parseInt(el.value, 10);
+                        if (isNaN(cur)) cur = 0;
+                        cur += (action === "-" ? -step : step);
+                        if (st.min !== null && cur < st.min) cur = st.min;
+                        if (st.max !== null && cur > st.max) cur = st.max;
+                        st.buffer = format2(cur);
+                        st.fresh = false;
+                        el.value = st.buffer;
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === ",0.") {
+                        st.buffer = "00";
+                        st.fresh = false;
+                        el.value = "00";
+                        if (st.onCommit) st.onCommit(el, false);
+                    } else if (action === "enter") {
+                        const nextTarget = st.nextEl;
+                        closeCustomKeypad();
+                        if (nextTarget) nextTarget.click();
+                    }
+                    return;
+                }
+
+                /* STANDARD ZAHLEN / DEZIMAL (MENÜ) */
+                if (/^[0-9]$/.test(action)) {
+                    if (st.fresh) {
+                        st.buffer = action;
+                        st.fresh = false;
+                    } else {
+                        st.buffer = (st.buffer === "0") ? action : st.buffer + action;
+                    }
+                    el.value = st.buffer;
+                    if (st.onCommit) st.onCommit(el, false);
+                } else if (action === ",0.") {
+                    if (st.allowDecimal) {
+                        if (st.fresh) {
+                            st.buffer = "0,";
+                            st.fresh = false;
+                        } else if (!st.buffer.includes(",") && !st.buffer.includes(".")) {
+                            st.buffer = (st.buffer === "" || st.buffer === "-") ? st.buffer + "0," : st.buffer + ",";
+                        }
+                    } else {
+                        if (st.fresh || st.buffer === "") {
+                            st.buffer = "0";
+                            st.fresh = false;
+                        } else {
+                            st.buffer += "0";
+                        }
+                    }
+                    el.value = st.buffer;
+                    if (st.onCommit) st.onCommit(el, false);
+                } else if (action === "del") {
+                    st.fresh = false;
+                    st.buffer = st.buffer.slice(0, -1);
+                    el.value = st.buffer;
+                    if (st.onCommit) st.onCommit(el, false);
+                } else if (action === "clear") {
+                    st.fresh = false;
+                    st.buffer = "";
+                    el.value = "";
+                    if (st.onCommit) st.onCommit(el, false);
+                } else if (action === "-" || action === "+") {
+                    if (st.allowNegative && (st.fresh || st.buffer === "") && action === "-") {
+                        st.buffer = "-";
+                        st.fresh = false;
+                        el.value = st.buffer;
+                    } else {
+                        let num = parseFloat(String(el.value).replace(",", "."));
+                        if (isNaN(num)) num = 0;
+                        const delta = action === "-" ? -st.step : st.step;
+                        num = Math.round((num + delta) * 100) / 100;
+                        if (!st.allowNegative && num < 0) num = 0;
+                        if (st.min !== null && num < st.min) num = st.min;
+                        if (st.max !== null && num > st.max) num = st.max;
+                        st.buffer = String(num).replace(".", ",");
+                        st.fresh = false;
+                        el.value = st.buffer;
+                    }
+                    if (st.onCommit) st.onCommit(el, false);
+                } else if (action === "enter") {
+                    const nextTarget = st.nextEl;
+                    closeCustomKeypad();
+                    if (nextTarget && !nextTarget.disabled) {
+                        nextTarget.click();
+                    }
+                }
             }
 
             keypadSheet.querySelectorAll(".kp-key").forEach((keyBtn) => {
                 keyBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    if (!activePillKey) return;
-                    const action = keyBtn.getAttribute("data-kp");
-                    const targetInput = activePillKey === "start" ? startTimePill : endTimePill;
-
-                    if (/^[0-9]$/.test(action)) {
-                        if (pillRawBuffer.length >= 4) pillRawBuffer = action;
-                        else pillRawBuffer += action;
-                        pillHasCustomText = false;
-                        targetInput.value = formatRawDigitsToHhMm(pillRawBuffer);
-                        onManualTimeInputChange();
-                        calculateAllTimes();
-                    } else if (action === "del") {
-                        if (pillRawBuffer.length > 0) {
-                            pillRawBuffer = pillRawBuffer.slice(0, -1);
-                            pillHasCustomText = false;
-                            targetInput.value = pillRawBuffer ? formatRawDigitsToHhMm(pillRawBuffer) : "";
-                        } else {
-                            targetInput.value = "";
-                        }
-                        onManualTimeInputChange();
-                        calculateAllTimes();
-                    } else if (action === "clear") {
-                        pillRawBuffer = "";
-                        pillHasCustomText = false;
-                        targetInput.value = "";
-                        onManualTimeInputChange();
-                        calculateAllTimes();
-                    } else if (action === "-") {
-                        shiftActiveTimeByMinutes(-15);
-                    } else if (action === "+") {
-                        shiftActiveTimeByMinutes(15);
-                    } else if (action === ".0,") {
-                        const current = targetInput.value.trim();
-                        if (!current || /^\d{1,2}$/.test(current)) {
-                            const hVal = current ? format2(Math.min(23, parseInt(current, 10))) : "08";
-                            pillRawBuffer = `${hVal}00`;
-                            pillHasCustomText = false;
-                            targetInput.value = `${hVal}:00`;
-                        } else if (!current.includes(":")) {
-                            targetInput.value = `${current}.0,`;
-                            pillHasCustomText = true;
-                        } else {
-                            targetInput.value = `${current}.0,`;
-                            pillHasCustomText = true;
-                        }
-                        onManualTimeInputChange();
-                        calculateAllTimes();
-                    } else if (action === "enter") {
-                        const nextKey = activePillKey === "start" ? "end" : null;
-                        closeCustomKeypad();
-                        if (nextKey === "end") {
-                            openCustomKeypad("end");
-                        }
-                    }
+                    handleKeypadPress(keyBtn.getAttribute("data-kp"));
                 });
             });
 
             document.addEventListener("click", (e) => {
                 if (keypadSheet.classList.contains("active")
                     && !e.target.closest("#custom-keypad-sheet")
+                    && !e.target.closest(".keypad-bound-input")
                     && !e.target.closest("#pill-start")
                     && !e.target.closest("#pill-end")) {
                     closeCustomKeypad();
                 }
             });
+
+            const btnUndo = document.getElementById("btn-undo");
+            const sessionsBox = document.getElementById("sessions-box");
+            const sessionsList = document.getElementById("sessions-list");
+            const sessionsPresSum = document.getElementById("sessions-pres-sum");
+            const sessionsBreakInfo = document.getElementById("sessions-break-info");
+            const sessionsGapSum = document.getElementById("sessions-gap-sum");
+
+            let todaySessions = [];
+            let undoStack = [];
 
             const updateUndoButtonState = () => { btnUndo.disabled = undoStack.length === 0; };
             function pushUndoSnapshot() {
@@ -3628,14 +3828,13 @@
                 saveSessionsAndDay();
             }
 
-            function clampInput(input) {
-                if (input.value === "") return;
-                let val = parseInt(input.value, 10);
-                const min = parseInt(input.min, 10), max = parseInt(input.max, 10);
-                if (isNaN(val)) { input.value = ""; return; }
+            function clampTwoDigitStr(valStr, min, max) {
+                if (valStr === "") return "";
+                let val = parseInt(valStr, 10);
+                if (isNaN(val)) return "";
                 if (!isNaN(min) && val < min) val = min;
                 if (!isNaN(max) && val > max) val = max;
-                input.value = format2(val);
+                return format2(val);
             }
 
             function triggerStampComeNow() {
@@ -3978,6 +4177,7 @@
             let editingDateStr = null, editingDraft = null;
 
             function openDayEditor(dateStr, titleText, defaultStatus) {
+                closeCustomKeypad();
                 editingDateStr = dateStr;
                 dayEditorTitle.textContent = titleText;
                 const existing = getDayData(dateStr);
@@ -4004,6 +4204,7 @@
             }
 
             function closeDayEditor() {
+                closeCustomKeypad();
                 dayEditorModal.classList.remove("active");
                 editingDateStr = null;
                 editingDraft = null;
@@ -4055,9 +4256,9 @@
                             <div class="editor-time-col">
                                 <span class="lbl">Kommen</span>
                                 <div class="editor-hhmm-pair">
-                                    <input type="number" inputmode="numeric" min="0" max="23" class="ed-sh" value="${sH}" placeholder="hh">
+                                    <input type="text" inputmode="none" readonly class="ed-sh keypad-bound-input" value="${sH}" placeholder="hh">
                                     <span>:</span>
-                                    <input type="number" inputmode="numeric" min="0" max="59" class="ed-sm" value="${sM}" placeholder="mm">
+                                    <input type="text" inputmode="none" readonly class="ed-sm keypad-bound-input" value="${sM}" placeholder="mm">
                                 </div>
                                 <div class="nudge-row">
                                     <button type="button" class="nudge-btn" data-idx="${idx}" data-side="start" data-delta="-5">-5</button>
@@ -4069,9 +4270,9 @@
                             <div class="editor-time-col">
                                 <span class="lbl">Gehen</span>
                                 <div class="editor-hhmm-pair">
-                                    <input type="number" inputmode="numeric" min="0" max="23" class="ed-eh" value="${eH}" placeholder="hh">
+                                    <input type="text" inputmode="none" readonly class="ed-eh keypad-bound-input" value="${eH}" placeholder="hh">
                                     <span>:</span>
-                                    <input type="number" inputmode="numeric" min="0" max="59" class="ed-em" value="${eM}" placeholder="mm">
+                                    <input type="text" inputmode="none" readonly class="ed-em keypad-bound-input" value="${eM}" placeholder="mm">
                                 </div>
                                 <div class="nudge-row">
                                     <button type="button" class="nudge-btn" data-idx="${idx}" data-side="end" data-delta="-5">-5</button>
@@ -4087,6 +4288,7 @@
 
                 dayEditorBlocksList.querySelectorAll("[data-del-idx]").forEach(btn => {
                     btn.addEventListener("click", (e) => {
+                        closeCustomKeypad();
                         editingDraft.sessions.splice(parseInt(e.target.getAttribute("data-del-idx"), 10), 1);
                         renderDayEditor();
                     });
@@ -4094,6 +4296,7 @@
 
                 dayEditorBlocksList.querySelectorAll(".nudge-btn").forEach(btn => {
                     btn.addEventListener("click", (e) => {
+                        closeCustomKeypad();
                         const i = parseInt(e.target.getAttribute("data-idx"), 10);
                         const side = e.target.getAttribute("data-side");
                         const delta = parseInt(e.target.getAttribute("data-delta"), 10);
@@ -4112,44 +4315,64 @@
                 dayEditorBlocksList.querySelectorAll(".editor-block-card").forEach((card, idx) => {
                     const shInp = card.querySelector(".ed-sh"), smInp = card.querySelector(".ed-sm");
                     const ehInp = card.querySelector(".ed-eh"), emInp = card.querySelector(".ed-em");
-                    const bindEd = (inp, nextInp, side) => {
-                        inp.addEventListener("focus", () => inp.select());
-                        inp.addEventListener("input", () => {
-                            if (inp.value.length > 2) inp.value = inp.value.slice(0, 2);
-                            if (inp.value.length === 2 && nextInp) nextInp.focus();
-                        });
-                        inp.addEventListener("blur", () => {
-                            clampInput(inp);
-                            const blk = editingDraft.sessions[idx];
-                            if (side === "start") {
-                                if (shInp.value === "" && smInp.value === "") blk.start = null;
-                                else {
-                                    const oldS = blk.start, nh = shInp.value || "00", nm = smInp.value || "00";
-                                    blk.start = { h: nh, m: nm, s: (oldS && oldS.h === nh && oldS.m === nm) ? (oldS.s || "00") : "00" };
-                                }
-                            } else {
-                                if (ehInp.value === "" && emInp.value === "") blk.end = null;
-                                else {
-                                    const oldE = blk.end, nh = ehInp.value || "00", nm = emInp.value || "00";
-                                    blk.end = { h: nh, m: nm, s: (oldE && oldE.h === nh && oldE.m === nm) ? (oldE.s || "00") : "00" };
-                                }
-                            }
-                        });
+
+                    const syncEditorBlockFromInputs = (finalize) => {
+                        if (!editingDraft || !editingDraft.sessions[idx]) return;
+                        if (finalize) {
+                            shInp.value = clampTwoDigitStr(shInp.value, 0, 23);
+                            smInp.value = clampTwoDigitStr(smInp.value, 0, 59);
+                            ehInp.value = clampTwoDigitStr(ehInp.value, 0, 23);
+                            emInp.value = clampTwoDigitStr(emInp.value, 0, 59);
+                        }
+                        const blk = editingDraft.sessions[idx];
+                        if (shInp.value === "" && smInp.value === "") {
+                            blk.start = null;
+                        } else {
+                            const oldS = blk.start;
+                            const nh = format2(Math.min(23, Math.max(0, parseInt(shInp.value, 10) || 0)));
+                            const nm = format2(Math.min(59, Math.max(0, parseInt(smInp.value, 10) || 0)));
+                            blk.start = { h: nh, m: nm, s: (oldS && oldS.h === nh && oldS.m === nm) ? (oldS.s || "00") : "00" };
+                        }
+                        if (ehInp.value === "" && emInp.value === "") {
+                            blk.end = null;
+                        } else {
+                            const oldE = blk.end;
+                            const nh = format2(Math.min(23, Math.max(0, parseInt(ehInp.value, 10) || 0)));
+                            const nm = format2(Math.min(59, Math.max(0, parseInt(emInp.value, 10) || 0)));
+                            blk.end = { h: nh, m: nm, s: (oldE && oldE.h === nh && oldE.m === nm) ? (oldE.s || "00") : "00" };
+                        }
                     };
-                    bindEd(shInp, smInp, "start"); bindEd(smInp, ehInp, "start");
-                    bindEd(ehInp, emInp, "end"); bindEd(emInp, null, "end");
+
+                    bindNumberKeypadInput(shInp, {
+                        mode: "twoDigit", label: `#${idx + 1} Kommen · Stunde`, min: 0, max: 23, step: 1, nextEl: smInp,
+                        onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
+                    });
+                    bindNumberKeypadInput(smInp, {
+                        mode: "twoDigit", label: `#${idx + 1} Kommen · Minute`, min: 0, max: 59, step: 5, nextEl: ehInp,
+                        onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
+                    });
+                    bindNumberKeypadInput(ehInp, {
+                        mode: "twoDigit", label: `#${idx + 1} Gehen · Stunde`, min: 0, max: 23, step: 1, nextEl: emInp,
+                        onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
+                    });
+                    bindNumberKeypadInput(emInp, {
+                        mode: "twoDigit", label: `#${idx + 1} Gehen · Minute`, min: 0, max: 59, step: 5,
+                        onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
+                    });
                 });
             }
 
             document.querySelectorAll("#day-status-chips .day-status-chip").forEach(chip => {
                 chip.addEventListener("click", () => {
                     if (!editingDraft) return;
+                    closeCustomKeypad();
                     editingDraft.status = chip.getAttribute("data-status");
                     renderDayEditor();
                 });
             });
             document.getElementById("btn-editor-add-block").addEventListener("click", () => {
                 if (!editingDraft) return;
+                closeCustomKeypad();
                 editingDraft.sessions.push({ start: { h: "12", m: "30", s: "00" }, end: { h: "16", m: "00", s: "00" } });
                 renderDayEditor();
             });
@@ -4183,6 +4406,7 @@
             document.getElementById("btn-close-day-editor").addEventListener("click", closeDayEditor);
 
             document.getElementById("btn-save-day-editor").addEventListener("click", () => {
+                closeCustomKeypad();
                 if (!editingDateStr || !editingDraft) return;
                 const validSessions = (editingDraft.sessions || []).filter(b => b.start && b.start.h !== "");
                 editingDraft.sessions = validSessions;
