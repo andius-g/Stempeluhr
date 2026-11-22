@@ -1,10 +1,10 @@
-# Stempeluhr & Wochenübersicht (PWA) – Version 1.6
+# Stempeluhr & Wochenübersicht (PWA) – Version 1.7
 
 Eine schlanke, offlinefähige Single-Page-Web-App (PWA) zur privaten Arbeitszeiterfassung auf dem Smartphone. Alle Stempelzeiten, Einstellungen und Salden bleiben lokal im `localStorage` des Browsers gespeichert – ohne Cloud-Zwang oder Tracking.
 
-## Neu in Version 1.6
-- **Globale Zahlentastatur:** Alle Zahlen- und Zeitfelder in der gesamten App (die **K/G-Pillen** auf der Uhr, sämtliche **Zahlenfelder im Menü** sowie die **Stunden- und Minutenfelder im Tages-Editor**) nutzen einheitlich die integrierte App-Zahlentastatur statt der Systemtastatur.
-- **Taste `,0.`:** Unten links auf der Zahlentastatur steht das Symbol `,0.` (Komma, Null, Punkt) für Dezimalwerte (z. B. GLZ-Startsaldo) bzw. Null-Ergänzung.
+## Neu in Version 1.7
+- **Trennung in `index.html`, `styles.css` und `app.js`:** Übersichtliche Aufteilung von Struktur, Gestaltung und Anwendungslogik bei gleichbleibender Offline-Caching-Unterstützung in `sw.js`.
+- **Vier getrennte Tasten in der unteren Tastaturreihe:** Unten liegen eigenständige Tasten für **`,`**, **`0`**, **`.`** und **`↵`** – global nutzbar auf der Uhr, im Menü sowie im Tages-Editor.
 
 ## Hauptfunktionen
 - **Startbildschirm (Kommen / Gehen):** Vollbild-Schnellstempelung beim Öffnen mit konfigurierbaren Hintergrund-Scribbles (32 Motive) und Wischsteuerung in alle 4 Richtungen.
@@ -13,14 +13,19 @@ Eine schlanke, offlinefähige Single-Page-Web-App (PWA) zur privaten Arbeitszeit
   - Automatische Berechnung der gesetzlichen Pausengrenzen (**6:30 Std → 30 Min**, **9:45 Std → 45 Min**) sowie optionaler **Raucherpausen** und **Push-Vorwarnungen**.
   - Manuelle Zeitkorrektur über die **K/G-Pillen** mit automatischer `hh:mm`-Formatierung.
 - **Wochenansicht & Ampelkonto:**
-  - Übersicht von Montag bis Samstag (Sonntag erscheint automatisch bei Buchung) inklusive Feiertagen für Niedersachsen.
-  - Komfortable KW-Wischleiste sowie Tages-Editor zum Nachbearbeiten einzelner Tage.
-  - Integriertes **GLZ-Ampelkonto** (Grün / Gelb / Rot) mit frei wählbarem Startsaldo und Stichtag.
-- **Export & Datensicherung:**
-  - Druckfertiger **DIN-A4-Monatsstundenzettel als PDF** (`jsPDF`).
-  - Vollständiger **JSON-Backup-Export & -Import** zur Sicherung oder Übertragung auf ein anderes Gerät.
+  - Übersicht von Montag bis Samstag (Sonntag erscheint automatisch bei Buchung) inklusive Feiertagen für Niedersachsen[span_0](start_span)[span_0](end_span).
+  - Komfortable KW-Wischleiste sowie Tages-Editor zum Nachbearbeiten einzelner Tage und Status (*Arbeit*, *Urlaub*, *Krank*, *Feiertag*, *Frei*).
+  - Gleitzeit-Ampel (`GLZ`) auf Basis von Startsaldo, Stichtag und vertraglicher Wochenstunden.
+- **Darstellung & Design:**
+  - Triadisches Farbrad (120°) mit Helligkeitsregler sowie *Klassisch* und *Asymmetrisch & Organisch* inklusive Intensitätsregler.
+- **Datensicherung & Monats-PDF:**
+  - JSON-Backup (Export und Import des gesamten `localStorage`).
+  - DIN-A4-Monatsübersicht als PDF (via `jsPDF`) mit optionalem JSON-Backup direkt im Anschluss.
 
-## Installation & Hosting (GitHub Pages)
-1. Die vier Dateien (`index.html`, `sw.js`, `manifest.json`, `favicon.png`) im Root-Verzeichnis des Repositories ablegen.
-2. In GitHub unter **Settings → Pages** den Branch (`main`) auswählen.
-3. Die URL im mobilen Browser öffnen und über **„Zum Startbildschirm hinzufügen“** als PWA installieren.
+## Dateistruktur im Repository
+- `index.html` – Grundgerüst, Modals und Startbildschirm
+- `styles.css` – Design-Variablen, Layouts und Komponenten-Styles
+- `app.js` – Zeitberechnung, Wochenlogik, Ampelkonto, PDF-Export und globale Tastatur
+- `sw.js` – Service Worker für Offline-Cache (`stempeluhr-cache-v1.7`) und Benachrichtigungen
+- `manifest.json` – PWA-Manifest
+- `favicon.png` – App- und Benachrichtigungs-Icon
