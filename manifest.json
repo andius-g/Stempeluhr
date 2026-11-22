@@ -1,7 +1,6 @@
 {
   "name": "Stempeluhr & Wochenübersicht",
   "short_name": "Stempeluhr",
-  "description": "Arbeitszeit-Stempeluhr mit Wochenübersicht, Pausenrechner, Ampelkonto & Monats-PDF",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -10,22 +9,16 @@
   "theme_color": "#f4ecf3",
   "icons": [
     {
-      "src": "./favicon_192.png?v=190",
+      "src": "./favicon_192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "./favicon_512.png?v=190",
+      "src": "./favicon_512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./favicon_512.png?v=190",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }

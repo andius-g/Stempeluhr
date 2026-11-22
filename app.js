@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.0)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.2)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.0"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.2"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -75,10 +75,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function showAppNotification(title, body, tag) {
         if (!("Notification" in window) || Notification.permission !== "granted") return;
+        const iconFile = localStorage.getItem("appIconTheme") === "rose" ? "./favicon_rose_192.png" : "./favicon_192.png";
         const options = {
             body,
-            icon: "./favicon_192.png?v=190",
-            badge: "./favicon_192.png?v=190",
+            icon: iconFile,
+            badge: iconFile,
             tag,
             renotify: true
         };
@@ -160,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.0",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.2",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -313,6 +314,24 @@ document.addEventListener("DOMContentLoaded", () => {
     scribbleSizePct = Math.min(100, Math.max(15, scribbleSizePct));
 
     let scribbleAccordionOpen = false;
+    let appIconTheme = localStorage.getItem("appIconTheme") === "rose" ? "rose" : "blue";
+
+    function syncIconThemePickerUI() {
+        document.querySelectorAll("#icon-variant-grid .icon-variant-card").forEach((card) => {
+            card.classList.toggle("selected", card.getAttribute("data-icon-theme") === appIconTheme);
+        });
+    }
+    syncIconThemePickerUI();
+
+    document.querySelectorAll("#icon-variant-grid .icon-variant-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            appIconTheme = card.getAttribute("data-icon-theme") === "rose" ? "rose" : "blue";
+            localStorage.setItem("appIconTheme", appIconTheme);
+            if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
+            syncIconThemePickerUI();
+            updateSettingsNavPreviews();
+        });
+    });
 
     let todaySmokeCount = 0;
     const initialTodayData = getDayData(getTodayStr());
@@ -372,7 +391,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (navDesignSummary) {
             const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
-            navDesignSummary.textContent = `${styleTxt} · ${selectedScribbles.length} Scribbles`;
+            const iconTxt = appIconTheme === "rose" ? "Icon Rosé" : "Icon Blau";
+            navDesignSummary.textContent = `${styleTxt} · ${selectedScribbles.length} Scribbles · ${iconTxt}`;
         }
     }
 
@@ -484,9 +504,9 @@ document.addEventListener("DOMContentLoaded", () => {
             return `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
         };
 
-        const limit30TargetSecs = 6 * 3600 + 29 * 60 + 59; // 23399
-        const start45PhaseSecs  = 6 * 3600 + 30 * 60;      // 23400
-        const limit45TargetSecs = 9 * 3600 + 44 * 60 + 59; // 35099
+        const limit30TargetSecs = 6 * 3600 + 29 * 60 + 59;
+        const start45PhaseSecs  = 6 * 3600 + 30 * 60;
+        const limit45TargetSecs = 9 * 3600 + 44 * 60 + 59;
 
         if (totalPresSecs <= limit30TargetSecs) {
             const remainingSecs = limit30TargetSecs - totalPresSecs;
@@ -1063,6 +1083,7 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("scribbleSizePct", scribbleSizePct);
         localStorage.setItem("appStyleMode", appStyleMode);
         localStorage.setItem("appAsymIntensity", appAsymIntensity);
+        localStorage.setItem("appIconTheme", appIconTheme);
         localStorage.setItem("sollHours", sollHours);
         localStorage.setItem("sollMinutes", sollMinutes);
         localStorage.setItem("weeklyHours", weeklyHours);
@@ -1078,6 +1099,7 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("appHue", appHue);
         localStorage.setItem("appLightness", appLightness);
 
+        if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
         applyThemeColors(appHue, appLightness);
         if (isSmoker) saveTodaySmokeData();
         updateSmokerUI();
@@ -1106,6 +1128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (pageName === "design") {
             scribbleAccordionOpen = false;
             renderScribblePicker();
+            syncIconThemePickerUI();
             drawColorWheel();
         } else if (pageName === "widgets") {
             syncPauseWatcherSettingsUI();
@@ -1136,6 +1159,7 @@ document.addEventListener("DOMContentLoaded", () => {
         syncPauseWatcherSettingsUI();
         updatePauseNotifyUI();
         syncStyleControlsUI();
+        syncIconThemePickerUI();
         updateBackupStatusBadge();
         showSettingsSubpage("main");
         settingsModal.classList.add("active");
@@ -2755,7 +2779,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* SUBTILES HAPTIK-FEEDBACK BEI INTERAKTION (6 ms) */
     document.addEventListener("pointerdown", (e) => {
         if (!("vibrate" in navigator)) return;
-        const target = e.target.closest("button, .kg-pill, .week-row, .settings-nav-card, .scribble-accordion-btn, .scribble-svg-chip, .day-status-chip, .widget-mode-pill, .kp-key");
+        const target = e.target.closest("button, .kg-pill, .week-row, .settings-nav-card, .scribble-accordion-btn, .scribble-svg-chip, .day-status-chip, .widget-mode-pill, .icon-variant-card, .kp-key");
         if (target && !target.disabled) {
             try { navigator.vibrate(6); } catch (err) {}
         }

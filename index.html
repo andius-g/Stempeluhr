@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.9.0
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.9.2
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f4ecf3">
-    <title>Stempeluhr & Wochenübersicht (v1.9.0)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.9.2)</title>
+
+    <link rel="manifest" id="app-manifest-link" href="./manifest.json">
+    <link rel="icon" id="fav-32" type="image/png" sizes="32x32" href="./favicon_32.png">
+    <link rel="icon" id="fav-192" type="image/png" sizes="192x192" href="./favicon_192.png">
+    <link rel="icon" id="fav-base" href="./favicon.png" type="image/png">
+    <link rel="apple-touch-icon" id="fav-apple" sizes="180x180" href="./favicon_180.png">
+    <link rel="stylesheet" href="./styles.css?v=192">
 
     <script>
-        const APP_VERSION = "1.9.0";
+        const APP_VERSION = "1.9.2";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -21,6 +28,21 @@
                 return Math.round(255 * color).toString(16).padStart(2, '0');
             };
             return `#${f(0)}${f(8)}${f(4)}`;
+        };
+
+        window.applyAppIconTheme = function(theme) {
+            const isRose = theme === "rose";
+            const manifestEl = document.getElementById("app-manifest-link");
+            const fav32 = document.getElementById("fav-32");
+            const fav192 = document.getElementById("fav-192");
+            const favBase = document.getElementById("fav-base");
+            const favApple = document.getElementById("fav-apple");
+
+            if (manifestEl) manifestEl.setAttribute("href", isRose ? "./manifest-rose.json" : "./manifest.json");
+            if (fav32) fav32.setAttribute("href", isRose ? "./favicon_rose_32.png" : "./favicon_32.png");
+            if (fav192) fav192.setAttribute("href", isRose ? "./favicon_rose_192.png" : "./favicon_192.png");
+            if (favBase) favBase.setAttribute("href", isRose ? "./favicon_rose_192.png" : "./favicon.png");
+            if (favApple) favApple.setAttribute("href", isRose ? "./favicon_rose_180.png" : "./favicon_180.png");
         };
 
         (function() {
@@ -43,6 +65,9 @@
 
             const meta = document.getElementById("meta-theme-color");
             if (meta) meta.setAttribute("content", bgHex);
+
+            const savedIconTheme = localStorage.getItem("appIconTheme") === "rose" ? "rose" : "blue";
+            window.applyAppIconTheme(savedIconTheme);
         })();
     </script>
 
@@ -51,15 +76,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
-    <link rel="manifest" id="app-manifest-link" href="./manifest.json?v=190">
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon_32.png?v=190">
-    <link rel="icon" type="image/png" sizes="192x192" href="./favicon_192.png?v=190">
-    <link rel="icon" href="./favicon.png?v=190" type="image/png">
-    <link rel="apple-touch-icon" sizes="180x180" href="./favicon_180.png?v=190">
-    <link rel="stylesheet" href="./styles.css?v=190">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="./app.js?v=190" defer></script>
+    <script src="./app.js?v=192" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
@@ -463,7 +481,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.9.0</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.9.2</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -636,6 +654,23 @@
                     </div>
                 </div>
 
+                <div class="design-sub-card">
+                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:7px;">App-Icon (für Startbildschirm)</label>
+                    <div class="icon-variant-grid" id="icon-variant-grid">
+                        <button type="button" class="icon-variant-card selected" data-icon-theme="blue">
+                            <img src="./favicon_192.png" alt="Blau / Cyan">
+                            <span>Blau / Cyan</span>
+                        </button>
+                        <button type="button" class="icon-variant-card" data-icon-theme="rose">
+                            <img src="./favicon_rose_192.png" alt="Rosé / Berry">
+                            <span>Rosé / Berry</span>
+                        </button>
+                    </div>
+                    <div class="icon-install-hint">
+                        Hinweis: Vor dem Tippen auf „App installieren“ auswählen, damit das gewünschte Icon auf dem Startbildschirm landet.
+                    </div>
+                </div>
+
                 <button type="button" class="settings-save" id="btn-done-design">Fertig</button>
             </div>
         </div>
@@ -643,7 +678,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=190');
+        navigator.serviceWorker.register('./sw.js?v=192');
       }
     </script>
 </body>
