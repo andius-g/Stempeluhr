@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.8.0)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.0)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,14 +9,46 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.8.0"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.0"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
+    const liveClockBox = document.getElementById("live-clock-box");
     const bgHourWatermark = document.getElementById("bg-hour-watermark");
     const edgeBgLayer = document.getElementById("edge-bg-layer");
     const metaThemeColor = document.getElementById("meta-theme-color");
     const weekdaysFull = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+
+    async function forceAppReload() {
+        try {
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const reg of regs) await reg.update();
+            }
+            if ('caches' in window) {
+                const names = await caches.keys();
+                await Promise.all(names.map(n => caches.delete(n)));
+            }
+        } catch (err) {}
+        window.location.replace(`${window.location.href.split('?')[0]}?v=${Date.now()}`);
+    }
+
+    if (liveClockBox) {
+        let longPressTimer = null;
+        const startHold = () => {
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (confirm("Notfall-Update jetzt ausführen und Cache leeren?")) {
+                    forceAppReload();
+                }
+            }, 3000);
+        };
+        const cancelHold = () => clearTimeout(longPressTimer);
+        liveClockBox.addEventListener("pointerdown", startHold);
+        liveClockBox.addEventListener("pointerup", cancelHold);
+        liveClockBox.addEventListener("pointerleave", cancelHold);
+        liveClockBox.addEventListener("pointercancel", cancelHold);
+    }
 
     function getCalendarWeek(date) {
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -29,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function applyThemeColors(hue, lightness) {
         document.documentElement.style.setProperty('--hue', hue);
         document.documentElement.style.setProperty('--lightness', lightness + '%');
-        const bgHex = window.hslToHex(hue + 120, 50, 95);
+        const bgHex = window.hslToHex(hue + 120, 42, 95);
         if (metaThemeColor) metaThemeColor.setAttribute("content", bgHex);
         document.documentElement.style.backgroundColor = bgHex;
         if (edgeBgLayer) edgeBgLayer.style.backgroundColor = bgHex;
@@ -45,8 +77,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!("Notification" in window) || Notification.permission !== "granted") return;
         const options = {
             body,
-            icon: "./favicon_192.png?v=180",
-            badge: "./favicon_192.png?v=180",
+            icon: "./favicon_192.png?v=190",
+            badge: "./favicon_192.png?v=190",
             tag,
             renotify: true
         };
@@ -128,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.8.0",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.0",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -240,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isNaN(appHue)) appHue = 195;
 
     let appLightness = parseInt(localStorage.getItem("appLightness"), 10);
-    if (isNaN(appLightness)) appLightness = 46;
+    if (isNaN(appLightness)) appLightness = 44;
     appLightness = Math.min(52, Math.max(28, appLightness));
 
     let sollHours = parseInt(localStorage.getItem("sollHours"), 10);
@@ -259,8 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isNaN(pauseNotifyLeadMins) || pauseNotifyLeadMins < 1) pauseNotifyLeadMins = 10;
 
     let pauseWatcherEnabled = localStorage.getItem("pauseWatcherEnabled") !== "false";
-    let pauseWatcherMode = localStorage.getItem("pauseWatcherMode") || "go";
-    if (!["go", "come", "both"].includes(pauseWatcherMode)) pauseWatcherMode = "go";
+    let pauseWatcherMode = localStorage.getItem("pauseWatcherMode") || "both";
+    if (!["go", "come", "both"].includes(pauseWatcherMode)) pauseWatcherMode = "both";
 
     let isSmoker = localStorage.getItem("isSmoker") === "true";
     let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"), 10);
@@ -335,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 navWidgetsSummary.textContent = "Pausenwächter aus";
             } else {
                 const modeLabels = { go: "Nur bei Gehen", come: "Nur bei Kommen", both: "Beides" };
-                navWidgetsSummary.textContent = `Pausenwächter · ${modeLabels[pauseWatcherMode] || "Nur bei Gehen"}`;
+                navWidgetsSummary.textContent = `Pausenwächter · ${modeLabels[pauseWatcherMode] || "Beides"}`;
             }
         }
         if (navDesignSummary) {
@@ -438,37 +470,39 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const { totalGapSecs } = getSessionMetrics(null);
         let totalPresSecs = nowSecs - startSecs;
         if (todaySessions.length > 1) {
             const metrics = getSessionMetrics(nowSecs);
             if (metrics.totalPresSecs > 0) totalPresSecs = metrics.totalPresSecs;
         }
 
-        // Zustand 1: bis 06:29:59 Anwesenheit (23399 Sekunden)
-        // Zustand 2: ab 06:30:00 (23400 Sek.) bis 09:44:59 Anwesenheit (35099 Sekunden)
+        const startDate = new Date();
+        startDate.setHours(stH, stM, stS, 0);
+        const addClock = (s) => {
+            const d = new Date(startDate.getTime() + (s + totalGapSecs) * 1000);
+            return `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
+        };
+
         const limit30TargetSecs = 6 * 3600 + 29 * 60 + 59; // 23399
         const start45PhaseSecs  = 6 * 3600 + 30 * 60;      // 23400
         const limit45TargetSecs = 9 * 3600 + 44 * 60 + 59; // 35099
 
         if (totalPresSecs <= limit30TargetSecs) {
             const remainingSecs = limit30TargetSecs - totalPresSecs;
-            const limitClockStr = document.getElementById("output-no-pause")?.textContent || "--:--:--";
             welcomePauseWidget.classList.remove("is-warner-45");
             wpwBadge.textContent = "30-Min-Grenze";
-            wpwLimitTime.textContent = `bis ${limitClockStr}`;
+            wpwLimitTime.textContent = `bis ${addClock(limit30TargetSecs)}`;
             wpwCountdown.textContent = formatSecsToHhMmSs(remainingSecs);
             welcomePauseWidget.style.display = "flex";
         } else if (totalPresSecs >= start45PhaseSecs && totalPresSecs <= limit45TargetSecs) {
             const remainingSecs = limit45TargetSecs - totalPresSecs;
-            const rangeText = document.getElementById("output-30min-pause-range")?.textContent || "";
-            const limit45EndStr = rangeText.includes(" bis ") ? rangeText.split(" bis ")[1] : "--:--:--";
             welcomePauseWidget.classList.add("is-warner-45");
             wpwBadge.textContent = "45er-Warner";
-            wpwLimitTime.textContent = `bis ${limit45EndStr}`;
+            wpwLimitTime.textContent = `bis ${addClock(limit45TargetSecs)}`;
             wpwCountdown.textContent = formatSecsToHhMmSs(remainingSecs);
             welcomePauseWidget.style.display = "flex";
         } else {
-            // Kein dritter Endlos-Status danach: ab 09:45:00 sauber ausblenden
             welcomePauseWidget.style.display = "none";
         }
     }
@@ -829,7 +863,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
         pill.addEventListener("click", () => {
-            pauseWatcherMode = pill.getAttribute("data-pw-mode") || "go";
+            pauseWatcherMode = pill.getAttribute("data-pw-mode") || "both";
             syncPauseWatcherSettingsUI();
         });
     });
@@ -955,7 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.fill();
         }
         drawWheelDot(appHue + 120, 4.5);
-        drawWheelDot(appHue + 240, 4.5);
+        drawWheelDot(appHue + 150, 4.5);
         drawWheelDot(appHue, 8);
     }
 
@@ -1131,17 +1165,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btn = document.getElementById("btn-force-update");
         btn.textContent = "Suche...";
         btn.disabled = true;
-        try {
-            if ('serviceWorker' in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                for (const reg of regs) await reg.update();
-            }
-            if ('caches' in window) {
-                const names = await caches.keys();
-                await Promise.all(names.map(n => caches.delete(n)));
-            }
-        } catch (err) {}
-        window.location.replace(`${window.location.href.split('?')[0]}?v=${Date.now()}`);
+        await forceAppReload();
     });
 
     /* =========================================================
@@ -2727,6 +2751,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) tickLiveEngine();
     });
+
+    /* SUBTILES HAPTIK-FEEDBACK BEI INTERAKTION (6 ms) */
+    document.addEventListener("pointerdown", (e) => {
+        if (!("vibrate" in navigator)) return;
+        const target = e.target.closest("button, .kg-pill, .week-row, .settings-nav-card, .scribble-accordion-btn, .scribble-svg-chip, .day-status-chip, .widget-mode-pill, .kp-key");
+        if (target && !target.disabled) {
+            try { navigator.vibrate(6); } catch (err) {}
+        }
+    }, { passive: true });
 
     tickLiveEngine();
     setInterval(tickLiveEngine, 1000);

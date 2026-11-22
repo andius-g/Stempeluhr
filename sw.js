@@ -1,4 +1,4 @@
-const CACHE_NAME = "stempeluhr-cache-v1.8.0";
+const CACHE_NAME = "stempeluhr-cache-v1.9.0";
 
 const APP_SHELL = [
     "./",
