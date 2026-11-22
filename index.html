@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.7.2
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.8.0
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.7.2)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.8.0)</title>
 
     <script>
-        const APP_VERSION = "1.7.2";
+        const APP_VERSION = "1.8.0";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -51,15 +51,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
-    <link rel="manifest" id="app-manifest-link" href="./manifest.json?v=172">
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon_32.png?v=172">
-    <link rel="icon" type="image/png" sizes="192x192" href="./favicon_192.png?v=172">
-    <link rel="icon" href="./favicon.png?v=172" type="image/png">
-    <link rel="apple-touch-icon" sizes="180x180" href="./favicon_180.png?v=172">
-    <link rel="stylesheet" href="./styles.css?v=172">
+    <link rel="manifest" id="app-manifest-link" href="./manifest.json?v=180">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon_32.png?v=180">
+    <link rel="icon" type="image/png" sizes="192x192" href="./favicon_192.png?v=180">
+    <link rel="icon" href="./favicon.png?v=180" type="image/png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./favicon_180.png?v=180">
+    <link rel="stylesheet" href="./styles.css?v=180">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="./app.js?v=172" defer></script>
+    <script src="./app.js?v=180" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
@@ -73,21 +73,20 @@
             <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
         </div>
 
-        <div class="welcome-actions-stack">
+        <div class="welcome-actions-stack" id="welcome-actions-stack">
+            <!-- PAUSENWÄCHTER-WIDGET (Zustand 1: bis 06:29:59 | Zustand 2: 06:30:00 bis 09:44:59) -->
+            <div class="welcome-pause-widget" id="welcome-pause-widget" style="display: none;" aria-live="polite">
+                <div class="wpw-top-row">
+                    <span class="wpw-badge" id="wpw-badge">30-Min-Grenze</span>
+                    <span class="wpw-limit-time" id="wpw-limit-time">bis --:--:--</span>
+                </div>
+                <div class="wpw-countdown" id="wpw-countdown">00:00:00</div>
+            </div>
+
             <button type="button" class="btn-welcome-action" id="btn-welcome-action">
                 <strong id="welcome-action-title">Kommen</strong>
                 <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
             </button>
-
-            <!-- WIDGET: PAUSENWÄCHTER (NUR STARTBILD-OVERLAY) -->
-            <div class="pause-guard-widget" id="pause-guard-widget" style="display: none;" aria-live="polite">
-                <div class="pause-guard-top">
-                    <span class="pause-guard-badge" id="pause-guard-badge">Pausenwächter</span>
-                    <span class="pause-guard-countdown" id="pause-guard-countdown">-</span>
-                </div>
-                <div class="pause-guard-headline" id="pause-guard-headline">-</div>
-                <div class="pause-guard-sub" id="pause-guard-sub">-</div>
-            </div>
 
             <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
                 <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
@@ -264,7 +263,7 @@
         </div>
     </div>
 
-    <!-- GLOBALE ZAHLENTASTATUR -->
+    <!-- GLOBALE ZAHLENTASTATUR (4 TASTEN IN REIHE 4: ,  0  .  ↵) -->
     <div class="custom-keypad-sheet" id="custom-keypad-sheet" role="region" aria-label="Zahlentastatur">
         <div class="keypad-topbar">
             <span class="keypad-target-badge" id="keypad-target-badge">Kommen (hh:mm)</span>
@@ -378,7 +377,7 @@
         </div>
     </div>
 
-    <!-- SCREEN 4: MENÜ (EINSTELLUNGEN + UNTERMENÜS) -->
+    <!-- SCREEN 4: MENÜ (EINSTELLUNGEN + 3 UNTERMENÜS) -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
@@ -406,7 +405,7 @@
                     <button type="button" class="settings-nav-card" id="btn-open-widgets-subpage">
                         <div class="settings-nav-info">
                             <strong>Widgets</strong>
-                            <span id="nav-widgets-summary">Pausenwächter · Nur Gehen</span>
+                            <span id="nav-widgets-summary">Pausenwächter aktiv · Nur bei Gehen</span>
                         </div>
                         <div class="settings-nav-right">
                             <span class="nav-chevron">›</span>
@@ -464,7 +463,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.7.2</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.8.0</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -547,34 +546,25 @@
                 </div>
 
                 <div class="design-sub-card">
-                    <div class="widget-card-head">
-                        <div>
-                            <strong style="font-size:0.95em; display:block;">Pausenwächter</strong>
-                            <span style="font-size:0.76em; opacity:0.78; line-height:1.35; display:block; margin-top:2px;">
-                                Zeigt auf dem Startbildschirm die maximale Zeit bis zur 30-Min- (06:29:59) bzw. 45-Min-Grenze (09:44:59) an.
-                            </span>
+                    <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
+                        <label class="toggle-label-nowrap" for="pauseWatcherEnabledCheck">
+                            <input type="checkbox" id="pauseWatcherEnabledCheck" checked>
+                            <span>⏱️ Pausenwächter</span>
+                        </label>
+                    </div>
+
+                    <div id="pause-watcher-options-wrap">
+                        <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Startbildschirm-Modus</label>
+                        <div class="widget-mode-pills" id="pause-watcher-mode-pills" role="radiogroup" aria-label="Startbildschirm-Modus">
+                            <button type="button" class="widget-mode-pill" data-pw-mode="go">Nur bei Gehen</button>
+                            <button type="button" class="widget-mode-pill" data-pw-mode="come">Nur bei Kommen</button>
+                            <button type="button" class="widget-mode-pill" data-pw-mode="both">Beides</button>
                         </div>
-                        <label class="toggle-label-nowrap" for="pauseGuardEnabledCheck">
-                            <input type="checkbox" id="pauseGuardEnabledCheck" checked>
-                            <span>Aktiv</span>
-                        </label>
                     </div>
 
-                    <div id="pauseGuardOptionsWrap" style="margin-top:10px;">
-                        <label for="pauseGuardScreensSelect" style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:5px;">
-                            Startbildschirm-Modus
-                        </label>
-                        <select id="pauseGuardScreensSelect" class="harmony-select">
-                            <option value="go" selected>Nur bei Gehen (Standard)</option>
-                            <option value="come">Nur bei Kommen</option>
-                            <option value="both">Bei Kommen & Gehen</option>
-                        </select>
+                    <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
+                        Zeigt bei laufender Stempelung den Countdown bis zur 30-Min-Grenze (06:29:59) und danach den 45er-Warner bis 09:44:59.
                     </div>
-                </div>
-
-                <div class="widget-placeholder-card">
-                    <span>Weitere Widgets</span>
-                    <small>Platzhalter für zukünftige Startbildschirm-Widgets</small>
                 </div>
 
                 <button type="button" class="settings-save" id="btn-done-widgets">Fertig</button>
@@ -653,7 +643,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=172');
+        navigator.serviceWorker.register('./sw.js?v=180');
       }
     </script>
 </body>
