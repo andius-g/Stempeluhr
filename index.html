@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.7
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.7.1
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#eff6f9">
-    <title>Stempeluhr & Wochenübersicht (v1.7)</title>
+    <title>Stempeluhr & Wochenübersicht (v1.7.1)</title>
 
     <script>
-        const APP_VERSION = "1.7";
+        const APP_VERSION = "1.7.1";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -49,14 +49,17 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
-    <link rel="manifest" id="app-manifest-link" href="manifest.json?v=170">
-    <link rel="icon" href="favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="stylesheet" href="styles.css?v=170">
+    <link rel="manifest" id="app-manifest-link" href="./manifest.json?v=171">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon_32.png?v=171">
+    <link rel="icon" type="image/png" sizes="192x192" href="./favicon_192.png?v=192">
+    <link rel="icon" href="./favicon.png?v=171" type="image/png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./favicon_180.png?v=171">
+    <link rel="stylesheet" href="./styles.css?v=171">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="app.js?v=170" defer></script>
+    <script src="./app.js?v=171" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
@@ -439,7 +442,7 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.7</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 1.7.1</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
@@ -587,7 +590,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
+        navigator.serviceWorker.register('./sw.js?v=171');
       }
     </script>
 </body>

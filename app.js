@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.7)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.7.1)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7.1"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -45,8 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!("Notification" in window) || Notification.permission !== "granted") return;
         const options = {
             body,
-            icon: "./favicon.png",
-            badge: "./favicon.png",
+            icon: "./favicon_192.png?v=171",
+            badge: "./favicon_192.png?v=171",
             tag,
             renotify: true
         };
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7.1",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
