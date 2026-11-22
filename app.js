@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.7.1)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.7.2)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7.1"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7.2"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -45,8 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!("Notification" in window) || Notification.permission !== "granted") return;
         const options = {
             body,
-            icon: "./favicon_192.png?v=171",
-            badge: "./favicon_192.png?v=171",
+            icon: "./favicon_192.png?v=172",
+            badge: "./favicon_192.png?v=172",
             tag,
             renotify: true
         };
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7.1",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.7.2",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       SCRIBBLE SVG-SET (32 MOTIVE AUS EINEM GUSS)
+       SCRIBBLE SVG-SET (32 MOTIVE)
        ========================================================= */
     const SCRIBBLE_ICONS = [
         { id: "bolt", label: "Blitz", inner: `<path d="M20.5 3.5 L8.5 19.5 L18 19.2 L14.8 32.5 L27.5 16.2 L18.2 16.5 Z"/>` },
@@ -262,6 +262,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"), 10);
     if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
 
+    /* WIDGETS-EINSTELLUNGEN (PAUSENWÄCHTER) */
+    let pauseGuardEnabled = localStorage.getItem("pauseGuardEnabled") !== "false";
+    const savedGuardScreens = localStorage.getItem("pauseGuardScreens");
+    let pauseGuardScreens = ["go", "come", "both"].includes(savedGuardScreens) ? savedGuardScreens : "go";
+
     let gesturesEnabled = localStorage.getItem("gesturesEnabled") !== "false";
 
     let selectedScribbles = ["bolt", "loop-arrow"];
@@ -297,7 +302,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const scribbleSizeSlider = document.getElementById("scribbleSizeSlider");
     const scribbleSizeVal = document.getElementById("scribbleSizeVal");
     const navWorkSummary = document.getElementById("nav-work-summary");
+    const navWidgetsSummary = document.getElementById("nav-widgets-summary");
     const navDesignSummary = document.getElementById("nav-design-summary");
+
+    const pauseGuardEnabledCheck = document.getElementById("pauseGuardEnabledCheck");
+    const pauseGuardScreensSelect = document.getElementById("pauseGuardScreensSelect");
+    const pauseGuardOptionsWrap = document.getElementById("pauseGuardOptionsWrap");
+
+    const pauseGuardWidget = document.getElementById("pause-guard-widget");
+    const pauseGuardBadge = document.getElementById("pause-guard-badge");
+    const pauseGuardCountdown = document.getElementById("pause-guard-countdown");
+    const pauseGuardHeadline = document.getElementById("pause-guard-headline");
+    const pauseGuardSub = document.getElementById("pause-guard-sub");
+
+    function syncPauseGuardSettingsUI() {
+        const active = !!pauseGuardEnabledCheck.checked;
+        pauseGuardOptionsWrap.style.opacity = active ? "1" : "0.45";
+        pauseGuardScreensSelect.disabled = !active;
+    }
+
+    pauseGuardEnabledCheck.checked = pauseGuardEnabled;
+    pauseGuardScreensSelect.value = pauseGuardScreens;
+    syncPauseGuardSettingsUI();
+
+    pauseGuardEnabledCheck.addEventListener("change", () => {
+        pauseGuardEnabled = pauseGuardEnabledCheck.checked;
+        syncPauseGuardSettingsUI();
+        updatePauseGuardWidget();
+    });
+    pauseGuardScreensSelect.addEventListener("change", () => {
+        pauseGuardScreens = pauseGuardScreensSelect.value;
+        updatePauseGuardWidget();
+    });
 
     function syncScribbleAccordionUI() {
         scribbleAccordionCard.classList.toggle("is-open", scribbleAccordionOpen);
@@ -319,11 +355,22 @@ document.addEventListener("DOMContentLoaded", () => {
         syncScribbleAccordionUI();
     });
 
+    function getGuardScreenLabel(modeVal) {
+        if (modeVal === "come") return "Nur Kommen";
+        if (modeVal === "both") return "Kommen & Gehen";
+        return "Nur Gehen";
+    }
+
     function updateSettingsNavPreviews() {
         if (navWorkSummary) {
             const smokeTxt = isSmoker ? `Raucher ${smokeMinutesPerBreak}m` : "Raucher aus";
             const pushTxt = pauseNotifyEnabled ? ` · Push ${pauseNotifyLeadMins}m` : "";
             navWorkSummary.textContent = `${format2(sollHours)}:${format2(sollMinutes)}/Tag · ${weeklyHours}h/Wo · ${smokeTxt}${pushTxt}`;
+        }
+        if (navWidgetsSummary) {
+            navWidgetsSummary.textContent = pauseGuardEnabled
+                ? `Pausenwächter · ${getGuardScreenLabel(pauseGuardScreens)}`
+                : "Pausenwächter aus";
         }
         if (navDesignSummary) {
             const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
@@ -362,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       SCREEN 1: START (KOMMEN / GEHEN) + SCRIBBLES
+       SCREEN 1: START (KOMMEN / GEHEN) + PAUSENWÄCHTER + SCRIBBLES
        ========================================================= */
     const welcomeOverlay = document.getElementById("welcome-overlay");
     const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -376,6 +423,99 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let welcomeActionMode = "come";
     let ambientAnimTimer = null;
+
+    function shouldShowPauseGuardOnStart() {
+        if (!pauseGuardEnabled) return false;
+        if (pauseGuardScreens === "both") return true;
+        return welcomeActionMode === pauseGuardScreens;
+    }
+
+    function formatRemainingSecs(secs) {
+        const clamped = Math.max(0, Math.floor(secs));
+        const h = Math.floor(clamped / 3600);
+        const m = Math.floor((clamped % 3600) / 60);
+        if (h > 0) return `noch ${h}h ${format2(m)}m`;
+        return `noch ${m} Min`;
+    }
+
+    function updatePauseGuardWidget() {
+        if (!pauseGuardWidget) return;
+        if (!shouldShowPauseGuardOnStart()) {
+            pauseGuardWidget.style.display = "none";
+            return;
+        }
+
+        pauseGuardWidget.style.display = "block";
+        pauseGuardWidget.classList.remove("is-warn", "is-limit45");
+
+        const pS = getParsedStart();
+        if (!pS) {
+            pauseGuardBadge.textContent = "Pausenwächter";
+            pauseGuardCountdown.textContent = "Kein Kommen";
+            pauseGuardHeadline.textContent = "Noch nicht eingestempelt";
+            pauseGuardSub.textContent = "Grenzen: max. 06:29:59 (0m) · max. 09:44:59 (30m)";
+            return;
+        }
+
+        const stH = parseInt(pS.h, 10);
+        const stM = parseInt(pS.m, 10) || 0;
+        const stS = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
+        const startSecs = (stH * 3600) + (stM * 60) + stS;
+
+        const pE = getParsedEnd();
+        let refEndSecs;
+        if (pE) {
+            const enH = parseInt(pE.h, 10);
+            const enM = parseInt(pE.m, 10) || 0;
+            const lastSess = todaySessions[todaySessions.length - 1];
+            const enS = (lastSess && lastSess.end) ? (parseInt(lastSess.end.s, 10) || 0) : 0;
+            refEndSecs = (enH * 3600) + (enM * 60) + enS;
+        } else {
+            refEndSecs = getNowSecsOfDay();
+        }
+
+        let elapsedSecs = Math.max(0, refEndSecs - startSecs);
+        let gapSecs = 0;
+        if (todaySessions.length > 1) {
+            const metrics = getSessionMetrics(pE ? null : refEndSecs);
+            if (metrics.totalPresSecs > 0) elapsedSecs = metrics.totalPresSecs;
+            gapSecs = metrics.totalGapSecs;
+        }
+
+        const startDate = new Date();
+        startDate.setHours(stH, stM, stS, 0);
+        const clockAtElapsed = (offsetSecs) => {
+            const d = new Date(startDate.getTime() + (offsetSecs + gapSecs) * 1000);
+            return `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
+        };
+
+        const limitNoPauseSecs = (6 * 3600) + (29 * 60) + 59; // 06:29:59
+        const limit30MaxSecs    = (9 * 3600) + (44 * 60) + 59; // 09:44:59
+
+        if (elapsedSecs <= limitNoPauseSecs) {
+            const capTimeStr = clockAtElapsed(limitNoPauseSecs);
+            const remSecs = limitNoPauseSecs - elapsedSecs;
+            pauseGuardWidget.classList.add("is-warn");
+            pauseGuardBadge.textContent = "0m Pause · Stufe 1/2";
+            pauseGuardCountdown.textContent = formatRemainingSecs(remSecs);
+            pauseGuardHeadline.textContent = `Max. bis ${capTimeStr} (keine Pause)`;
+            pauseGuardSub.textContent = `Ab ${clockAtElapsed(6 * 3600 + 30 * 60)} greifen 30m · max. 30m bis ${clockAtElapsed(limit30MaxSecs)}`;
+        } else if (elapsedSecs <= limit30MaxSecs) {
+            const cap30TimeStr = clockAtElapsed(limit30MaxSecs);
+            const remSecs = limit30MaxSecs - elapsedSecs;
+            pauseGuardWidget.classList.add("is-warn");
+            pauseGuardBadge.textContent = "30m Pause · Stufe 2/2";
+            pauseGuardCountdown.textContent = formatRemainingSecs(remSecs);
+            pauseGuardHeadline.textContent = `Max. bis ${cap30TimeStr} (30m Pause)`;
+            pauseGuardSub.textContent = `30m aktiv · danach ab ${clockAtElapsed(9 * 3600 + 45 * 60)} insgesamt 45m Pause`;
+        } else {
+            pauseGuardWidget.classList.add("is-limit45");
+            pauseGuardBadge.textContent = "45m Pause aktiv";
+            pauseGuardCountdown.textContent = "Limit erreicht";
+            pauseGuardHeadline.textContent = "45 Min Pause gilt ab 09:45:00";
+            pauseGuardSub.textContent = `30m-Fenster bis ${clockAtElapsed(limit30MaxSecs)} ist überschritten`;
+        }
+    }
 
     function createSeededRng(seedNum) {
         let s = seedNum % 2147483647;
@@ -532,6 +672,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 44, 22));
 
         updateWelcomeGreetingText();
+        updatePauseGuardWidget();
         renderWelcomeScatter();
 
         if (wasAlreadyOpen) {
@@ -886,6 +1027,9 @@ document.addEventListener("DOMContentLoaded", () => {
         pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput.value, 10) || 10));
         pauseNotifyLeadInput.value = pauseNotifyLeadMins;
 
+        pauseGuardEnabled = !!pauseGuardEnabledCheck.checked;
+        pauseGuardScreens = ["go", "come", "both"].includes(pauseGuardScreensSelect.value) ? pauseGuardScreensSelect.value : "go";
+
         appStyleMode = styleModeSelect.value;
         appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
         document.documentElement.setAttribute("data-style", appStyleMode);
@@ -908,6 +1052,8 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("glzBaseDate", glzBaseDate);
         localStorage.setItem("pauseNotifyEnabled", pauseNotifyEnabled);
         localStorage.setItem("pauseNotifyLeadMins", pauseNotifyLeadMins);
+        localStorage.setItem("pauseGuardEnabled", pauseGuardEnabled);
+        localStorage.setItem("pauseGuardScreens", pauseGuardScreens);
         localStorage.setItem("isSmoker", isSmoker);
         localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
         localStorage.setItem("gesturesEnabled", gesturesEnabled);
@@ -919,6 +1065,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateSmokerUI();
         syncScribbleAccordionUI();
         updateSettingsNavPreviews();
+        updatePauseGuardWidget();
         calculateAllTimes();
         checkPauseNotifications();
         if (viewWeek.classList.contains("active")) buildWeekView();
@@ -928,15 +1075,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsModal = document.getElementById("settings-modal");
     const settingsPageMain = document.getElementById("settings-page-main");
     const settingsPageWork = document.getElementById("settings-page-work");
+    const settingsPageWidgets = document.getElementById("settings-page-widgets");
     const settingsPageDesign = document.getElementById("settings-page-design");
 
     function showSettingsSubpage(pageName) {
         closeCustomKeypad();
         settingsPageMain.style.display = pageName === "main" ? "block" : "none";
         settingsPageWork.style.display = pageName === "work" ? "block" : "none";
+        settingsPageWidgets.style.display = pageName === "widgets" ? "block" : "none";
         settingsPageDesign.style.display = pageName === "design" ? "block" : "none";
 
-        if (pageName === "design") {
+        if (pageName === "widgets") {
+            pauseGuardEnabledCheck.checked = pauseGuardEnabled;
+            pauseGuardScreensSelect.value = pauseGuardScreens;
+            syncPauseGuardSettingsUI();
+        } else if (pageName === "design") {
             scribbleAccordionOpen = false;
             renderScribblePicker();
             drawColorWheel();
@@ -963,6 +1116,9 @@ document.addEventListener("DOMContentLoaded", () => {
         glzBaseDateInput.value = glzBaseDate;
         pauseNotifyCheck.checked = pauseNotifyEnabled;
         pauseNotifyLeadInput.value = pauseNotifyLeadMins;
+        pauseGuardEnabledCheck.checked = pauseGuardEnabled;
+        pauseGuardScreensSelect.value = pauseGuardScreens;
+        syncPauseGuardSettingsUI();
         updatePauseNotifyUI();
         syncStyleControlsUI();
         updateBackupStatusBadge();
@@ -973,9 +1129,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-settings").addEventListener("click", openSettingsMenu);
 
     document.getElementById("btn-open-work-subpage").addEventListener("click", () => showSettingsSubpage("work"));
+    document.getElementById("btn-open-widgets-subpage").addEventListener("click", () => showSettingsSubpage("widgets"));
     document.getElementById("btn-open-design-subpage").addEventListener("click", () => showSettingsSubpage("design"));
     document.getElementById("btn-back-from-work").addEventListener("click", leaveSubpageAndSave);
     document.getElementById("btn-done-work").addEventListener("click", leaveSubpageAndSave);
+    document.getElementById("btn-back-from-widgets").addEventListener("click", leaveSubpageAndSave);
+    document.getElementById("btn-done-widgets").addEventListener("click", leaveSubpageAndSave);
     document.getElementById("btn-back-from-design").addEventListener("click", leaveSubpageAndSave);
     document.getElementById("btn-done-design").addEventListener("click", leaveSubpageAndSave);
 
@@ -1005,7 +1164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       GLOBALE ZAHLENTASTATUR-ENGINE (4 TASTEN IN REIHE 4: , 0 . ↵)
+       GLOBALE ZAHLENTASTATUR-ENGINE
        ========================================================= */
     const startTimePill = document.getElementById("startTimePill");
     const endTimePill = document.getElementById("endTimePill");
@@ -1278,7 +1437,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        /* STANDARD ZAHLEN / DEZIMAL (MENÜ) */
         if (/^[0-9]$/.test(action)) {
             if (st.fresh) {
                 st.buffer = action;
@@ -1629,6 +1787,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function calculateAllTimes() {
         calculateEndTimes();
         calculateWorkingTime();
+        updatePauseGuardWidget();
     }
 
     function calculateEndTimes() {
@@ -2536,6 +2695,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     updateAmpelPill();
+    updatePauseGuardWidget();
 
     const todayAtInit = getTodayStr();
     const dismissedToday = localStorage.getItem("welcomeDismissedDate") === todayAtInit;
@@ -2558,7 +2718,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (bgHourWatermark) bgHourWatermark.textContent = hh;
 
         liveDayEl.textContent = `${weekdaysFull[now.getDay()]}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
-        if (welcomeOverlay.classList.contains("active")) updateWelcomeGreetingText();
+        if (welcomeOverlay.classList.contains("active")) {
+            updateWelcomeGreetingText();
+            updatePauseGuardWidget();
+        }
 
         const pS = getParsedStart();
         const pE = getParsedEnd();
