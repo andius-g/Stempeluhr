@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.3)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.4)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.3"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.4"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.3",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.4",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -291,9 +291,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let pauseNotifyLeadMins = parseInt(localStorage.getItem("pauseNotifyLeadMins"), 10);
     if (isNaN(pauseNotifyLeadMins) || pauseNotifyLeadMins < 1) pauseNotifyLeadMins = 10;
 
+    let sollWidgetEnabled = localStorage.getItem("sollWidgetEnabled") !== "false";
+    let sollWidgetMode = localStorage.getItem("sollWidgetMode") || "both";
+    if (!["go", "come", "both"].includes(sollWidgetMode)) sollWidgetMode = "both";
+
     let pauseWatcherEnabled = localStorage.getItem("pauseWatcherEnabled") !== "false";
     let pauseWatcherMode = localStorage.getItem("pauseWatcherMode") || "both";
     if (!["go", "come", "both"].includes(pauseWatcherMode)) pauseWatcherMode = "both";
+
+    let keyboardMode = localStorage.getItem("keyboardMode") === "system" ? "system" : "app";
 
     let isSmoker = localStorage.getItem("isSmoker") === "true";
     let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"), 10);
@@ -382,12 +388,9 @@ document.addEventListener("DOMContentLoaded", () => {
             navWorkSummary.textContent = `${format2(sollHours)}:${format2(sollMinutes)}/Tag · ${weeklyHours}h/Wo · ${smokeTxt}${pushTxt}`;
         }
         if (navWidgetsSummary) {
-            if (!pauseWatcherEnabled) {
-                navWidgetsSummary.textContent = "Pausenwächter aus";
-            } else {
-                const modeLabels = { go: "Nur bei Gehen", come: "Nur bei Kommen", both: "Beides" };
-                navWidgetsSummary.textContent = `Pausenwächter · ${modeLabels[pauseWatcherMode] || "Beides"}`;
-            }
+            const kbTxt = keyboardMode === "system" ? "System-Tastatur" : "App-Tastatur";
+            const wTxt = sollWidgetEnabled || pauseWatcherEnabled ? "Widgets aktiv" : "Widgets aus";
+            navWidgetsSummary.textContent = `${wTxt} · ${kbTxt}`;
         }
         if (navDesignSummary) {
             const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
@@ -427,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       SCREEN 1: START (KOMMEN / GEHEN) + SCRIBBLES + PAUSENWÄCHTER
+       SCREEN 1: START (KOMMEN / GEHEN) + SCRIBBLES + WIDGETS
        ========================================================= */
     const welcomeOverlay = document.getElementById("welcome-overlay");
     const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -438,6 +441,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const welcomeActionTitle = document.getElementById("welcome-action-title");
     const welcomeActionSub = document.getElementById("welcome-action-sub");
     const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
+
+    const welcomeSollWidget = document.getElementById("welcome-soll-widget");
+    const wswBadge = document.getElementById("wsw-badge");
+    const wswSollInfo = document.getElementById("wsw-soll-info");
+    const wswTargetTime = document.getElementById("wsw-target-time");
 
     const welcomePauseWidget = document.getElementById("welcome-pause-widget");
     const wpwBadge = document.getElementById("wpw-badge");
@@ -453,6 +461,52 @@ document.addEventListener("DOMContentLoaded", () => {
         const mm = Math.floor((s % 3600) / 60);
         const ss = s % 60;
         return `${format2(hh)}:${format2(mm)}:${format2(ss)}`;
+    }
+
+    function updateWelcomeSollWidget() {
+        if (!welcomeSollWidget) return;
+
+        if (!sollWidgetEnabled || !welcomeOverlay.classList.contains("active")) {
+            welcomeSollWidget.style.display = "none";
+            return;
+        }
+
+        const modeMatches = (sollWidgetMode === "both")
+            || (sollWidgetMode === "go" && welcomeActionMode === "go")
+            || (sollWidgetMode === "come" && welcomeActionMode === "come");
+
+        if (!modeMatches) {
+            welcomeSollWidget.style.display = "none";
+            return;
+        }
+
+        const pS = getParsedStart();
+        const pE = getParsedEnd();
+        const sollTotalSecs = (sollHours * 3600) + (sollMinutes * 60);
+        if (!pS || pE || sollTotalSecs <= 0) {
+            welcomeSollWidget.style.display = "none";
+            return;
+        }
+
+        const stH = parseInt(pS.h, 10);
+        const stM = parseInt(pS.m, 10) || 0;
+        const stS = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
+        const { totalGapSecs } = getSessionMetrics(null);
+        const smokeSecs = getTodaySmokeSecs();
+
+        let requiredPauseSecs = 0;
+        if (sollTotalSecs >= 9 * 3600) requiredPauseSecs = 45 * 60;
+        else if (sollTotalSecs >= 6 * 3600) requiredPauseSecs = 30 * 60;
+        const extraDeductSecs = Math.max(requiredPauseSecs, smokeSecs);
+
+        const startDate = new Date();
+        startDate.setHours(stH, stM, stS, 0);
+        const targetDate = new Date(startDate.getTime() + (sollTotalSecs + totalGapSecs + extraDeductSecs) * 1000);
+
+        wswBadge.textContent = "Soll erreicht um";
+        wswSollInfo.textContent = `Soll ${format2(sollHours)}:${format2(sollMinutes)}h`;
+        wswTargetTime.textContent = `${format2(targetDate.getHours())}:${format2(targetDate.getMinutes())}:${format2(targetDate.getSeconds())}`;
+        welcomeSollWidget.style.display = "flex";
     }
 
     function updateWelcomePauseWidget() {
@@ -525,6 +579,11 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             welcomePauseWidget.style.display = "none";
         }
+    }
+
+    function updateWelcomeWidgets() {
+        updateWelcomeSollWidget();
+        updateWelcomePauseWidget();
     }
 
     function createSeededRng(seedNum) {
@@ -692,12 +751,13 @@ document.addEventListener("DOMContentLoaded", () => {
             welcomeOverlay.classList.add("active");
             startAmbientPixelAnimations();
         }
-        updateWelcomePauseWidget();
+        updateWelcomeWidgets();
     }
 
     function closeWelcomeScreen() {
         stopAmbientPixelAnimations();
         welcomeOverlay.classList.remove("active", "welcome-mode-switch");
+        if (welcomeSollWidget) welcomeSollWidget.style.display = "none";
         if (welcomePauseWidget) welcomePauseWidget.style.display = "none";
         localStorage.setItem("welcomeDismissedDate", getTodayStr());
         applyThemeColors(appHue, appLightness);
@@ -827,9 +887,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const pauseNotifyLeadInput = document.getElementById("pauseNotifyLeadInput");
     const pauseNotifyMinsWrap = document.getElementById("pauseNotifyMinsWrap");
 
+    const sollWidgetEnabledCheck = document.getElementById("sollWidgetEnabledCheck");
+    const sollWidgetOptionsWrap = document.getElementById("soll-widget-options-wrap");
+    const sollWidgetModePills = document.getElementById("soll-widget-mode-pills");
+
     const pauseWatcherEnabledCheck = document.getElementById("pauseWatcherEnabledCheck");
     const pauseWatcherOptionsWrap = document.getElementById("pause-watcher-options-wrap");
     const pauseWatcherModePills = document.getElementById("pause-watcher-mode-pills");
+
+    const keyboardModePills = document.getElementById("keyboard-mode-pills");
 
     const styleModeSelect = document.getElementById("styleModeSelect");
     const asymSliderWrap = document.getElementById("asymSliderWrap");
@@ -853,6 +919,7 @@ document.addEventListener("DOMContentLoaded", () => {
     glzBaseDateInput.value = glzBaseDate;
     pauseNotifyCheck.checked = pauseNotifyEnabled;
     pauseNotifyLeadInput.value = pauseNotifyLeadMins;
+    sollWidgetEnabledCheck.checked = sollWidgetEnabled;
     pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
     styleModeSelect.value = appStyleMode;
     asymIntensitySlider.value = appAsymIntensity;
@@ -865,6 +932,16 @@ document.addEventListener("DOMContentLoaded", () => {
     scribbleSizeSlider.value = scribbleSizePct;
     scribbleSizeVal.textContent = scribbleSizePct;
 
+    function syncSollWidgetSettingsUI() {
+        sollWidgetOptionsWrap.style.opacity = sollWidgetEnabled ? "1" : "0.45";
+        sollWidgetOptionsWrap.style.pointerEvents = sollWidgetEnabled ? "auto" : "none";
+        sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            const isSel = pill.getAttribute("data-sw-mode") === sollWidgetMode;
+            pill.classList.toggle("selected", isSel);
+            pill.setAttribute("aria-checked", isSel ? "true" : "false");
+        });
+    }
+
     function syncPauseWatcherSettingsUI() {
         pauseWatcherOptionsWrap.style.opacity = pauseWatcherEnabled ? "1" : "0.45";
         pauseWatcherOptionsWrap.style.pointerEvents = pauseWatcherEnabled ? "auto" : "none";
@@ -874,7 +951,30 @@ document.addEventListener("DOMContentLoaded", () => {
             pill.setAttribute("aria-checked", isSel ? "true" : "false");
         });
     }
+
+    function syncKeyboardModeUI() {
+        keyboardModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            const isSel = pill.getAttribute("data-kb-mode") === keyboardMode;
+            pill.classList.toggle("selected", isSel);
+            pill.setAttribute("aria-checked", isSel ? "true" : "false");
+        });
+    }
+
+    syncSollWidgetSettingsUI();
     syncPauseWatcherSettingsUI();
+    syncKeyboardModeUI();
+
+    sollWidgetEnabledCheck.addEventListener("change", () => {
+        sollWidgetEnabled = sollWidgetEnabledCheck.checked;
+        syncSollWidgetSettingsUI();
+    });
+
+    sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+        pill.addEventListener("click", () => {
+            sollWidgetMode = pill.getAttribute("data-sw-mode") || "both";
+            syncSollWidgetSettingsUI();
+        });
+    });
 
     pauseWatcherEnabledCheck.addEventListener("change", () => {
         pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
@@ -885,6 +985,15 @@ document.addEventListener("DOMContentLoaded", () => {
         pill.addEventListener("click", () => {
             pauseWatcherMode = pill.getAttribute("data-pw-mode") || "both";
             syncPauseWatcherSettingsUI();
+        });
+    });
+
+    keyboardModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+        pill.addEventListener("click", () => {
+            keyboardMode = pill.getAttribute("data-kb-mode") === "system" ? "system" : "app";
+            syncKeyboardModeUI();
+            applyKeyboardModeToInputs();
+            updateSettingsNavPreviews();
         });
     });
 
@@ -1066,6 +1175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput.value, 10) || 10));
         pauseNotifyLeadInput.value = pauseNotifyLeadMins;
 
+        sollWidgetEnabled = sollWidgetEnabledCheck.checked;
         pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
 
         appStyleMode = styleModeSelect.value;
@@ -1091,8 +1201,11 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("glzBaseDate", glzBaseDate);
         localStorage.setItem("pauseNotifyEnabled", pauseNotifyEnabled);
         localStorage.setItem("pauseNotifyLeadMins", pauseNotifyLeadMins);
+        localStorage.setItem("sollWidgetEnabled", sollWidgetEnabled);
+        localStorage.setItem("sollWidgetMode", sollWidgetMode);
         localStorage.setItem("pauseWatcherEnabled", pauseWatcherEnabled);
         localStorage.setItem("pauseWatcherMode", pauseWatcherMode);
+        localStorage.setItem("keyboardMode", keyboardMode);
         localStorage.setItem("isSmoker", isSmoker);
         localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
         localStorage.setItem("gesturesEnabled", gesturesEnabled);
@@ -1101,13 +1214,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
         applyThemeColors(appHue, appLightness);
+        applyKeyboardModeToInputs();
         if (isSmoker) saveTodaySmokeData();
         updateSmokerUI();
         syncScribbleAccordionUI();
         updateSettingsNavPreviews();
         calculateAllTimes();
         checkPauseNotifications();
-        updateWelcomePauseWidget();
+        updateWelcomeWidgets();
         if (viewWeek.classList.contains("active")) buildWeekView();
         else updateAmpelPill();
     }
@@ -1131,7 +1245,11 @@ document.addEventListener("DOMContentLoaded", () => {
             syncIconThemePickerUI();
             drawColorWheel();
         } else if (pageName === "widgets") {
+            sollWidgetEnabledCheck.checked = sollWidgetEnabled;
+            pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
+            syncSollWidgetSettingsUI();
             syncPauseWatcherSettingsUI();
+            syncKeyboardModeUI();
         } else if (pageName === "main") {
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
@@ -1155,8 +1273,11 @@ document.addEventListener("DOMContentLoaded", () => {
         glzBaseDateInput.value = glzBaseDate;
         pauseNotifyCheck.checked = pauseNotifyEnabled;
         pauseNotifyLeadInput.value = pauseNotifyLeadMins;
+        sollWidgetEnabledCheck.checked = sollWidgetEnabled;
         pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
+        syncSollWidgetSettingsUI();
         syncPauseWatcherSettingsUI();
+        syncKeyboardModeUI();
         updatePauseNotifyUI();
         syncStyleControlsUI();
         syncIconThemePickerUI();
@@ -1193,7 +1314,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       GLOBALE ZAHLENTASTATUR-ENGINE (iOS SAFARI & ANDROID STABIL)
+       GLOBALE ZAHLENTASTATUR-ENGINE (APP- & SYSTEM-TASTATUR)
        ========================================================= */
     const startTimePill = document.getElementById("startTimePill");
     const endTimePill = document.getElementById("endTimePill");
@@ -1205,6 +1326,27 @@ document.addEventListener("DOMContentLoaded", () => {
     let kpState = null;
     let lastKeypadKeyTime = 0;
     let lastKeypadOpenTime = 0;
+    const boundKeypadInputs = new Set();
+
+    function applyKeyboardModeToInputs() {
+        const useSystem = keyboardMode === "system";
+        if (useSystem) closeCustomKeypad();
+        boundKeypadInputs.forEach((el) => {
+            if (!el) return;
+            const opts = el._kpOpts || {};
+            if (useSystem) {
+                el.removeAttribute("readonly");
+                el.readOnly = false;
+                if (opts.mode === "hhmm") el.setAttribute("inputmode", "numeric");
+                else if (opts.allowDecimal || opts.allowNegative) el.setAttribute("inputmode", "decimal");
+                else el.setAttribute("inputmode", "numeric");
+            } else {
+                el.setAttribute("readonly", "readonly");
+                el.readOnly = true;
+                el.setAttribute("inputmode", "none");
+            }
+        });
+    }
 
     function formatRawDigitsToHhMm(digits) {
         const clean = digits.replace(/\D/g, "").slice(0, 4);
@@ -1253,6 +1395,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function openGlobalKeypad(config) {
+        if (keyboardMode === "system") return;
         if (kpState && kpState.onCommit) {
             kpState.onCommit(kpState.el, true);
         }
@@ -1310,76 +1453,85 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function attachTrigger(el, handler) {
+    function registerKeypadInput(el, opts, beforeOpen = null) {
+        if (!el) return;
+        el._kpOpts = opts;
+        if (boundKeypadInputs.has(el)) {
+            applyKeyboardModeToInputs();
+            return;
+        }
+        boundKeypadInputs.add(el);
+
         let lastFire = 0;
-        const trigger = (e) => {
+        el.addEventListener("pointerdown", (e) => {
+            if (keyboardMode === "system" || el.disabled) return;
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
             const now = Date.now();
             if (now - lastFire < 180) return;
             lastFire = now;
-            handler(e);
-        };
-        el.addEventListener("pointerdown", trigger);
+            if (beforeOpen) beforeOpen();
+            openGlobalKeypad({ el, ...opts });
+        });
         el.addEventListener("click", (e) => {
+            if (keyboardMode === "system") return;
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
         });
+        el.addEventListener("input", () => {
+            if (keyboardMode !== "system") return;
+            if (opts.onCommit) opts.onCommit(el, false);
+        });
+        el.addEventListener("change", () => {
+            if (keyboardMode !== "system") return;
+            if (opts.onCommit) opts.onCommit(el, true);
+        });
+        el.addEventListener("blur", () => {
+            if (keyboardMode !== "system") return;
+            if (opts.onCommit) opts.onCommit(el, true);
+        });
+
+        applyKeyboardModeToInputs();
     }
 
-    function bindNumberKeypadInput(el, opts) {
-        if (!el) return;
-        el.dataset.kpBound = "1";
-        el._kpOpts = opts;
-        attachTrigger(el, () => {
-            if (el.disabled) return;
-            openGlobalKeypad({ el, ...opts });
-        });
-    }
+    registerKeypadInput(startTimePill, {
+        mode: "hhmm",
+        label: "Kommen (hh:mm)",
+        nextEl: endTimePill,
+        onCommit: () => {
+            onManualTimeInputChange();
+            calculateAllTimes();
+        }
+    }, () => pushUndoSnapshot());
 
-    attachTrigger(startTimePill, () => {
-        pushUndoSnapshot();
-        openGlobalKeypad({
-            el: startTimePill,
-            mode: "hhmm",
-            label: "Kommen (hh:mm)",
-            nextEl: endTimePill,
-            onCommit: () => {
-                onManualTimeInputChange();
-                calculateAllTimes();
-            }
-        });
-    });
+    registerKeypadInput(endTimePill, {
+        mode: "hhmm",
+        label: "Gehen (hh:mm)",
+        onCommit: () => {
+            onManualTimeInputChange();
+            calculateAllTimes();
+        }
+    }, () => pushUndoSnapshot());
 
-    attachTrigger(endTimePill, () => {
-        pushUndoSnapshot();
-        openGlobalKeypad({
-            el: endTimePill,
-            mode: "hhmm",
-            label: "Gehen (hh:mm)",
-            onCommit: () => {
-                onManualTimeInputChange();
-                calculateAllTimes();
-            }
-        });
+    registerKeypadInput(sollHoursInput, {
+        mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput,
+        onCommit: () => calculateAllTimes()
     });
-
-    bindNumberKeypadInput(sollHoursInput, {
-        mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput
+    registerKeypadInput(sollMinutesInput, {
+        mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5,
+        onCommit: () => calculateAllTimes()
     });
-    bindNumberKeypadInput(sollMinutesInput, {
-        mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5
-    });
-    bindNumberKeypadInput(pauseNotifyLeadInput, {
+    registerKeypadInput(pauseNotifyLeadInput, {
         mode: "number", label: "Vorwarnung (Minuten)", min: 1, max: 60, step: 5
     });
-    bindNumberKeypadInput(smokeMinutesInput, {
-        mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1
+    registerKeypadInput(smokeMinutesInput, {
+        mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1,
+        onCommit: () => calculateAllTimes()
     });
-    bindNumberKeypadInput(glzBaseInput, {
+    registerKeypadInput(glzBaseInput, {
         mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true
     });
-    bindNumberKeypadInput(weeklyHoursInput, {
+    registerKeypadInput(weeklyHoursInput, {
         mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true
     });
 
@@ -1391,6 +1543,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openNextBoundInput(nextTarget) {
         if (!nextTarget || nextTarget.disabled) return;
+        if (keyboardMode === "system") {
+            if (typeof nextTarget.focus === "function") nextTarget.focus();
+            return;
+        }
         if (nextTarget === startTimePill) {
             pushUndoSnapshot();
             openGlobalKeypad({
@@ -1409,7 +1565,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function handleKeypadPress(action) {
-        if (!kpState) return;
+        if (!kpState || keyboardMode === "system") return;
         const st = kpState;
         const el = st.el;
 
@@ -1821,7 +1977,7 @@ document.addEventListener("DOMContentLoaded", () => {
         saveSessionsAndDay();
         calculateAllTimes();
         checkPauseNotifications();
-        updateWelcomePauseWidget();
+        updateWelcomeWidgets();
     }
 
     function triggerStampGoNow() {
@@ -1833,7 +1989,7 @@ document.addEventListener("DOMContentLoaded", () => {
         syncInputsFromSessions();
         saveSessionsAndDay();
         calculateAllTimes();
-        updateWelcomePauseWidget();
+        updateWelcomeWidgets();
     }
 
     document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
@@ -1858,7 +2014,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function calculateAllTimes() {
         calculateEndTimes();
         calculateWorkingTime();
-        updateWelcomePauseWidget();
+        updateWelcomeWidgets();
     }
 
     function calculateEndTimes() {
@@ -2271,23 +2427,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            bindNumberKeypadInput(shInp, {
+            registerKeypadInput(shInp, {
                 mode: "twoDigit", label: `#${idx + 1} Kommen · Stunde`, min: 0, max: 23, step: 1, nextEl: smInp,
                 onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
             });
-            bindNumberKeypadInput(smInp, {
+            registerKeypadInput(smInp, {
                 mode: "twoDigit", label: `#${idx + 1} Kommen · Minute`, min: 0, max: 59, step: 5, nextEl: ehInp,
                 onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
             });
-            bindNumberKeypadInput(ehInp, {
+            registerKeypadInput(ehInp, {
                 mode: "twoDigit", label: `#${idx + 1} Gehen · Stunde`, min: 0, max: 23, step: 1, nextEl: emInp,
                 onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
             });
-            bindNumberKeypadInput(emInp, {
+            registerKeypadInput(emInp, {
                 mode: "twoDigit", label: `#${idx + 1} Gehen · Minute`, min: 0, max: 59, step: 5,
                 onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
             });
         });
+
+        applyKeyboardModeToInputs();
     }
 
     document.querySelectorAll("#day-status-chips .day-status-chip").forEach(chip => {
@@ -2754,7 +2912,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const pE = getParsedEnd();
         if (pS && !pE) {
             checkPauseNotifications();
-            updateWelcomePauseWidget();
+            updateWelcomeWidgets();
             if (viewClock.classList.contains("active")) {
                 calculateWorkingTime();
                 if (todaySessions.length > 1) {
@@ -2763,7 +2921,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         } else {
-            updateWelcomePauseWidget();
+            updateWelcomeWidgets();
         }
 
         if (viewWeek.classList.contains("active") && weekHasLiveToday) {

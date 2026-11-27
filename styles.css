@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.3)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.4)
    ========================================================= */
 :root {
     --hue: 195;
@@ -68,7 +68,7 @@ textarea {
     -webkit-touch-callout: default;
 }
 
-/* Readonly-Ziffernfelder (die über die eigene Tastatur bedient werden) bleiben unmarkierbar */
+/* Readonly-Ziffernfelder (die über die App-Tastatur bedient werden) bleiben unmarkierbar */
 input[readonly] {
     -webkit-user-select: none;
     user-select: none;
@@ -235,12 +235,12 @@ body {
     max-width: 350px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .btn-welcome-action {
     width: 100%;
-    padding: 19px 20px;
+    padding: 18px 20px;
     border-radius: var(--welcome-btn-come-radius);
     border: 1.5px solid rgba(255, 255, 255, 0.36);
     background: var(--primary-color);
@@ -270,7 +270,7 @@ body {
 
 .btn-welcome-menu {
     width: 100%;
-    padding: 13px 18px 14px;
+    padding: 12px 18px 13px;
     border-radius: var(--welcome-menu-radius);
     border: 1.5px solid rgba(255, 255, 255, 0.26);
     background: rgba(255, 255, 255, 0.14);
@@ -285,7 +285,7 @@ body {
     gap: 3px;
 }
 .welcome-big-clock {
-    font-size: 2.35em;
+    font-size: 2.25em;
     font-weight: bold;
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
@@ -600,7 +600,6 @@ body {
     font-variant-numeric: tabular-nums;
     outline: none;
     cursor: pointer;
-    caret-color: transparent;
     letter-spacing: 0.5px;
     padding: 4px 0;
 }
@@ -612,7 +611,6 @@ body {
 
 .keypad-bound-input {
     cursor: pointer;
-    caret-color: transparent;
 }
 .keypad-bound-input.kp-focused {
     border-color: var(--primary-color) !important;
@@ -1582,11 +1580,56 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   PAUSENWÄCHTER-WIDGET (STARTBILDSCHIRM) & WIDGET-PILLEN
+   STARTBILDSCHIRM-WIDGETS (SOLL-ERREICHT & PAUSENWÄCHTER) & TASTATUR-PILLEN
    ========================================================= */
+.welcome-soll-widget {
+    width: 100%;
+    padding: 9px 16px;
+    border-radius: var(--welcome-btn-come-radius);
+    background: rgba(18, 48, 38, 0.62);
+    border: 1.5px solid rgba(164, 245, 206, 0.36);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+.wsw-top-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.78em;
+    font-weight: bold;
+    opacity: 0.95;
+}
+.wsw-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(164, 245, 206, 0.22);
+    color: #d8ffec;
+    letter-spacing: 0.2px;
+}
+.wsw-soll-info {
+    opacity: 0.88;
+    font-variant-numeric: tabular-nums;
+}
+.wsw-target-time {
+    font-size: 1.85em;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 1px;
+    line-height: 1.12;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
 .welcome-pause-widget {
     width: 100%;
-    padding: 10px 16px;
+    padding: 9px 16px;
     border-radius: var(--welcome-btn-come-radius);
     background: rgba(14, 24, 34, 0.56);
     border: 1.5px solid rgba(255, 255, 255, 0.28);
@@ -1628,7 +1671,7 @@ canvas#colorWheel {
     font-variant-numeric: tabular-nums;
 }
 .wpw-countdown {
-    font-size: 2.05em;
+    font-size: 1.9em;
     font-weight: bold;
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
@@ -1639,6 +1682,11 @@ canvas#colorWheel {
 .widget-mode-pills {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.keyboard-mode-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
 }
 .widget-mode-pill {
@@ -1660,7 +1708,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.3
+   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.4
    ========================================================= */
 .icon-variant-grid {
     display: grid;
@@ -1701,7 +1749,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   SUBTILE PRESS-RÜCKMELDUNG (v1.9.3)
+   SUBTILE PRESS-RÜCKMELDUNG (v1.9.4)
    ========================================================= */
 button,
 .kg-pill,
