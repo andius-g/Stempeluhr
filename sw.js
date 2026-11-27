@@ -1,9 +1,12 @@
-const CACHE_NAME = "stempeluhr-v1.9.6";
+const CACHE_NAME = "stempeluhr-v1.9.7";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=196",
-  "./app.js?v=196",
+  "./styles.css?v=197",
+  "./scribbles.js?v=197",
+  "./holidays-nds.js?v=197",
+  "./pdf-export.js?v=197",
+  "./app.js?v=197",
   "./manifest.json",
   "./manifest-rose.json",
   "./favicon.png",
