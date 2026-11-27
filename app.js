@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.5)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.6)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.5"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.6"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.5",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.6",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -442,6 +442,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const welcomeActionSub = document.getElementById("welcome-action-sub");
     const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
 
+    const welcomeStatusPill = document.getElementById("welcome-status-pill");
+    const welcomeStatusText = document.getElementById("welcome-status-text");
+    const clockStatusCard = document.getElementById("clock-status-card");
+    const clockStatusLabel = document.getElementById("clock-status-label");
+    const clockStatusDetail = document.getElementById("clock-status-detail");
+
     const welcomeSollWidget = document.getElementById("welcome-soll-widget");
     const wswBadge = document.getElementById("wsw-badge");
     const wswSollInfo = document.getElementById("wsw-soll-info");
@@ -461,6 +467,61 @@ document.addEventListener("DOMContentLoaded", () => {
         const mm = Math.floor((s % 3600) / 60);
         const ss = s % 60;
         return `${format2(hh)}:${format2(mm)}:${format2(ss)}`;
+    }
+
+    function getStampStatusInfo() {
+        const pS = getParsedStart();
+        const pE = getParsedEnd();
+        const lastSess = todaySessions.length > 0 ? todaySessions[todaySessions.length - 1] : null;
+        const hasOpenSession = (lastSess && lastSess.start && (!lastSess.end || !lastSess.end.h)) || (pS && !pE);
+
+        if (hasOpenSession) {
+            const sinceStr = pS ? `${pS.h}:${pS.m}` : (lastSess && lastSess.start ? `${format2(parseInt(lastSess.start.h, 10) || 0)}:${format2(parseInt(lastSess.start.m, 10) || 0)}` : "--:--");
+            return {
+                state: "in",
+                pillText: `Eingestempelt · seit ${sinceStr}`,
+                cardLabel: "Eingestempelt",
+                cardDetail: `Aktiv seit ${sinceStr} Uhr`
+            };
+        }
+
+        if (pE) {
+            const untilStr = `${pE.h}:${pE.m}`;
+            return {
+                state: "out",
+                pillText: `Ausgestempelt · ${untilStr}`,
+                cardLabel: "Ausgestempelt",
+                cardDetail: pS ? `Letzter Block: ${pS.h}:${pS.m} – ${untilStr} Uhr` : `Ausgestempelt um ${untilStr} Uhr`
+            };
+        }
+
+        return {
+            state: "neutral",
+            pillText: "Nicht eingestempelt",
+            cardLabel: "Nicht eingestempelt",
+            cardDetail: "Heute noch keine Stempelung erfasst"
+        };
+    }
+
+    function updateStampStatusUI() {
+        const info = getStampStatusInfo();
+
+        if (welcomeStatusPill && welcomeStatusText) {
+            welcomeStatusPill.classList.remove("is-stamped-in", "is-stamped-out", "is-neutral");
+            welcomeStatusPill.classList.add(
+                info.state === "in" ? "is-stamped-in" : (info.state === "out" ? "is-stamped-out" : "is-neutral")
+            );
+            welcomeStatusText.textContent = info.pillText;
+        }
+
+        if (clockStatusCard && clockStatusLabel && clockStatusDetail) {
+            clockStatusCard.classList.remove("is-stamped-in", "is-stamped-out", "is-neutral");
+            clockStatusCard.classList.add(
+                info.state === "in" ? "is-stamped-in" : (info.state === "out" ? "is-stamped-out" : "is-neutral")
+            );
+            clockStatusLabel.textContent = info.cardLabel;
+            clockStatusDetail.textContent = info.cardDetail;
+        }
     }
 
     // Berechnet die erforderliche Anwesenheitszeit (in Sekunden), damit nach
@@ -752,6 +813,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 44, 22));
 
         updateWelcomeGreetingText();
+        updateStampStatusUI();
         renderWelcomeScatter();
 
         if (wasAlreadyOpen) {
@@ -1401,8 +1463,6 @@ document.addEventListener("DOMContentLoaded", () => {
         pillStartWrap.classList.remove("is-active");
         pillEndWrap.classList.remove("is-active");
         document.querySelectorAll(".keypad-bound-input.kp-focused").forEach(el => el.classList.remove("kp-focused"));
-        settingsModal.classList.remove("keypad-open-shift");
-        if (typeof dayEditorModal !== "undefined") dayEditorModal.classList.remove("keypad-open-shift");
     }
 
     function openGlobalKeypad(config) {
@@ -1440,15 +1500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (kpState.el === endTimePill) pillEndWrap.classList.add("is-active");
         else kpState.el.classList.add("kp-focused");
 
-        if (settingsModal.classList.contains("active")) settingsModal.classList.add("keypad-open-shift");
-        if (typeof dayEditorModal !== "undefined" && dayEditorModal.classList.contains("active")) dayEditorModal.classList.add("keypad-open-shift");
-
         keypadSheet.classList.add("active");
-        setTimeout(() => {
-            if (kpState && kpState.el && kpState.el.scrollIntoView) {
-                kpState.el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            }
-        }, 40);
     }
 
     function closeCustomKeypad() {
@@ -1805,6 +1857,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const getSessionMetrics = (liveEndSecs = null) => getSessionMetricsFromList(todaySessions, liveEndSecs);
 
+    function computePauseBoundaryTimes() {
+        const pS = getParsedStart();
+        if (!pS) return { limit30Time: "", limit45Time: "" };
+        const hours = parseInt(pS.h, 10);
+        const minutes = parseInt(pS.m, 10) || 0;
+        const seconds = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
+        const { totalGapSecs } = getSessionMetrics(null);
+        const startTime = new Date();
+        startTime.setHours(hours, minutes, seconds, 0);
+        const addS = (s) => new Date(startTime.getTime() + (s + totalGapSecs) * 1000);
+        const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
+        return {
+            limit30Time: formatT(addS(6 * 3600 + 30 * 60)),
+            limit45Time: formatT(addS(9 * 3600 + 45 * 60))
+        };
+    }
+
     function checkPauseNotifications() {
         if (!pauseNotifyEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
         const parsedS = getParsedStart();
@@ -1826,6 +1895,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const todayStr = getTodayStr();
         const leadSecs = pauseNotifyLeadMins * 60;
+        const { limit30Time, limit45Time } = computePauseBoundaryTimes();
 
         const limit30Secs = 23400;
         if (totalPresSecs >= (limit30Secs - leadSecs) && totalPresSecs < (limit30Secs + 180)) {
@@ -1833,7 +1903,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!localStorage.getItem(key30)) {
                 localStorage.setItem(key30, "1");
                 const remMins = Math.max(0, Math.ceil((limit30Secs - totalPresSecs) / 60));
-                const limit30Time = document.getElementById("output-30min-pause-range").textContent.split(" bis ")[0] || "";
                 showAppNotification(
                     "Achtung: 30-Min-Pause droht!",
                     remMins > 0
@@ -1850,7 +1919,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!localStorage.getItem(key45)) {
                 localStorage.setItem(key45, "1");
                 const remMins = Math.max(0, Math.ceil((limit45Secs - totalPresSecs) / 60));
-                const limit45Time = document.getElementById("output-45min-pause").textContent || "";
                 showAppNotification(
                     "Achtung: 45-Min-Pause droht!",
                     remMins > 0
@@ -2032,34 +2100,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function calculateAllTimes() {
-        calculateEndTimes();
+        updateStampStatusUI();
         calculateWorkingTime();
         updateWelcomeWidgets();
-    }
-
-    function calculateEndTimes() {
-        const pS = getParsedStart();
-        if (!pS) {
-            document.getElementById("output-no-pause").textContent = "-";
-            document.getElementById("output-30min-pause-range").textContent = "-";
-            document.getElementById("output-45min-pause").textContent = "-";
-            return;
-        }
-
-        const hours = parseInt(pS.h, 10);
-        const minutes = parseInt(pS.m, 10) || 0;
-        const seconds = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
-
-        const { totalGapSecs } = getSessionMetrics(null);
-        const startTime = new Date();
-        startTime.setHours(hours, minutes, seconds, 0);
-
-        const addS = (s) => new Date(startTime.getTime() + (s + totalGapSecs) * 1000);
-        const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
-
-        document.getElementById("output-no-pause").textContent = formatT(addS(6 * 3600 + 29 * 60 + 59));
-        document.getElementById("output-30min-pause-range").textContent = `${formatT(addS(6 * 3600 + 30 * 60))} bis ${formatT(addS(9 * 3600 + 44 * 60 + 59))}`;
-        document.getElementById("output-45min-pause").textContent = formatT(addS(9 * 3600 + 45 * 60));
     }
 
     function calculateWorkingTime() {
@@ -2903,6 +2946,7 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem("savedTodaySessions");
     }
 
+    updateStampStatusUI();
     updateAmpelPill();
 
     const todayAtInit = getTodayStr();

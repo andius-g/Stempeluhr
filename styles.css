@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.5)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.6)
    ========================================================= */
 :root {
     --hue: 195;
@@ -211,6 +211,9 @@ body {
     margin-top: 4px;
     width: 100%;
     max-width: 390px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .welcome-date-sub {
     font-size: 0.88em;
@@ -226,6 +229,46 @@ body {
     letter-spacing: -0.4px;
     text-shadow: 0 3px 16px rgba(0, 0, 0, 0.34);
     word-break: break-word;
+}
+
+.welcome-status-pill {
+    margin-top: 10px;
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-size: 0.8em;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
+}
+.welcome-status-pill .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #d0d7de;
+    flex-shrink: 0;
+}
+.welcome-status-pill.is-stamped-in {
+    background: rgba(34, 160, 85, 0.28);
+    border-color: rgba(164, 245, 206, 0.55);
+    color: #e4fff2;
+}
+.welcome-status-pill.is-stamped-in .status-dot {
+    background-color: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+}
+.welcome-status-pill.is-stamped-out {
+    background: rgba(229, 156, 0, 0.24);
+    border-color: rgba(255, 214, 128, 0.45);
+    color: #fff2cf;
+}
+.welcome-status-pill.is-stamped-out .status-dot {
+    background-color: #fbbf24;
 }
 
 .welcome-actions-stack {
@@ -514,30 +557,52 @@ body {
     cursor: pointer;
 }
 
-.output-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.output {
-    background-color: var(--primary-color);
-    color: var(--white);
-    border: none;
+/* AKTUELLER STEMPEL-STATUS AUF SCREEN 2 */
+.clock-status-card {
+    background-color: var(--subcard-bg);
+    border: 1.5px solid var(--border-color);
     border-radius: var(--radius-subcard);
-    padding: 11px 12px;
+    padding: 12px 14px;
     text-align: center;
-    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04);
 }
-.output h3 {
-    margin: 0 0 2px;
-    font-size: 0.82em;
-    font-weight: 500;
-    opacity: 0.92;
-}
-.output div {
-    font-size: 1.24em;
+.clock-status-top {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1.08em;
     font-weight: 800;
+}
+.clock-status-card .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #9aa5b1;
+    flex-shrink: 0;
+}
+.clock-status-detail {
+    margin-top: 3px;
+    font-size: 0.84em;
+    opacity: 0.82;
     font-variant-numeric: tabular-nums;
+}
+.clock-status-card.is-stamped-in {
+    background-color: #e7f6ec;
+    border-color: #9ad7b2;
+    color: #14532d;
+}
+.clock-status-card.is-stamped-in .status-dot {
+    background-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22);
+}
+.clock-status-card.is-stamped-out {
+    background-color: #fff6df;
+    border-color: #ecc97b;
+    color: #7c4a03;
+}
+.clock-status-card.is-stamped-out .status-dot {
+    background-color: #d97706;
 }
 
 .section-divider {
@@ -1021,14 +1086,6 @@ body {
     padding: 12px;
 }
 .modal-overlay.active { display: flex; }
-
-.modal-overlay.keypad-open-shift {
-    align-items: flex-start;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
-}
-.modal-overlay.keypad-open-shift .modal-content {
-    max-height: calc(100vh - 285px);
-}
 
 .modal-content {
     background-color: var(--white);
@@ -1710,7 +1767,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.5
+   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.6
    ========================================================= */
 .icon-variant-grid {
     display: grid;
@@ -1751,7 +1808,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   SUBTILE PRESS-RÜCKMELDUNG (v1.9.5)
+   SUBTILE PRESS-RÜCKMELDUNG (v1.9.6)
    ========================================================= */
 button,
 .kg-pill,
