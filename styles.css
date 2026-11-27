@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.6)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.0)
    ========================================================= */
 :root {
     --hue: 195;
@@ -68,7 +68,6 @@ textarea {
     -webkit-touch-callout: default;
 }
 
-/* Readonly-Ziffernfelder (die über die App-Tastatur bedient werden) bleiben unmarkierbar */
 input[readonly] {
     -webkit-user-select: none;
     user-select: none;
@@ -114,7 +113,7 @@ body {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding: calc(env(safe-area-inset-top, 16px) + 22px) 22px calc(env(safe-area-inset-bottom, 20px) + 16px);
+    padding: calc(env(safe-area-inset-top, 16px) + 20px) 22px calc(env(safe-area-inset-bottom, 20px) + 14px);
     background:
         radial-gradient(circle at 18% 16%, hsla(var(--hue), 72%, 44%, 0.42) 0%, transparent 56%),
         radial-gradient(circle at 86% 84%, hsla(calc(var(--hue) + 150), 68%, 42%, 0.34) 0%, transparent 58%),
@@ -208,67 +207,24 @@ body {
 .welcome-top-area {
     position: relative;
     z-index: 2;
-    margin-top: 4px;
+    margin-top: 2px;
     width: 100%;
     max-width: 390px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 .welcome-date-sub {
-    font-size: 0.88em;
+    font-size: 0.86em;
     opacity: 0.86;
     font-weight: 600;
     letter-spacing: 0.3px;
 }
 .welcome-greeting {
-    font-size: 1.92em;
+    font-size: 1.82em;
     font-weight: 800;
-    margin: 4px 0 0;
+    margin: 3px 0 0;
     line-height: 1.15;
     letter-spacing: -0.4px;
     text-shadow: 0 3px 16px rgba(0, 0, 0, 0.34);
     word-break: break-word;
-}
-
-.welcome-status-pill {
-    margin-top: 10px;
-    padding: 5px 13px;
-    border-radius: 999px;
-    font-size: 0.8em;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    pointer-events: none;
-}
-.welcome-status-pill .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #d0d7de;
-    flex-shrink: 0;
-}
-.welcome-status-pill.is-stamped-in {
-    background: rgba(34, 160, 85, 0.28);
-    border-color: rgba(164, 245, 206, 0.55);
-    color: #e4fff2;
-}
-.welcome-status-pill.is-stamped-in .status-dot {
-    background-color: #4ade80;
-    box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
-}
-.welcome-status-pill.is-stamped-out {
-    background: rgba(229, 156, 0, 0.24);
-    border-color: rgba(255, 214, 128, 0.45);
-    color: #fff2cf;
-}
-.welcome-status-pill.is-stamped-out .status-dot {
-    background-color: #fbbf24;
 }
 
 .welcome-actions-stack {
@@ -278,42 +234,147 @@ body {
     max-width: 350px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
-.btn-welcome-action {
+/* LÖSUNG 3: STATUS-KACHEL MIT ZUSATZINFO */
+.welcome-status-card {
     width: 100%;
-    padding: 18px 20px;
-    border-radius: var(--welcome-btn-come-radius);
-    border: 1.5px solid rgba(255, 255, 255, 0.36);
-    background: var(--primary-color);
-    color: #ffffff;
-    cursor: pointer;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+    padding: 8px 14px;
+    border-radius: var(--welcome-menu-radius);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1.5px solid rgba(255, 255, 255, 0.26);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 1px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+    pointer-events: none;
+}
+.wsc-main-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.wsc-title {
+    font-size: 1.04em;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+.wsc-sub {
+    font-size: 0.76em;
+    opacity: 0.86;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.welcome-status-card .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    flex-shrink: 0;
+}
+.welcome-status-card.is-stamped-in {
+    background: rgba(22, 163, 74, 0.28);
+    border-color: rgba(134, 239, 172, 0.56);
+    color: #ecfdf5;
+}
+.welcome-status-card.is-stamped-in .status-dot {
+    background-color: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.85);
+}
+.welcome-status-card.is-stamped-out {
+    background: rgba(217, 119, 6, 0.26);
+    border-color: rgba(253, 224, 71, 0.48);
+    color: #fffbeb;
+}
+.welcome-status-card.is-stamped-out .status-dot {
+    background-color: #fbbf24;
+}
+.welcome-status-card.is-finalized {
+    background: rgba(124, 58, 237, 0.30);
+    border-color: rgba(216, 180, 254, 0.62);
+    color: #faf5ff;
+}
+.welcome-status-card.is-finalized .status-dot {
+    background-color: #d8b4fe;
+    box-shadow: 0 0 8px rgba(216, 180, 254, 0.75);
+}
+
+/* FINALER FEIERABEND-SCHALTER */
+.welcome-final-toggle {
+    width: 100%;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.84em;
+    font-weight: 700;
+}
+.welcome-final-toggle.is-final {
+    background: rgba(139, 92, 246, 0.42);
+    border-color: rgba(233, 213, 255, 0.78);
+    box-shadow: 0 6px 18px rgba(109, 40, 217, 0.35);
+}
+.wft-state {
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.84em;
+    background: rgba(255, 255, 255, 0.16);
+}
+.welcome-final-toggle.is-final .wft-state {
+    background: rgba(255, 255, 255, 0.26);
+    color: #ffffff;
+}
+
+/* HAUPTAKTION IM GOLDENEN SCHNITT (φ ≈ 1.618) */
+.btn-welcome-action {
+    --phi: 1.618;
+    width: 100%;
+    min-height: calc(56px * var(--phi));
+    padding: calc(11px * var(--phi)) 20px;
+    border-radius: var(--welcome-btn-come-radius);
+    border: 1.5px solid rgba(255, 255, 255, 0.40);
+    background: var(--primary-color);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.36);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 .btn-welcome-action.mode-go {
     background: var(--secondary-color);
     border-radius: var(--welcome-btn-go-radius);
 }
 .btn-welcome-action strong {
-    font-size: 1.44em;
+    font-size: calc(1.02em * var(--phi));
     letter-spacing: 0.3px;
-    line-height: 1.15;
+    line-height: 1.12;
 }
 .btn-welcome-action span {
-    font-size: 0.84em;
-    opacity: 0.92;
+    font-size: 0.86em;
+    opacity: 0.94;
     font-weight: 500;
 }
 
 .btn-welcome-menu {
     width: 100%;
-    padding: 12px 18px 13px;
+    padding: 9px 16px 10px;
     border-radius: var(--welcome-menu-radius);
     border: 1.5px solid rgba(255, 255, 255, 0.26);
     background: rgba(255, 255, 255, 0.14);
@@ -325,18 +386,18 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
 }
 .welcome-big-clock {
-    font-size: 2.25em;
+    font-size: 1.85em;
     font-weight: bold;
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
-    line-height: 1.12;
+    line-height: 1.1;
     text-shadow: 0 3px 14px rgba(0, 0, 0, 0.35);
 }
 .welcome-menu-hint {
-    font-size: 0.86em;
+    font-size: 0.8em;
     font-weight: 700;
     opacity: 0.9;
     letter-spacing: 0.2px;
@@ -348,7 +409,7 @@ body {
     align-items: center;
     font-size: 0.72em;
     opacity: 0.62;
-    padding: 2px 6px 0;
+    padding: 1px 6px 0;
     font-weight: 600;
 }
 
@@ -473,7 +534,7 @@ body {
 }
 
 /* =========================================================
-   SCREEN 2: UHR (KOMMEN VOLLE BREITE / GEHEN + UNDO DARUNTER)
+   SCREEN 2: UHR
    ========================================================= */
 .stamp-btn-row {
     display: grid;
@@ -603,6 +664,15 @@ body {
 }
 .clock-status-card.is-stamped-out .status-dot {
     background-color: #d97706;
+}
+.clock-status-card.is-finalized {
+    background-color: #f3e8ff;
+    border-color: #c4b5fd;
+    color: #4c1d95;
+}
+.clock-status-card.is-finalized .status-dot {
+    background-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
 .section-divider {
@@ -1073,7 +1143,7 @@ body {
 .glz-pill.ampel-rot .glz-dot { background-color: #d93030; }
 
 /* =========================================================
-   MODALS & SCREEN 4 (MENÜ + UNTERMENÜS)
+   MODALS & SCREEN 4 (MENÜ + UNTERMENÜ-AKKORDEONS)
    ========================================================= */
 .modal-overlay {
     display: none;
@@ -1162,12 +1232,64 @@ body {
 }
 .nav-chevron { font-size: 1.35em; font-weight: bold; opacity: 0.65; line-height: 1; }
 
-.design-sub-card {
+/* EINHEITLICHE UNTERMENÜ-AKKORDEONS (IMMER NUR EINER OFFEN) */
+.section-accordion-card {
     background-color: var(--subcard-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-subcard);
+    margin-bottom: 9px;
+    overflow: hidden;
+}
+.section-accordion-btn {
+    width: 100%;
+    background: none;
+    border: none;
     padding: 10px 12px;
-    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text-color);
+}
+.section-acc-title {
+    font-size: 0.9em;
+    font-weight: 700;
+}
+.section-acc-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.section-acc-meta {
+    font-size: 0.76em;
+    font-weight: 600;
+    opacity: 0.82;
+    font-variant-numeric: tabular-nums;
+}
+.section-acc-chevron {
+    font-size: 1.25em;
+    font-weight: bold;
+    opacity: 0.68;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+.section-accordion-card.is-open .section-acc-chevron {
+    transform: rotate(90deg);
+}
+.section-accordion-body {
+    display: none;
+    padding: 0 11px 11px;
+    border-top: 1px dashed var(--border-color);
+}
+.section-accordion-card.is-open .section-accordion-body {
+    display: block;
+    padding-top: 9px;
+}
+.section-accordion-card.is-open .section-accordion-body.color-wheel-container {
+    display: flex;
 }
 
 .day-status-grid {
@@ -1226,7 +1348,7 @@ body {
     background-color: var(--white);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 8px 6px;
+    padding: 8px 8px;
     text-align: center;
 }
 .editor-time-col span.lbl {
@@ -1236,20 +1358,16 @@ body {
     margin-bottom: 5px;
     opacity: 0.8;
 }
-.editor-hhmm-pair {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-}
-.editor-hhmm-pair input {
-    width: 44px;
-    padding: 7px 2px;
+.editor-hhmm-input {
+    width: 100%;
+    padding: 7px 6px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 1.15em;
+    border-radius: 999px;
+    font-size: 1.12em;
     font-weight: bold;
     text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
     color: var(--text-color);
     background-color: var(--subcard-bg);
 }
@@ -1400,62 +1518,23 @@ body {
     background-color: var(--white);
 }
 
-/* ZUKLAPPBARES SCRIBBLE-AKKORDEON IM UNTERMENÜ */
-.scribble-accordion-card {
-    background-color: var(--subcard-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-subcard);
-    margin-bottom: 10px;
-    overflow: hidden;
-}
-.scribble-accordion-btn {
-    width: 100%;
-    background: none;
-    border: none;
-    padding: 10px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    cursor: pointer;
-    text-align: left;
-    color: var(--text-color);
-}
-.scribble-accordion-title-wrap { display: flex; flex-direction: column; gap: 2px; }
-.scribble-accordion-title { font-size: 0.9em; font-weight: bold; }
-.scribble-accordion-meta { font-size: 0.75em; opacity: 0.78; }
-.scribble-accordion-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .scribble-mini-strip {
     display: flex;
     align-items: center;
     gap: 3px;
     background: hsl(var(--hue), 44%, 22%);
-    padding: 4px 7px;
+    padding: 3px 6px;
     border-radius: 999px;
 }
 .scribble-mini-strip svg {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     stroke: #ffffff;
     fill: none;
     stroke-width: 2.3;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-.scribble-chevron {
-    font-size: 1.25em;
-    font-weight: bold;
-    opacity: 0.7;
-    transition: transform 0.2s ease;
-    line-height: 1;
-}
-.scribble-accordion-card.is-open .scribble-chevron { transform: rotate(90deg); }
-.scribble-accordion-body {
-    display: none;
-    padding: 0 11px 11px;
-    border-top: 1px dashed var(--border-color);
-}
-.scribble-accordion-card.is-open .scribble-accordion-body { display: block; padding-top: 9px; }
 
 .scribble-picker-head {
     display: flex;
@@ -1641,7 +1720,7 @@ canvas#colorWheel {
    ========================================================= */
 .welcome-soll-widget {
     width: 100%;
-    padding: 9px 16px;
+    padding: 8px 15px;
     border-radius: var(--welcome-btn-come-radius);
     background: rgba(18, 48, 38, 0.62);
     border: 1.5px solid rgba(164, 245, 206, 0.36);
@@ -1652,7 +1731,7 @@ canvas#colorWheel {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     pointer-events: none;
 }
 .wsw-top-row {
@@ -1661,7 +1740,7 @@ canvas#colorWheel {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    font-size: 0.78em;
+    font-size: 0.76em;
     font-weight: bold;
     opacity: 0.95;
 }
@@ -1677,7 +1756,7 @@ canvas#colorWheel {
     font-variant-numeric: tabular-nums;
 }
 .wsw-target-time {
-    font-size: 1.85em;
+    font-size: 1.65em;
     font-weight: bold;
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
@@ -1687,7 +1766,7 @@ canvas#colorWheel {
 
 .welcome-pause-widget {
     width: 100%;
-    padding: 9px 16px;
+    padding: 8px 15px;
     border-radius: var(--welcome-btn-come-radius);
     background: rgba(14, 24, 34, 0.56);
     border: 1.5px solid rgba(255, 255, 255, 0.28);
@@ -1698,7 +1777,7 @@ canvas#colorWheel {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     pointer-events: none;
 }
 .welcome-pause-widget.is-warner-45 {
@@ -1711,7 +1790,7 @@ canvas#colorWheel {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    font-size: 0.78em;
+    font-size: 0.76em;
     font-weight: bold;
     opacity: 0.94;
 }
@@ -1730,7 +1809,7 @@ canvas#colorWheel {
     font-variant-numeric: tabular-nums;
 }
 .wpw-countdown {
-    font-size: 1.9em;
+    font-size: 1.7em;
     font-weight: bold;
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
@@ -1767,7 +1846,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.6
+   APP-ICON AUSWAHL (BLAU / ROSÉ) — v2.0.0
    ========================================================= */
 .icon-variant-grid {
     display: grid;
@@ -1808,13 +1887,13 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   SUBTILE PRESS-RÜCKMELDUNG (v1.9.6)
+   SUBTILE PRESS-RÜCKMELDUNG (v2.0.0)
    ========================================================= */
 button,
 .kg-pill,
 .week-row,
 .settings-nav-card,
-.scribble-accordion-btn,
+.section-accordion-btn,
 .scribble-svg-chip,
 .day-status-chip,
 .widget-mode-pill,
@@ -1827,7 +1906,7 @@ button:active:not(:disabled),
 .kg-pill:active,
 .week-row:active,
 .settings-nav-card:active,
-.scribble-accordion-btn:active,
+.section-accordion-btn:active,
 .scribble-svg-chip:active,
 .day-status-chip:active,
 .widget-mode-pill:active,

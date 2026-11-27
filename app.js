@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.7)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.0)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const mods = window.StempeluhrModules || {};
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.7"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.0"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -114,8 +114,9 @@ document.addEventListener("DOMContentLoaded", () => {
             || (saved.endH !== '' && saved.endH !== undefined)
             || (Array.isArray(saved.sessions) && saved.sessions.length > 0);
         const hasSmoke = typeof saved.smokeCount === 'number' && saved.smokeCount > 0;
+        const hasFinal = !!saved.dayFinalized;
         const hasNonFreeStatus = saved.status && saved.status !== 'free' && saved.status !== 'work';
-        return hasTimes || hasSmoke || hasNonFreeStatus;
+        return hasTimes || hasSmoke || hasFinal || hasNonFreeStatus;
     }
 
     /* =========================================================
@@ -153,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.7",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.0",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -269,8 +270,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isNaN(scribbleSizePct)) scribbleSizePct = 50;
     scribbleSizePct = Math.min(100, Math.max(15, scribbleSizePct));
 
-    let scribbleAccordionOpen = false;
     let appIconTheme = localStorage.getItem("appIconTheme") === "rose" ? "rose" : "blue";
+
+    const initialTodayData = getDayData(getTodayStr());
+    let todaySmokeCount = (initialTodayData && typeof initialTodayData.smokeCount === "number") ? initialTodayData.smokeCount : 0;
+    let todayFinalized = !!(initialTodayData && initialTodayData.dayFinalized);
 
     function syncIconThemePickerUI() {
         document.querySelectorAll("#icon-variant-grid .icon-variant-card").forEach((card) => {
@@ -285,22 +289,16 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("appIconTheme", appIconTheme);
             if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
             syncIconThemePickerUI();
+            updateAccordionBadges();
             updateSettingsNavPreviews();
         });
     });
-
-    let todaySmokeCount = 0;
-    const initialTodayData = getDayData(getTodayStr());
-    if (initialTodayData && typeof initialTodayData.smokeCount === "number") {
-        todaySmokeCount = initialTodayData.smokeCount;
-    }
 
     document.documentElement.setAttribute("data-style", appStyleMode);
     applyAsymIntensity(appAsymIntensity);
     applyThemeColors(appHue, appLightness);
 
     const scribbleAccordionCard = document.getElementById("scribble-accordion-card");
-    const btnToggleScribbleAccordion = document.getElementById("btn-toggle-scribble-accordion");
     const scribbleAccordionMeta = document.getElementById("scribble-accordion-meta");
     const scribbleMiniStrip = document.getElementById("scribble-mini-strip");
     const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
@@ -311,24 +309,75 @@ document.addEventListener("DOMContentLoaded", () => {
     const navWidgetsSummary = document.getElementById("nav-widgets-summary");
     const navDesignSummary = document.getElementById("nav-design-summary");
 
-    function syncScribbleAccordionUI() {
-        scribbleAccordionCard.classList.toggle("is-open", scribbleAccordionOpen);
-        btnToggleScribbleAccordion.setAttribute("aria-expanded", scribbleAccordionOpen ? "true" : "false");
-        scribbleAccordionMeta.textContent = `${selectedScribbles.length}/5 aktiv · Größe ${scribbleSizePct}% · ${scribbleAccordionOpen ? "Zuklappen" : "Aufklappen"}`;
-        scribbleMiniStrip.innerHTML = "";
-        if (selectedScribbles.length === 0) {
-            scribbleMiniStrip.innerHTML = `<span style="font-size:0.68em; color:#fff; opacity:0.8;">aus</span>`;
-        } else {
-            selectedScribbles.forEach(id => {
-                const found = SCRIBBLE_ICONS.find(ic => ic.id === id);
-                if (found) scribbleMiniStrip.innerHTML += makeScribbleSvg(found);
-            });
+    function updateAccordionBadges() {
+        const mSoll = document.getElementById("acc-meta-soll");
+        if (mSoll) mSoll.textContent = `${format2(sollHours)}:${format2(sollMinutes)} Std`;
+
+        const mNotify = document.getElementById("acc-meta-notify");
+        if (mNotify) mNotify.textContent = pauseNotifyEnabled ? `An (${pauseNotifyLeadMins}m)` : "Aus";
+
+        const mSmoke = document.getElementById("acc-meta-smoke");
+        if (mSmoke) mSmoke.textContent = isSmoker ? `An (${smokeMinutesPerBreak}m)` : "Aus";
+
+        const mAmpel = document.getElementById("acc-meta-ampel");
+        if (mAmpel) mAmpel.textContent = `${String(glzBaseHours).replace(".", ",")}h · ${String(weeklyHours).replace(".", ",")}h/Wo`;
+
+        const mSollW = document.getElementById("acc-meta-soll-widget");
+        if (mSollW) mSollW.textContent = sollWidgetEnabled ? "Aktiv" : "Aus";
+
+        const mPauseW = document.getElementById("acc-meta-pause-widget");
+        if (mPauseW) mPauseW.textContent = pauseWatcherEnabled ? "Aktiv" : "Aus";
+
+        const mKb = document.getElementById("acc-meta-keyboard");
+        if (mKb) mKb.textContent = keyboardMode === "system" ? "System" : "App";
+
+        const mForm = document.getElementById("acc-meta-form");
+        if (mForm) mForm.textContent = appStyleMode === "asymmetric" ? `Asym. ${appAsymIntensity}%` : "Klassisch";
+
+        const mColor = document.getElementById("acc-meta-color");
+        if (mColor) mColor.textContent = `${appLightness}%`;
+
+        const mIcon = document.getElementById("acc-meta-icon");
+        if (mIcon) mIcon.textContent = appIconTheme === "rose" ? "Rosé / Berry" : "Blau / Cyan";
+
+        if (scribbleAccordionMeta) {
+            scribbleAccordionMeta.textContent = `${selectedScribbles.length}/5 · ${scribbleSizePct}%`;
+        }
+        if (scribbleMiniStrip) {
+            scribbleMiniStrip.innerHTML = "";
+            if (selectedScribbles.length === 0) {
+                scribbleMiniStrip.innerHTML = `<span style="font-size:0.68em; color:#fff; opacity:0.8;">aus</span>`;
+            } else {
+                selectedScribbles.forEach(id => {
+                    const found = SCRIBBLE_ICONS.find(ic => ic.id === id);
+                    if (found) scribbleMiniStrip.innerHTML += makeScribbleSvg(found);
+                });
+            }
         }
     }
 
-    btnToggleScribbleAccordion.addEventListener("click", () => {
-        scribbleAccordionOpen = !scribbleAccordionOpen;
-        syncScribbleAccordionUI();
+    function collapseAccordionsInGroup(groupName, exceptCard = null) {
+        document.querySelectorAll(`.section-accordion-card[data-acc-group="${groupName}"]`).forEach((card) => {
+            if (card === exceptCard) return;
+            card.classList.remove("is-open");
+            const btn = card.querySelector(".section-accordion-btn");
+            if (btn) btn.setAttribute("aria-expanded", "false");
+        });
+    }
+
+    document.querySelectorAll(".section-accordion-card").forEach((card) => {
+        const groupName = card.getAttribute("data-acc-group");
+        const btn = card.querySelector(".section-accordion-btn");
+        if (!btn) return;
+        btn.addEventListener("click", () => {
+            const willOpen = !card.classList.contains("is-open");
+            collapseAccordionsInGroup(groupName, willOpen ? card : null);
+            card.classList.toggle("is-open", willOpen);
+            btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+            if (willOpen && card.querySelector("#colorWheel")) {
+                drawColorWheel();
+            }
+        });
     });
 
     function updateSettingsNavPreviews() {
@@ -351,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderScribblePicker() {
         scribbleCountTag.textContent = `${selectedScribbles.length} / 5`;
-        syncScribbleAccordionUI();
+        updateAccordionBadges();
         scribbleSvgGrid.innerHTML = "";
         SCRIBBLE_ICONS.forEach(item => {
             const isSel = selectedScribbles.includes(item.id);
@@ -376,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scribbleSizeSlider.addEventListener("input", () => {
         scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
         scribbleSizeVal.textContent = scribbleSizePct;
-        syncScribbleAccordionUI();
+        updateAccordionBadges();
     });
 
     /* =========================================================
@@ -392,8 +441,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const welcomeActionSub = document.getElementById("welcome-action-sub");
     const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
 
-    const welcomeStatusPill = document.getElementById("welcome-status-pill");
+    const btnWelcomeFinalToggle = document.getElementById("btn-welcome-final-toggle");
+    const welcomeFinalLabel = document.getElementById("welcome-final-label");
+    const welcomeFinalState = document.getElementById("welcome-final-state");
+
+    const welcomeStatusCard = document.getElementById("welcome-status-card");
     const welcomeStatusText = document.getElementById("welcome-status-text");
+    const welcomeStatusSub = document.getElementById("welcome-status-sub");
     const clockStatusCard = document.getElementById("clock-status-card");
     const clockStatusLabel = document.getElementById("clock-status-label");
     const clockStatusDetail = document.getElementById("clock-status-detail");
@@ -419,11 +473,41 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${format2(hh)}:${format2(mm)}:${format2(ss)}`;
     }
 
+    function syncWelcomeFinalUI() {
+        if (!btnWelcomeFinalToggle) return;
+        const showOnGo = welcomeOverlay.classList.contains("active") && welcomeActionMode === "go";
+        btnWelcomeFinalToggle.style.display = showOnGo ? "flex" : "none";
+        btnWelcomeFinalToggle.classList.toggle("is-final", todayFinalized);
+        btnWelcomeFinalToggle.setAttribute("aria-pressed", todayFinalized ? "true" : "false");
+        if (welcomeFinalLabel) welcomeFinalLabel.textContent = "Finaler Feierabend";
+        if (welcomeFinalState) welcomeFinalState.textContent = todayFinalized ? "Aktiv · Tag beendet" : "Aus";
+    }
+
+    if (btnWelcomeFinalToggle) {
+        btnWelcomeFinalToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            todayFinalized = !todayFinalized;
+            syncWelcomeFinalUI();
+            saveSessionsAndDay();
+            calculateAllTimes();
+        });
+    }
+
     function getStampStatusInfo() {
         const pS = getParsedStart();
         const pE = getParsedEnd();
         const lastSess = todaySessions.length > 0 ? todaySessions[todaySessions.length - 1] : null;
         const hasOpenSession = (lastSess && lastSess.start && (!lastSess.end || !lastSess.end.h)) || (pS && !pE);
+
+        if (todayFinalized && !hasOpenSession) {
+            const untilStr = pE ? `${pE.h}:${pE.m}` : "jetzt";
+            return {
+                state: "final",
+                pillText: `Tag abgeschlossen · ${untilStr}`,
+                cardLabel: "Tag final abgeschlossen",
+                cardDetail: pE ? `Final gegangen um ${untilStr} Uhr` : "Kein weiteres Kommen geplant"
+            };
+        }
 
         if (hasOpenSession) {
             const sinceStr = pS ? `${pS.h}:${pS.m}` : (lastSess && lastSess.start ? `${format2(parseInt(lastSess.start.h, 10) || 0)}:${format2(parseInt(lastSess.start.m, 10) || 0)}` : "--:--");
@@ -456,19 +540,24 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateStampStatusUI() {
         const info = getStampStatusInfo();
 
-        if (welcomeStatusPill && welcomeStatusText) {
-            welcomeStatusPill.classList.remove("is-stamped-in", "is-stamped-out", "is-neutral");
-            welcomeStatusPill.classList.add(
-                info.state === "in" ? "is-stamped-in" : (info.state === "out" ? "is-stamped-out" : "is-neutral")
-            );
-            welcomeStatusText.textContent = info.pillText;
+        if (welcomeStatusCard && welcomeStatusText && welcomeStatusSub) {
+            welcomeStatusCard.classList.remove("is-stamped-in", "is-stamped-out", "is-finalized", "is-neutral");
+            if (info.state === "final") welcomeStatusCard.classList.add("is-finalized");
+            else if (info.state === "in") welcomeStatusCard.classList.add("is-stamped-in");
+            else if (info.state === "out") welcomeStatusCard.classList.add("is-stamped-out");
+            else welcomeStatusCard.classList.add("is-neutral");
+
+            welcomeStatusText.textContent = info.cardLabel;
+            welcomeStatusSub.textContent = info.cardDetail;
         }
 
         if (clockStatusCard && clockStatusLabel && clockStatusDetail) {
-            clockStatusCard.classList.remove("is-stamped-in", "is-stamped-out", "is-neutral");
-            clockStatusCard.classList.add(
-                info.state === "in" ? "is-stamped-in" : (info.state === "out" ? "is-stamped-out" : "is-neutral")
-            );
+            clockStatusCard.classList.remove("is-stamped-in", "is-stamped-out", "is-finalized", "is-neutral");
+            if (info.state === "final") clockStatusCard.classList.add("is-finalized");
+            else if (info.state === "in") clockStatusCard.classList.add("is-stamped-in");
+            else if (info.state === "out") clockStatusCard.classList.add("is-stamped-out");
+            else clockStatusCard.classList.add("is-neutral");
+
             clockStatusLabel.textContent = info.cardLabel;
             clockStatusDetail.textContent = info.cardDetail;
         }
@@ -506,7 +595,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const pS = getParsedStart();
         const sollTotalSecs = (sollHours * 3600) + (sollMinutes * 60);
-        if (!modeMatches || !pS || sollTotalSecs <= 0) {
+        if (!modeMatches || !pS || sollTotalSecs <= 0 || todayFinalized) {
             welcomeSollWidget.style.display = "none";
             return;
         }
@@ -749,7 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btnWelcomeAction.classList.add("mode-go");
             btnWelcomeMenu.classList.add("mode-go");
             welcomeActionTitle.textContent = "Gehen";
-            welcomeActionSub.textContent = "Jetzt direkt ausstempeln";
+            welcomeActionSub.textContent = todayFinalized ? "Finales Gehen stempeln" : "Jetzt direkt ausstempeln";
         } else {
             btnWelcomeAction.classList.remove("mode-go");
             btnWelcomeMenu.classList.remove("mode-go");
@@ -761,6 +850,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateWelcomeGreetingText();
         updateStampStatusUI();
+        syncWelcomeFinalUI();
         renderWelcomeScatter();
 
         if (wasAlreadyOpen) {
@@ -779,6 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
         welcomeOverlay.classList.remove("active", "welcome-mode-switch");
         if (welcomeSollWidget) welcomeSollWidget.style.display = "none";
         if (welcomePauseWidget) welcomePauseWidget.style.display = "none";
+        if (btnWelcomeFinalToggle) btnWelcomeFinalToggle.style.display = "none";
         localStorage.setItem("welcomeDismissedDate", getTodayStr());
         applyThemeColors(appHue, appLightness);
     }
@@ -987,6 +1078,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sollWidgetEnabledCheck.addEventListener("change", () => {
         sollWidgetEnabled = sollWidgetEnabledCheck.checked;
         syncSollWidgetSettingsUI();
+        updateAccordionBadges();
     });
 
     sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
@@ -999,6 +1091,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pauseWatcherEnabledCheck.addEventListener("change", () => {
         pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
         syncPauseWatcherSettingsUI();
+        updateAccordionBadges();
     });
 
     pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
@@ -1013,6 +1106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             keyboardMode = pill.getAttribute("data-kb-mode") === "system" ? "system" : "app";
             syncKeyboardModeUI();
             applyKeyboardModeToInputs();
+            updateAccordionBadges();
             updateSettingsNavPreviews();
         });
     });
@@ -1026,11 +1120,13 @@ document.addEventListener("DOMContentLoaded", () => {
         appStyleMode = styleModeSelect.value;
         document.documentElement.setAttribute("data-style", appStyleMode);
         syncStyleControlsUI();
+        updateAccordionBadges();
     });
 
     asymIntensitySlider.addEventListener("input", () => {
         appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
         asymIntensityVal.textContent = appAsymIntensity;
+        updateAccordionBadges();
     });
 
     function updatePauseNotifyUI() {
@@ -1045,6 +1141,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Dieser Browser unterstützt leider keine System-Benachrichtigungen.");
                 pauseNotifyCheck.checked = false;
                 updatePauseNotifyUI();
+                updateAccordionBadges();
                 return;
             }
             let perm = Notification.permission;
@@ -1067,6 +1164,7 @@ document.addEventListener("DOMContentLoaded", () => {
             pauseNotifyEnabled = false;
         }
         updatePauseNotifyUI();
+        updateAccordionBadges();
     });
 
     function updateSmokerUI() {
@@ -1078,6 +1176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isSmokerCheck.addEventListener("change", () => {
         smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
         smokeMinutesInput.disabled = !isSmokerCheck.checked;
+        updateAccordionBadges();
     });
 
     function saveTodaySmokeData() {
@@ -1085,6 +1184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentDay = getDayData(todayStr) || { status: 'work', startH: '', startM: '', endH: '', endM: '' };
         currentDay.smokeCount = todaySmokeCount;
         currentDay.smokeTotalMins = todaySmokeCount * smokeMinutesPerBreak;
+        currentDay.dayFinalized = todayFinalized;
         saveDayData(todayStr, currentDay);
     }
 
@@ -1106,7 +1206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateSmokerUI();
-    syncScribbleAccordionUI();
+    updateAccordionBadges();
     updateSettingsNavPreviews();
     updateBackupStatusBadge();
 
@@ -1147,6 +1247,7 @@ document.addEventListener("DOMContentLoaded", () => {
         lightnessVal.textContent = appLightness;
         applyThemeColors(appHue, appLightness);
         drawColorWheel();
+        updateAccordionBadges();
     });
 
     function handleColorPick(e) {
@@ -1237,7 +1338,7 @@ document.addEventListener("DOMContentLoaded", () => {
         applyKeyboardModeToInputs();
         if (isSmoker) saveTodaySmokeData();
         updateSmokerUI();
-        syncScribbleAccordionUI();
+        updateAccordionBadges();
         updateSettingsNavPreviews();
         calculateAllTimes();
         checkPauseNotifications();
@@ -1259,17 +1360,22 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsPageWidgets.style.display = pageName === "widgets" ? "block" : "none";
         settingsPageDesign.style.display = pageName === "design" ? "block" : "none";
 
-        if (pageName === "design") {
-            scribbleAccordionOpen = false;
-            renderScribblePicker();
-            syncIconThemePickerUI();
-            drawColorWheel();
+        if (pageName === "work") {
+            collapseAccordionsInGroup("work", null);
+            updateAccordionBadges();
         } else if (pageName === "widgets") {
+            collapseAccordionsInGroup("widgets", null);
             sollWidgetEnabledCheck.checked = sollWidgetEnabled;
             pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
             syncSollWidgetSettingsUI();
             syncPauseWatcherSettingsUI();
             syncKeyboardModeUI();
+            updateAccordionBadges();
+        } else if (pageName === "design") {
+            collapseAccordionsInGroup("design", null);
+            renderScribblePicker();
+            syncIconThemePickerUI();
+            updateAccordionBadges();
         } else if (pageName === "main") {
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
@@ -1301,6 +1407,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePauseNotifyUI();
         syncStyleControlsUI();
         syncIconThemePickerUI();
+        updateAccordionBadges();
         updateBackupStatusBadge();
         showSettingsSubpage("main");
         settingsModal.classList.add("active");
@@ -1334,7 +1441,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       GLOBALE ZAHLENTASTATUR-ENGINE (APP- & SYSTEM-TASTATUR)
+       GLOBALE ZAHLENTASTATUR-ENGINE (RUHIGE HH:MM-MASKE)
        ========================================================= */
     const startTimePill = document.getElementById("startTimePill");
     const endTimePill = document.getElementById("endTimePill");
@@ -1368,24 +1475,43 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function formatRawDigitsToHhMm(digits) {
+    // Ruhige Links-nach-Rechts-Anzeige beim Tippen (kein Springen der Stunden bei 3. Ziffer)
+    function formatLiveHhMmDigits(digits) {
         const clean = digits.replace(/\D/g, "").slice(0, 4);
         if (!clean) return "";
-        if (clean.length === 1) return `0${clean}:00`;
-        if (clean.length === 2) return `${format2(Math.min(23, parseInt(clean, 10)))}:00`;
-        if (clean.length === 3) {
-            const h = Math.min(23, parseInt(clean[0], 10));
-            const m = Math.min(59, parseInt(clean.slice(1), 10));
-            return `${format2(h)}:${format2(m)}`;
+        if (clean.length === 1) return `${clean}_:__`;
+        if (clean.length === 2) return `${clean}:__`;
+        if (clean.length === 3) return `${clean.slice(0, 2)}:${clean[2]}_`;
+        return `${clean.slice(0, 2)}:${clean.slice(2, 4)}`;
+    }
+
+    // Finalisiert Ziffernfolge (z. B. beim Schließen / Enter) zu gültigem hh:mm
+    function finalizeHhMmDigits(digits) {
+        const clean = digits.replace(/\D/g, "").slice(0, 4);
+        if (!clean) return "";
+        let h = 0, m = 0;
+        if (clean.length === 1) {
+            h = parseInt(clean, 10) || 0;
+            m = 0;
+        } else if (clean.length === 2) {
+            h = parseInt(clean, 10) || 0;
+            m = 0;
+        } else if (clean.length === 3) {
+            h = parseInt(clean.slice(0, 2), 10) || 0;
+            m = (parseInt(clean[2], 10) || 0) * 10;
+        } else {
+            h = parseInt(clean.slice(0, 2), 10) || 0;
+            m = parseInt(clean.slice(2, 4), 10) || 0;
         }
-        const h = Math.min(23, parseInt(clean.slice(0, 2), 10));
-        const m = Math.min(59, parseInt(clean.slice(2, 4), 10));
+        h = Math.min(23, Math.max(0, h));
+        m = Math.min(59, Math.max(0, m));
         return `${format2(h)}:${format2(m)}`;
     }
 
     function parseHhMmString(str) {
         if (!str) return null;
         const trimmed = str.trim();
+        if (!trimmed || trimmed.includes("_")) return null;
         const colonMatch = trimmed.match(/^(\d{1,2})\s*[:.,]\s*(\d{1,2})$/);
         if (colonMatch) {
             const h = Math.min(23, Math.max(0, parseInt(colonMatch[1], 10) || 0));
@@ -1394,7 +1520,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const digitsOnly = trimmed.replace(/\D/g, "");
         if (!digitsOnly) return null;
-        const formatted = formatRawDigitsToHhMm(digitsOnly);
+        const formatted = finalizeHhMmDigits(digitsOnly);
+        if (!formatted) return null;
         const [hh, mm] = formatted.split(":");
         return { h: hh, m: mm };
     }
@@ -1453,6 +1580,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function closeCustomKeypad() {
         if (kpState) {
             const closingState = kpState;
+            if (closingState.mode === "hhmm" && closingState.buffer) {
+                closingState.el.value = finalizeHhMmDigits(closingState.buffer);
+            }
             kpState = null;
             clearAllKeypadHighlights();
             keypadSheet.classList.remove("active");
@@ -1507,6 +1637,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         el.addEventListener("blur", () => {
             if (keyboardMode !== "system") return;
+            if (opts.mode === "hhmm" && el.value.trim()) {
+                el.value = finalizeHhMmDigits(el.value);
+            }
             if (opts.onCommit) opts.onCommit(el, true);
         });
 
@@ -1517,8 +1650,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mode: "hhmm",
         label: "Kommen (hh:mm)",
         nextEl: endTimePill,
-        onCommit: () => {
-            onManualTimeInputChange();
+        onCommit: (_, fin) => {
+            if (fin) onManualTimeInputChange();
             calculateAllTimes();
         }
     }, () => pushUndoSnapshot());
@@ -1526,8 +1659,8 @@ document.addEventListener("DOMContentLoaded", () => {
     registerKeypadInput(endTimePill, {
         mode: "hhmm",
         label: "Gehen (hh:mm)",
-        onCommit: () => {
-            onManualTimeInputChange();
+        onCommit: (_, fin) => {
+            if (fin) onManualTimeInputChange();
             calculateAllTimes();
         }
     }, () => pushUndoSnapshot());
@@ -1566,19 +1699,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (typeof nextTarget.focus === "function") nextTarget.focus();
             return;
         }
-        if (nextTarget === startTimePill) {
-            pushUndoSnapshot();
-            openGlobalKeypad({
-                el: startTimePill, mode: "hhmm", label: "Kommen (hh:mm)", nextEl: endTimePill,
-                onCommit: () => { onManualTimeInputChange(); calculateAllTimes(); }
-            });
-        } else if (nextTarget === endTimePill) {
-            pushUndoSnapshot();
-            openGlobalKeypad({
-                el: endTimePill, mode: "hhmm", label: "Gehen (hh:mm)",
-                onCommit: () => { onManualTimeInputChange(); calculateAllTimes(); }
-            });
-        } else if (nextTarget._kpOpts) {
+        if (nextTarget._kpOpts) {
             openGlobalKeypad({ el: nextTarget, ...nextTarget._kpOpts });
         }
     }
@@ -1596,12 +1717,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     st.buffer += action;
                 }
-                el.value = formatRawDigitsToHhMm(st.buffer);
+                el.value = formatLiveHhMmDigits(st.buffer);
                 if (st.onCommit) st.onCommit(el, false);
             } else if (action === "del") {
                 st.fresh = false;
                 st.buffer = st.buffer.slice(0, -1);
-                el.value = st.buffer ? formatRawDigitsToHhMm(st.buffer) : "";
+                el.value = st.buffer ? formatLiveHhMmDigits(st.buffer) : "";
                 if (st.onCommit) st.onCommit(el, false);
             } else if (action === "-" || action === "+") {
                 const delta = action === "-" ? -15 : 15;
@@ -1616,52 +1737,9 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (action === "," || action === ".") {
                 return;
             } else if (action === "enter") {
-                const nextTarget = st.nextEl;
-                closeCustomKeypad();
-                openNextBoundInput(nextTarget);
-            }
-            return;
-        }
-
-        if (st.mode === "twoDigit") {
-            if (/^[0-9]$/.test(action)) {
-                if (st.fresh || st.buffer.length >= 2) {
-                    st.buffer = action;
-                    st.fresh = false;
-                } else {
-                    st.buffer += action;
+                if (st.buffer) {
+                    el.value = finalizeHhMmDigits(st.buffer);
                 }
-                let num = parseInt(st.buffer, 10);
-                if (!isNaN(num)) {
-                    if (st.max !== null && num > st.max) num = st.max;
-                    if (st.min !== null && num < st.min) num = st.min;
-                    el.value = st.buffer.length === 2 ? format2(num) : String(num);
-                }
-                if (st.onCommit) st.onCommit(el, false);
-                if (st.buffer.length === 2 && st.nextEl) {
-                    const nextTarget = st.nextEl;
-                    closeCustomKeypad();
-                    openNextBoundInput(nextTarget);
-                }
-            } else if (action === "del") {
-                st.fresh = false;
-                st.buffer = st.buffer.slice(0, -1);
-                el.value = st.buffer;
-                if (st.onCommit) st.onCommit(el, false);
-            } else if (action === "-" || action === "+") {
-                const step = st.step || 1;
-                let cur = parseInt(el.value, 10);
-                if (isNaN(cur)) cur = 0;
-                cur += (action === "-" ? -step : step);
-                if (st.min !== null && cur < st.min) cur = st.min;
-                if (st.max !== null && cur > st.max) cur = st.max;
-                st.buffer = format2(cur);
-                st.fresh = false;
-                el.value = st.buffer;
-                if (st.onCommit) st.onCommit(el, false);
-            } else if (action === "," || action === ".") {
-                return;
-            } else if (action === "enter") {
                 const nextTarget = st.nextEl;
                 closeCustomKeypad();
                 openNextBoundInput(nextTarget);
@@ -1759,7 +1837,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const updateUndoButtonState = () => { btnUndo.disabled = undoStack.length === 0; };
     function pushUndoSnapshot() {
-        undoStack.push({ sessions: JSON.parse(JSON.stringify(todaySessions)), smokeCount: todaySmokeCount });
+        undoStack.push({
+            sessions: JSON.parse(JSON.stringify(todaySessions)),
+            smokeCount: todaySmokeCount,
+            dayFinalized: todayFinalized
+        });
         if (undoStack.length > 20) undoStack.shift();
         updateUndoButtonState();
     }
@@ -1769,8 +1851,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const prev = undoStack.pop();
         todaySessions = prev.sessions || [];
         todaySmokeCount = typeof prev.smokeCount === "number" ? prev.smokeCount : 0;
+        todayFinalized = !!prev.dayFinalized;
         updateUndoButtonState();
         updateSmokerUI();
+        syncWelcomeFinalUI();
         saveTodaySmokeData();
         syncInputsFromSessions();
         saveSessionsAndDay();
@@ -1936,7 +2020,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const dow = new Date().getDay();
-        if (todaySessions.length === 0 && todaySmokeCount === 0 && (dow === 0 || dow === 6)) {
+        if (todaySessions.length === 0 && todaySmokeCount === 0 && !todayFinalized && (dow === 0 || dow === 6)) {
             localStorage.removeItem("day_" + todayStr);
             return;
         }
@@ -1952,6 +2036,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentDay.endM = pE ? pE.m : '';
         currentDay.sessions = todaySessions;
         currentDay.customPresSecs = totalPresSecs > 0 ? totalPresSecs : null;
+        currentDay.dayFinalized = todayFinalized;
         saveDayData(todayStr, currentDay);
     }
 
@@ -1983,17 +2068,10 @@ document.addEventListener("DOMContentLoaded", () => {
         saveSessionsAndDay();
     }
 
-    function clampTwoDigitStr(valStr, min, max) {
-        if (valStr === "") return "";
-        let val = parseInt(valStr, 10);
-        if (isNaN(val)) return "";
-        if (!isNaN(min) && val < min) val = min;
-        if (!isNaN(max) && val > max) val = max;
-        return format2(val);
-    }
-
     function triggerStampComeNow() {
         pushUndoSnapshot();
+        todayFinalized = false;
+        syncWelcomeFinalUI();
         const now = new Date();
         const tObj = { h: format2(now.getHours()), m: format2(now.getMinutes()), s: format2(now.getSeconds()) };
         if (todaySessions.length === 0) todaySessions.push({ start: tObj, end: null });
@@ -2071,7 +2149,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const stH = parseInt(pS.h, 10);
         const stM = parseInt(pS.m, 10) || 0;
-        const isLiveRunning = !pE;
+        const isLiveRunning = !pE && !todayFinalized;
 
         const stS = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
         const startSecs = (stH * 3600) + (stM * 60) + stS;
@@ -2081,12 +2159,16 @@ document.addEventListener("DOMContentLoaded", () => {
             endSecs = getNowSecsOfDay();
             labelDec.innerHTML = `<span class="live-dot"></span>Bisher (Netto)`;
             labelOver.innerHTML = `<span class="live-dot"></span>Bis Soll (+/-)`;
-        } else {
+        } else if (pE) {
             const enH = parseInt(pE.h, 10);
             const enM = parseInt(pE.m, 10) || 0;
             const lastSess = todaySessions[todaySessions.length - 1];
             const enS = (lastSess && lastSess.end) ? (parseInt(lastSess.end.s, 10) || 0) : 0;
             endSecs = (enH * 3600) + (enM * 60) + enS;
+            labelDec.textContent = "Dezimal (h)";
+            labelOver.textContent = "+/-";
+        } else {
+            endSecs = getNowSecsOfDay();
             labelDec.textContent = "Dezimal (h)";
             labelOver.textContent = "+/-";
         }
@@ -2137,10 +2219,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function getDayBreakdown(saved, liveEndSecs = null) {
         if (!saved) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
         let totalPresSecs = 0, isLive = false;
+        const allowLive = liveEndSecs !== null && !saved.dayFinalized;
 
         if (Array.isArray(saved.sessions) && saved.sessions.length > 0) {
             const hasOpenLast = !saved.sessions[saved.sessions.length - 1].end || saved.sessions[saved.sessions.length - 1].end.h === "";
-            if (hasOpenLast && liveEndSecs !== null) {
+            if (hasOpenLast && allowLive) {
                 isLive = true;
                 totalPresSecs = getSessionMetricsFromList(saved.sessions, liveEndSecs).totalPresSecs;
             } else if (saved.customPresSecs && saved.customPresSecs > 0) {
@@ -2160,7 +2243,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const eSecs = eh * 3600 + em * 60;
                 if (eSecs <= sSecs) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
                 totalPresSecs = eSecs - sSecs;
-            } else if (liveEndSecs !== null && liveEndSecs > sSecs) {
+            } else if (allowLive && liveEndSecs > sSecs) {
                 isLive = true;
                 totalPresSecs = liveEndSecs - sSecs;
             } else return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
@@ -2318,7 +2401,7 @@ document.addEventListener("DOMContentLoaded", () => {
             editingDraft = JSON.parse(JSON.stringify(existing));
             if (editingDraft.status === "free" && !hasWeekendBooking(editingDraft)) editingDraft.status = "work";
         } else {
-            editingDraft = { status: defaultStatus, startH: '', startM: '', endH: '', endM: '', sessions: [], smokeCount: 0 };
+            editingDraft = { status: defaultStatus, startH: '', startM: '', endH: '', endM: '', sessions: [], smokeCount: 0, dayFinalized: false };
         }
 
         if (!editingDraft.sessions || editingDraft.sessions.length === 0) {
@@ -2343,6 +2426,7 @@ document.addEventListener("DOMContentLoaded", () => {
         editingDraft = null;
     }
 
+    // Einheitliche hh:mm-Eingabe im Tages-Editor (wie K/G auf der Uhr-Seite)
     function renderDayEditor() {
         if (!editingDraft) return;
         document.querySelectorAll("#day-status-chips .day-status-chip").forEach(chip => {
@@ -2367,8 +2451,8 @@ document.addEventListener("DOMContentLoaded", () => {
         editingDraft.sessions.forEach((blk, idx) => {
             const card = document.createElement("div");
             card.className = "editor-block-card";
-            const sH = blk.start ? blk.start.h : "", sM = blk.start ? blk.start.m : "";
-            const eH = blk.end ? blk.end.h : "", eM = blk.end ? blk.end.m : "";
+            const startStr = (blk.start && blk.start.h !== "") ? `${format2(parseInt(blk.start.h, 10) || 0)}:${format2(parseInt(blk.start.m, 10) || 0)}` : "";
+            const endStr = (blk.end && blk.end.h !== "") ? `${format2(parseInt(blk.end.h, 10) || 0)}:${format2(parseInt(blk.end.m, 10) || 0)}` : "";
 
             card.innerHTML = `
                 <div class="editor-block-header">
@@ -2378,19 +2462,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="editor-time-row">
                     <div class="editor-time-col">
                         <span class="lbl">Kommen</span>
-                        <div class="editor-hhmm-pair">
-                            <input type="text" inputmode="none" readonly class="ed-sh keypad-bound-input" value="${sH}" placeholder="hh">
-                            <span>:</span>
-                            <input type="text" inputmode="none" readonly class="ed-sm keypad-bound-input" value="${sM}" placeholder="mm">
-                        </div>
+                        <input type="text" inputmode="none" readonly class="ed-start keypad-bound-input editor-hhmm-input" value="${startStr}" placeholder="hh:mm" aria-label="Block ${idx + 1} Kommen hh:mm">
                     </div>
                     <div class="editor-time-col">
                         <span class="lbl">Gehen</span>
-                        <div class="editor-hhmm-pair">
-                            <input type="text" inputmode="none" readonly class="ed-eh keypad-bound-input" value="${eH}" placeholder="hh">
-                            <span>:</span>
-                            <input type="text" inputmode="none" readonly class="ed-em keypad-bound-input" value="${eM}" placeholder="mm">
-                        </div>
+                        <input type="text" inputmode="none" readonly class="ed-end keypad-bound-input editor-hhmm-input" value="${endStr}" placeholder="hh:mm" aria-label="Block ${idx + 1} Gehen hh:mm">
                     </div>
                 </div>
             `;
@@ -2406,51 +2482,51 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         dayEditorBlocksList.querySelectorAll(".editor-block-card").forEach((card, idx) => {
-            const shInp = card.querySelector(".ed-sh"), smInp = card.querySelector(".ed-sm");
-            const ehInp = card.querySelector(".ed-eh"), emInp = card.querySelector(".ed-em");
+            const startInp = card.querySelector(".ed-start");
+            const endInp = card.querySelector(".ed-end");
 
-            const syncEditorBlockFromInputs = (finalize) => {
+            const syncBlockFromInputs = (finalize) => {
                 if (!editingDraft || !editingDraft.sessions[idx]) return;
-                if (finalize) {
-                    shInp.value = clampTwoDigitStr(shInp.value, 0, 23);
-                    smInp.value = clampTwoDigitStr(smInp.value, 0, 59);
-                    ehInp.value = clampTwoDigitStr(ehInp.value, 0, 23);
-                    emInp.value = clampTwoDigitStr(emInp.value, 0, 59);
-                }
+                if (finalize && startInp.value.trim()) startInp.value = finalizeHhMmDigits(startInp.value);
+                if (finalize && endInp.value.trim()) endInp.value = finalizeHhMmDigits(endInp.value);
+
                 const blk = editingDraft.sessions[idx];
-                if (shInp.value === "" && smInp.value === "") {
+                const ps = parseHhMmString(startInp.value);
+                const pe = parseHhMmString(endInp.value);
+
+                if (!ps) {
                     blk.start = null;
                 } else {
                     const oldS = blk.start;
-                    const nh = format2(Math.min(23, Math.max(0, parseInt(shInp.value, 10) || 0)));
-                    const nm = format2(Math.min(59, Math.max(0, parseInt(smInp.value, 10) || 0)));
-                    blk.start = { h: nh, m: nm, s: (oldS && oldS.h === nh && oldS.m === nm) ? (oldS.s || "00") : "00" };
+                    blk.start = {
+                        h: ps.h,
+                        m: ps.m,
+                        s: (oldS && oldS.h === ps.h && oldS.m === ps.m) ? (oldS.s || "00") : "00"
+                    };
                 }
-                if (ehInp.value === "" && emInp.value === "") {
+
+                if (!pe) {
                     blk.end = null;
                 } else {
                     const oldE = blk.end;
-                    const nh = format2(Math.min(23, Math.max(0, parseInt(ehInp.value, 10) || 0)));
-                    const nm = format2(Math.min(59, Math.max(0, parseInt(emInp.value, 10) || 0)));
-                    blk.end = { h: nh, m: nm, s: (oldE && oldE.h === nh && oldE.m === nm) ? (oldE.s || "00") : "00" };
+                    blk.end = {
+                        h: pe.h,
+                        m: pe.m,
+                        s: (oldE && oldE.h === pe.h && oldE.m === pe.m) ? (oldE.s || "00") : "00"
+                    };
                 }
             };
 
-            registerKeypadInput(shInp, {
-                mode: "twoDigit", label: `#${idx + 1} Kommen · Stunde`, min: 0, max: 23, step: 1, nextEl: smInp,
-                onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
+            registerKeypadInput(startInp, {
+                mode: "hhmm",
+                label: `#${idx + 1} Kommen (hh:mm)`,
+                nextEl: endInp,
+                onCommit: (_, fin) => syncBlockFromInputs(fin)
             });
-            registerKeypadInput(smInp, {
-                mode: "twoDigit", label: `#${idx + 1} Kommen · Minute`, min: 0, max: 59, step: 5, nextEl: ehInp,
-                onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
-            });
-            registerKeypadInput(ehInp, {
-                mode: "twoDigit", label: `#${idx + 1} Gehen · Stunde`, min: 0, max: 23, step: 1, nextEl: emInp,
-                onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
-            });
-            registerKeypadInput(emInp, {
-                mode: "twoDigit", label: `#${idx + 1} Gehen · Minute`, min: 0, max: 59, step: 5,
-                onCommit: (_, fin) => syncEditorBlockFromInputs(fin)
+            registerKeypadInput(endInp, {
+                mode: "hhmm",
+                label: `#${idx + 1} Gehen (hh:mm)`,
+                onCommit: (_, fin) => syncBlockFromInputs(fin)
             });
         });
 
@@ -2489,7 +2565,9 @@ document.addEventListener("DOMContentLoaded", () => {
             pushUndoSnapshot();
             todaySessions = [];
             todaySmokeCount = 0;
+            todayFinalized = false;
             updateSmokerUI();
+            syncWelcomeFinalUI();
             syncInputsFromSessions();
             renderSessionsBox();
             localStorage.removeItem("savedTodaySessions");
@@ -2530,7 +2608,9 @@ document.addEventListener("DOMContentLoaded", () => {
             pushUndoSnapshot();
             todaySessions = JSON.parse(JSON.stringify(validSessions));
             todaySmokeCount = editingDraft.smokeCount || 0;
+            todayFinalized = !!editingDraft.dayFinalized;
             updateSmokerUI();
+            syncWelcomeFinalUI();
             syncInputsFromSessions();
             renderSessionsBox();
             if (todaySessions.length > 0) localStorage.setItem("savedTodaySessions", JSON.stringify({ date: editingDateStr, sessions: todaySessions }));
@@ -2627,11 +2707,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const hasEnd = saved.endH !== '' && saved.endH !== undefined;
             const smokeSub = (saved.smokeCount && saved.smokeCount > 0) ? ` · 🚬${saved.smokeCount}` : '';
             const splitSub = (saved.sessions && saved.sessions.length > 1) ? ` · ⏸️${saved.sessions.length}` : '';
+            const finalSub = saved.dayFinalized ? ` · ✦` : '';
 
             let middleHtml = "";
             if (saved.status === 'work') {
                 if (hasStart || hasEnd) {
-                    middleHtml = `<div class="day-time-display">${hasStart ? `${saved.startH}:${saved.startM || '00'}` : '--:--'} – ${hasEnd ? `${saved.endH}:${saved.endM || '00'}` : 'läuft...'}</div>`;
+                    middleHtml = `<div class="day-time-display">${hasStart ? `${saved.startH}:${saved.startM || '00'}` : '--:--'} – ${hasEnd ? `${saved.endH}:${saved.endM || '00'}` : (saved.dayFinalized ? 'final' : 'läuft...')}</div>`;
                 } else {
                     middleHtml = `<div class="day-time-display empty">--:-- – --:--</div>`;
                 }
@@ -2643,12 +2724,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 middleHtml = `<div class="day-status-note">${(isSaturday || isSunday) ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
             }
 
-            row.innerHTML = `<div class="day-label"><strong>${dayShort[i]}</strong><span>${dateShort}${smokeSub}${splitSub}</span></div>${middleHtml}<div class="status-badge-pill" data-status="${saved.status}">${statusLabels[saved.status] || 'Arbeit'}</div>`;
+            row.innerHTML = `<div class="day-label"><strong>${dayShort[i]}</strong><span>${dateShort}${smokeSub}${splitSub}${finalSub}</span></div>${middleHtml}<div class="status-badge-pill" data-status="${saved.status}">${statusLabels[saved.status] || 'Arbeit'}</div>`;
             row.addEventListener("click", () => openDayEditor(dateStr, `${dayFullNames[i]}, ${dateShort}${currDate.getFullYear()}`, isSaturday ? 'work' : defaultStatus));
             container.appendChild(row);
 
             if (saved.status === 'work') {
-                if (dateStr === todayStr) weekHasLiveToday = true;
+                if (dateStr === todayStr && !saved.dayFinalized) weekHasLiveToday = true;
                 else weekStaticCreditedSecs += getDayBreakdown(saved, null).netSecs;
             } else if (saved.status === 'vacation' || saved.status === 'sick' || saved.status === 'holiday') {
                 weekStaticCreditedSecs += sollSecsPerDay;
@@ -2785,7 +2866,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const pS = getParsedStart();
         const pE = getParsedEnd();
-        if (pS && !pE) {
+        if (pS && !pE && !todayFinalized) {
             checkPauseNotifications();
             updateWelcomeWidgets();
             if (viewClock.classList.contains("active")) {
@@ -2811,7 +2892,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* SUBTILES HAPTIK-FEEDBACK BEI INTERAKTION (6 ms) */
     document.addEventListener("pointerdown", (e) => {
         if (!("vibrate" in navigator)) return;
-        const target = e.target.closest("button, .kg-pill, .week-row, .settings-nav-card, .scribble-accordion-btn, .scribble-svg-chip, .day-status-chip, .widget-mode-pill, .icon-variant-card, .kp-key");
+        const target = e.target.closest("button, .kg-pill, .week-row, .settings-nav-card, .section-accordion-btn, .scribble-svg-chip, .day-status-chip, .widget-mode-pill, .icon-variant-card, .kp-key");
         if (target && !target.disabled) {
             try { navigator.vibrate(6); } catch (err) {}
         }

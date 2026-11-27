@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 1.9.7
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.0
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f4ecf3">
-    <title>Stempeluhr & Wochenübersicht (v1.9.7)</title>
+    <title>Stempeluhr & Wochenübersicht (v2.0.0)</title>
 
     <link rel="manifest" id="app-manifest-link" href="./manifest.json">
     <link rel="icon" id="fav-32" type="image/png" sizes="32x32" href="./favicon_32.png">
     <link rel="icon" id="fav-192" type="image/png" sizes="192x192" href="./favicon_192.png">
     <link rel="icon" id="fav-base" href="./favicon.png" type="image/png">
     <link rel="apple-touch-icon" id="fav-apple" sizes="180x180" href="./favicon_180.png">
-    <link rel="stylesheet" href="./styles.css?v=197">
+    <link rel="stylesheet" href="./styles.css?v=200">
 
     <script>
-        const APP_VERSION = "1.9.7";
+        const APP_VERSION = "2.0.0";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -77,10 +77,10 @@
     <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="./scribbles.js?v=197" defer></script>
-    <script src="./holidays-nds.js?v=197" defer></script>
-    <script src="./pdf-export.js?v=197" defer></script>
-    <script src="./app.js?v=197" defer></script>
+    <script src="./scribbles.js?v=200" defer></script>
+    <script src="./holidays-nds.js?v=200" defer></script>
+    <script src="./pdf-export.js?v=200" defer></script>
+    <script src="./app.js?v=200" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
@@ -92,13 +92,18 @@
         <div class="welcome-top-area">
             <div class="welcome-date-sub" id="welcome-date-sub">-</div>
             <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
-            <div class="welcome-status-pill is-neutral" id="welcome-status-pill" aria-live="polite">
-                <span class="status-dot"></span>
-                <span id="welcome-status-text">Nicht eingestempelt</span>
-            </div>
         </div>
 
         <div class="welcome-actions-stack" id="welcome-actions-stack">
+            <!-- LÖSUNG 3: STATUS-KACHEL MIT ZUSATZINFO -->
+            <div class="welcome-status-card is-neutral" id="welcome-status-card" aria-live="polite">
+                <div class="wsc-main-row">
+                    <span class="status-dot"></span>
+                    <span class="wsc-title" id="welcome-status-text">Nicht eingestempelt</span>
+                </div>
+                <div class="wsc-sub" id="welcome-status-sub">Heute noch keine Stempelung erfasst</div>
+            </div>
+
             <!-- SOLL-ERREICHT-INFO-PILLE (STARTBILDSCHIRM) -->
             <div class="welcome-soll-widget" id="welcome-soll-widget" style="display: none;" aria-live="polite">
                 <div class="wsw-top-row">
@@ -108,7 +113,7 @@
                 <div class="wsw-target-time" id="wsw-target-time">--:--:--</div>
             </div>
 
-            <!-- PAUSENWÄCHTER-WIDGET (Zustand 1: bis 06:29:59 | Zustand 2: 06:30:00 bis 09:44:59) -->
+            <!-- PAUSENWÄCHTER-WIDGET -->
             <div class="welcome-pause-widget" id="welcome-pause-widget" style="display: none;" aria-live="polite">
                 <div class="wpw-top-row">
                     <span class="wpw-badge" id="wpw-badge">30-Min-Grenze</span>
@@ -117,6 +122,14 @@
                 <div class="wpw-countdown" id="wpw-countdown">00:00:00</div>
             </div>
 
+            <!-- FINALER FEIERABEND-SCHALTER (NUR IM GEHEN-MODUS) -->
+            <button type="button" class="welcome-final-toggle" id="btn-welcome-final-toggle" style="display: none;" aria-pressed="false">
+                <span class="wft-icon" aria-hidden="true">✦</span>
+                <span class="wft-label" id="welcome-final-label">Finaler Feierabend</span>
+                <span class="wft-state" id="welcome-final-state">Aus</span>
+            </button>
+
+            <!-- HAUPTAKTION IM GOLDENEN SCHNITT (1.618x) -->
             <button type="button" class="btn-welcome-action" id="btn-welcome-action">
                 <strong id="welcome-action-title">Kommen</strong>
                 <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
@@ -491,74 +504,107 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 1.9.7</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 2.0.0</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
                 <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
             </div>
 
+            <!-- UNTERMENÜ 1: ARBEITSZEIT & PAUSEN (AKKORDEON) -->
             <div id="settings-page-work" style="display: none;">
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-work">← Zurück</button>
                     <h2>Arbeitszeit & Pausen</h2>
                 </div>
 
-                <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Tägliche Sollarbeitszeit (Mo–Fr)</label>
-                    <div class="soll-pair">
-                        <input type="text" id="sollHours" class="keypad-bound-input" value="8" inputmode="none" readonly aria-label="Soll Stunden">
-                        <span style="font-weight:bold;">:</span>
-                        <input type="text" id="sollMinutes" class="keypad-bound-input" value="0" inputmode="none" readonly aria-label="Soll Minuten">
-                        <span style="font-size:0.86em; opacity:0.8;">Std : Min</span>
-                    </div>
-                </div>
-
-                <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Pausen-Vorwarnung (Push)</label>
-                    <div class="setting-box-row" style="background:var(--white);">
-                        <label class="toggle-label-nowrap" for="pauseNotifyCheck">
-                            <input type="checkbox" id="pauseNotifyCheck">
-                            <span>🔔 Vor 30m/45m warnen</span>
-                        </label>
-                        <div class="smoker-mins-wrap" id="pauseNotifyMinsWrap">
-                            <input type="text" id="pauseNotifyLeadInput" class="keypad-bound-input" value="10" inputmode="none" readonly aria-label="Vorwarnzeit Minuten">
-                            <span>Min vorher</span>
+                <div class="section-accordion-card" data-acc-group="work">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">Tägliche Sollarbeitszeit (Mo–Fr)</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-soll">08:00 Std</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="soll-pair">
+                            <input type="text" id="sollHours" class="keypad-bound-input" value="8" inputmode="none" readonly aria-label="Soll Stunden">
+                            <span style="font-weight:bold;">:</span>
+                            <input type="text" id="sollMinutes" class="keypad-bound-input" value="0" inputmode="none" readonly aria-label="Soll Minuten">
+                            <span style="font-size:0.86em; opacity:0.8;">Std : Min</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Raucherpausen auf Uhr</label>
-                    <div class="setting-box-row" style="background:var(--white);">
-                        <label class="toggle-label-nowrap" for="isSmokerCheck">
-                            <input type="checkbox" id="isSmokerCheck">
-                            <span>🚬 Button anzeigen</span>
-                        </label>
-                        <div class="smoker-mins-wrap" id="smokerMinsWrap">
-                            <input type="text" id="smokeMinutesInput" class="keypad-bound-input" value="5" inputmode="none" readonly aria-label="Raucherpause Minuten">
-                            <span>Min/Gang</span>
+                <div class="section-accordion-card" data-acc-group="work">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">Pausen-Vorwarnung (Push)</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-notify">Aus</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="setting-box-row" style="background:var(--white);">
+                            <label class="toggle-label-nowrap" for="pauseNotifyCheck">
+                                <input type="checkbox" id="pauseNotifyCheck">
+                                <span>🔔 Vor 30m/45m warnen</span>
+                            </label>
+                            <div class="smoker-mins-wrap" id="pauseNotifyMinsWrap">
+                                <input type="text" id="pauseNotifyLeadInput" class="keypad-bound-input" value="10" inputmode="none" readonly aria-label="Vorwarnzeit Minuten">
+                                <span>Min vorher</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:4px;">Ampelkonto (GBV § 5)</label>
-                    <div style="font-size:0.75em; opacity:0.78; margin-bottom:7px; line-height:1.3;">
-                        Stand der echten Stempeluhr vor Arbeitsbeginn am Stichtag eintragen:
+                <div class="section-accordion-card" data-acc-group="work">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">Raucherpausen auf Uhr</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-smoke">Aus</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="setting-box-row" style="background:var(--white);">
+                            <label class="toggle-label-nowrap" for="isSmokerCheck">
+                                <input type="checkbox" id="isSmokerCheck">
+                                <span>🚬 Button anzeigen</span>
+                            </label>
+                            <div class="smoker-mins-wrap" id="smokerMinsWrap">
+                                <input type="text" id="smokeMinutesInput" class="keypad-bound-input" value="5" inputmode="none" readonly aria-label="Raucherpause Minuten">
+                                <span>Min/Gang</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="ampel-settings-grid">
-                        <div class="ampel-field-box">
-                            <span>GLZ-Startsaldo (h)</span>
-                            <input type="text" id="glzBaseInput" class="keypad-bound-input" value="0" inputmode="none" readonly aria-label="GLZ Startsaldo">
+                </div>
+
+                <div class="section-accordion-card" data-acc-group="work">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">Ampelkonto (GBV § 5)</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-ampel">0h · 40h/Wo</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div style="font-size:0.75em; opacity:0.78; margin-bottom:7px; line-height:1.3;">
+                            Stand der echten Stempeluhr vor Arbeitsbeginn am Stichtag eintragen:
                         </div>
-                        <div class="ampel-field-box">
-                            <span>Stichtag (ab Datum)</span>
-                            <input type="date" id="glzBaseDateInput">
-                        </div>
-                        <div class="ampel-field-box" style="grid-column: 1 / -1; margin-top: 2px;">
-                            <span>Vertragliche Wochenstunden</span>
-                            <input type="text" id="weeklyHoursInput" class="keypad-bound-input" value="40" inputmode="none" readonly aria-label="Wochenstunden">
+                        <div class="ampel-settings-grid">
+                            <div class="ampel-field-box">
+                                <span>GLZ-Startsaldo (h)</span>
+                                <input type="text" id="glzBaseInput" class="keypad-bound-input" value="0" inputmode="none" readonly aria-label="GLZ Startsaldo">
+                            </div>
+                            <div class="ampel-field-box">
+                                <span>Stichtag (ab Datum)</span>
+                                <input type="date" id="glzBaseDateInput">
+                            </div>
+                            <div class="ampel-field-box" style="grid-column: 1 / -1; margin-top: 2px;">
+                                <span>Vertragliche Wochenstunden</span>
+                                <input type="text" id="weeklyHoursInput" class="keypad-bound-input" value="40" inputmode="none" readonly aria-label="Wochenstunden">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -566,122 +612,162 @@
                 <button type="button" class="settings-save" id="btn-done-work">Fertig</button>
             </div>
 
-            <!-- UNTERMENÜ: WIDGETS & TASTATUR -->
+            <!-- UNTERMENÜ 2: WIDGETS & TASTATUR (AKKORDEON) -->
             <div id="settings-page-widgets" style="display: none;">
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-widgets">← Zurück</button>
                     <h2>Widgets & Tastatur</h2>
                 </div>
 
-                <div class="design-sub-card">
-                    <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
-                        <label class="toggle-label-nowrap" for="sollWidgetEnabledCheck">
-                            <input type="checkbox" id="sollWidgetEnabledCheck" checked>
-                            <span>🎯 Sollzeit-Pille (Start-Wisch-Screen)</span>
-                        </label>
-                    </div>
-
-                    <div id="soll-widget-options-wrap">
-                        <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Startbildschirm-Modus</label>
-                        <div class="widget-mode-pills" id="soll-widget-mode-pills" role="radiogroup" aria-label="Soll-Pille Startbildschirm-Modus">
-                            <button type="button" class="widget-mode-pill" data-sw-mode="go">Nur bei Gehen</button>
-                            <button type="button" class="widget-mode-pill" data-sw-mode="come">Nur bei Kommen</button>
-                            <button type="button" class="widget-mode-pill" data-sw-mode="both">Beides</button>
+                <div class="section-accordion-card" data-acc-group="widgets">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">🎯 Sollzeit-Pille</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-soll-widget">Aktiv</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
+                            <label class="toggle-label-nowrap" for="sollWidgetEnabledCheck">
+                                <input type="checkbox" id="sollWidgetEnabledCheck" checked>
+                                <span>Sollzeit-Pille anzeigen</span>
+                            </label>
                         </div>
-                    </div>
 
-                    <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
-                        Zeigt als reine Info-Pille an, wann das Tages-Soll (inkl. gesetzlicher Pausen ab 6:30h/9:45h Anwesenheit, Raucherpausen & Unterbrechungen) erreicht wird.
+                        <div id="soll-widget-options-wrap">
+                            <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Startbildschirm-Modus</label>
+                            <div class="widget-mode-pills" id="soll-widget-mode-pills" role="radiogroup" aria-label="Soll-Pille Startbildschirm-Modus">
+                                <button type="button" class="widget-mode-pill" data-sw-mode="go">Nur bei Gehen</button>
+                                <button type="button" class="widget-mode-pill" data-sw-mode="come">Nur bei Kommen</button>
+                                <button type="button" class="widget-mode-pill" data-sw-mode="both">Beides</button>
+                            </div>
+                        </div>
+
+                        <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
+                            Zeigt als reine Info-Pille an, wann das Tages-Soll (inkl. gesetzlicher Pausen ab 6:30h/9:45h Anwesenheit, Raucherpausen & Unterbrechungen) erreicht wird.
+                        </div>
                     </div>
                 </div>
 
-                <div class="design-sub-card">
-                    <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
-                        <label class="toggle-label-nowrap" for="pauseWatcherEnabledCheck">
-                            <input type="checkbox" id="pauseWatcherEnabledCheck" checked>
-                            <span>⏱️ Pausenwächter</span>
-                        </label>
-                    </div>
-
-                    <div id="pause-watcher-options-wrap">
-                        <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Startbildschirm-Modus</label>
-                        <div class="widget-mode-pills" id="pause-watcher-mode-pills" role="radiogroup" aria-label="Startbildschirm-Modus">
-                            <button type="button" class="widget-mode-pill" data-pw-mode="go">Nur bei Gehen</button>
-                            <button type="button" class="widget-mode-pill" data-pw-mode="come">Nur bei Kommen</button>
-                            <button type="button" class="widget-mode-pill" data-pw-mode="both">Beides</button>
+                <div class="section-accordion-card" data-acc-group="widgets">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">⏱️ Pausenwächter</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-pause-widget">Aktiv</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
+                            <label class="toggle-label-nowrap" for="pauseWatcherEnabledCheck">
+                                <input type="checkbox" id="pauseWatcherEnabledCheck" checked>
+                                <span>Pausenwächter anzeigen</span>
+                            </label>
                         </div>
-                    </div>
 
-                    <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
-                        Zeigt bei laufender Stempelung den Countdown bis zur 30-Min-Grenze (06:29:59) und danach den 45er-Warner bis 09:44:59.
+                        <div id="pause-watcher-options-wrap">
+                            <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Startbildschirm-Modus</label>
+                            <div class="widget-mode-pills" id="pause-watcher-mode-pills" role="radiogroup" aria-label="Startbildschirm-Modus">
+                                <button type="button" class="widget-mode-pill" data-pw-mode="go">Nur bei Gehen</button>
+                                <button type="button" class="widget-mode-pill" data-pw-mode="come">Nur bei Kommen</button>
+                                <button type="button" class="widget-mode-pill" data-pw-mode="both">Beides</button>
+                            </div>
+                        </div>
+
+                        <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
+                            Zeigt bei laufender Stempelung den Countdown bis zur 30-Min-Grenze (06:29:59) und danach den 45er-Warner bis 09:44:59.
+                        </div>
                     </div>
                 </div>
 
-                <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.88em; margin-bottom:6px;">⌨️ Tastatur-Auswahl</label>
-                    <div class="keyboard-mode-pills" id="keyboard-mode-pills" role="radiogroup" aria-label="Tastatur-Auswahl">
-                        <button type="button" class="widget-mode-pill" data-kb-mode="app">App-Tastatur</button>
-                        <button type="button" class="widget-mode-pill" data-kb-mode="system">System-Tastatur</button>
-                    </div>
-                    <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
-                        „System-Tastatur“ verwendet die Standard-Tastatur des Geräts und markiert beim Fokussieren den Feldinhalt zum direkten Überschreiben.
+                <div class="section-accordion-card" data-acc-group="widgets">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">⌨️ Tastatur-Auswahl</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-keyboard">App</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="keyboard-mode-pills" id="keyboard-mode-pills" role="radiogroup" aria-label="Tastatur-Auswahl">
+                            <button type="button" class="widget-mode-pill" data-kb-mode="app">App-Tastatur</button>
+                            <button type="button" class="widget-mode-pill" data-kb-mode="system">System-Tastatur</button>
+                        </div>
+                        <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
+                            „System-Tastatur“ verwendet die Standard-Tastatur des Geräts und markiert beim Fokussieren den Feldinhalt zum direkten Überschreiben.
+                        </div>
                     </div>
                 </div>
 
                 <button type="button" class="settings-save" id="btn-done-widgets">Fertig</button>
             </div>
 
+            <!-- UNTERMENÜ 3: DARSTELLUNG & DESIGN (AKKORDEON) -->
             <div id="settings-page-design" style="display: none;">
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-design">← Zurück</button>
                     <h2>Darstellung & Design</h2>
                 </div>
 
-                <div class="design-sub-card">
-                    <label for="styleModeSelect" style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:5px;">Form-Design</label>
-                    <select id="styleModeSelect" class="harmony-select">
-                        <option value="classic" selected>Klassisch (gleichmäßige Ecken)</option>
-                        <option value="asymmetric">Asymmetrisch & Organisch</option>
-                    </select>
-                    <div class="slider-control" id="asymSliderWrap" style="display: none;">
-                        <label for="asymIntensitySlider">
-                            <span>Stärke der Asymmetrie:</span>
-                            <span><span id="asymIntensityVal">55</span>%</span>
-                        </label>
-                        <input type="range" id="asymIntensitySlider" min="0" max="100" value="55">
-                    </div>
-                </div>
-
-                <div class="design-sub-card color-wheel-container">
-                    <label style="width:100%; font-weight:bold; font-size:0.9em; margin-bottom:6px;">Farbharmonie (Rot/Blau Komplementär)</label>
-                    <canvas id="colorWheel" width="165" height="165"></canvas>
-                    <div class="color-preview">
-                        <div class="color-dot dot-1" title="Text & Rahmen"></div>
-                        <div class="color-dot dot-2" title="Kommen (Primär)"></div>
-                        <div class="color-dot dot-3" title="Gehen (Gegenfarbe)"></div>
-                    </div>
-                    <div class="slider-control">
-                        <label for="lightnessSlider">
-                            <span>Helligkeit Buttons:</span>
-                            <span><span id="lightnessVal">44</span>%</span>
-                        </label>
-                        <input type="range" id="lightnessSlider" min="28" max="52" value="44">
-                    </div>
-                </div>
-
-                <div class="scribble-accordion-card" id="scribble-accordion-card">
-                    <button type="button" class="scribble-accordion-btn" id="btn-toggle-scribble-accordion" aria-expanded="false">
-                        <div class="scribble-accordion-title-wrap">
-                            <span class="scribble-accordion-title">Start-Scribbles (32 Motive)</span>
-                            <span class="scribble-accordion-meta" id="scribble-accordion-meta">2/5 aktiv · Größe 50% · Antippen zum Aufklappen</span>
-                        </div>
-                        <div class="scribble-accordion-right">
-                            <div class="scribble-mini-strip" id="scribble-mini-strip"></div>
-                            <span class="scribble-chevron" id="scribble-chevron">›</span>
-                        </div>
+                <div class="section-accordion-card" data-acc-group="design">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">Form-Design</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-form">Klassisch</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
                     </button>
+                    <div class="section-accordion-body">
+                        <select id="styleModeSelect" class="harmony-select">
+                            <option value="classic" selected>Klassisch (gleichmäßige Ecken)</option>
+                            <option value="asymmetric">Asymmetrisch & Organisch</option>
+                        </select>
+                        <div class="slider-control" id="asymSliderWrap" style="display: none;">
+                            <label for="asymIntensitySlider">
+                                <span>Stärke der Asymmetrie:</span>
+                                <span><span id="asymIntensityVal">55</span>%</span>
+                            </label>
+                            <input type="range" id="asymIntensitySlider" min="0" max="100" value="55">
+                        </div>
+                    </div>
+                </div>
 
-                    <div class="scribble-accordion-body" id="scribble-accordion-body">
+                <div class="section-accordion-card" data-acc-group="design">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">Farbharmonie</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-color">44%</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body color-wheel-container">
+                        <canvas id="colorWheel" width="165" height="165"></canvas>
+                        <div class="color-preview">
+                            <div class="color-dot dot-1" title="Text & Rahmen"></div>
+                            <div class="color-dot dot-2" title="Kommen (Primär)"></div>
+                            <div class="color-dot dot-3" title="Gehen (Gegenfarbe)"></div>
+                        </div>
+                        <div class="slider-control">
+                            <label for="lightnessSlider">
+                                <span>Helligkeit Buttons:</span>
+                                <span><span id="lightnessVal">44</span>%</span>
+                            </label>
+                            <input type="range" id="lightnessSlider" min="28" max="52" value="44">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-accordion-card" data-acc-group="design" id="scribble-accordion-card">
+                    <button type="button" class="section-accordion-btn" id="btn-toggle-scribble-accordion" aria-expanded="false">
+                        <span class="section-acc-title">Start-Scribbles (32 Motive)</span>
+                        <span class="section-acc-right">
+                            <span class="scribble-mini-strip" id="scribble-mini-strip"></span>
+                            <span class="section-acc-meta" id="scribble-accordion-meta">2/5 · 50%</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body" id="scribble-accordion-body">
                         <div class="scribble-picker-head">
                             <span style="font-size:0.8em; font-weight:bold;">Motive wählen (max. 5)</span>
                             <span class="scribble-count-tag" id="scribble-count-tag">2 / 5</span>
@@ -697,20 +783,28 @@
                     </div>
                 </div>
 
-                <div class="design-sub-card">
-                    <label style="display:block; font-weight:bold; font-size:0.9em; margin-bottom:7px;">App-Icon (für Startbildschirm)</label>
-                    <div class="icon-variant-grid" id="icon-variant-grid">
-                        <button type="button" class="icon-variant-card selected" data-icon-theme="blue">
-                            <img src="./favicon_192.png" alt="Blau / Cyan">
-                            <span>Blau / Cyan</span>
-                        </button>
-                        <button type="button" class="icon-variant-card" data-icon-theme="rose">
-                            <img src="./favicon_rose_192.png" alt="Rosé / Berry">
-                            <span>Rosé / Berry</span>
-                        </button>
-                    </div>
-                    <div class="icon-install-hint">
-                        Hinweis: Vor dem Tippen auf „App installieren“ auswählen, damit das gewünschte Icon auf dem Startbildschirm landet.
+                <div class="section-accordion-card" data-acc-group="design">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">App-Icon</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-icon">Blau / Cyan</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="icon-variant-grid" id="icon-variant-grid">
+                            <button type="button" class="icon-variant-card selected" data-icon-theme="blue">
+                                <img src="./favicon_192.png" alt="Blau / Cyan">
+                                <span>Blau / Cyan</span>
+                            </button>
+                            <button type="button" class="icon-variant-card" data-icon-theme="rose">
+                                <img src="./favicon_rose_192.png" alt="Rosé / Berry">
+                                <span>Rosé / Berry</span>
+                            </button>
+                        </div>
+                        <div class="icon-install-hint">
+                            Hinweis: Vor dem Tippen auf „App installieren“ auswählen, damit das gewünschte Icon auf dem Startbildschirm landet.
+                        </div>
                     </div>
                 </div>
 
@@ -721,7 +815,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=197');
+        navigator.serviceWorker.register('./sw.js?v=200');
       }
     </script>
 </body>
