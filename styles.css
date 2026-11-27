@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.4)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 1.9.5)
    ========================================================= */
 :root {
     --hue: 195;
@@ -1596,6 +1596,7 @@ canvas#colorWheel {
     align-items: center;
     justify-content: center;
     gap: 2px;
+    pointer-events: none;
 }
 .wsw-top-row {
     width: 100%;
@@ -1641,6 +1642,7 @@ canvas#colorWheel {
     align-items: center;
     justify-content: center;
     gap: 2px;
+    pointer-events: none;
 }
 .welcome-pause-widget.is-warner-45 {
     background: rgba(112, 54, 10, 0.68);
@@ -1708,7 +1710,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.4
+   APP-ICON AUSWAHL (BLAU / ROSÉ) — v1.9.5
    ========================================================= */
 .icon-variant-grid {
     display: grid;
@@ -1749,7 +1751,7 @@ canvas#colorWheel {
 }
 
 /* =========================================================
-   SUBTILE PRESS-RÜCKMELDUNG (v1.9.4)
+   SUBTILE PRESS-RÜCKMELDUNG (v1.9.5)
    ========================================================= */
 button,
 .kg-pill,

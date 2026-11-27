@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.4)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 1.9.5)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const format2 = (val) => String(val).padStart(2, '0');
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.4"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.5"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.4",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "1.9.5",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -463,6 +463,27 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${format2(hh)}:${format2(mm)}:${format2(ss)}`;
     }
 
+    // Berechnet die erforderliche Anwesenheitszeit (in Sekunden), damit nach
+    // gesetzlicher Pause (30m ab 6:29:59 / 45m ab 9:44:59) und Raucherpausen
+    // exakt targetNetSecs Netto-Arbeitszeit erreicht wird.
+    function getRequiredPresenceSecs(targetNetSecs, smokeSecs = 0) {
+        const cleanNet = Math.max(0, targetNetSecs);
+        const cleanSmoke = Math.max(0, smokeSecs);
+
+        if (cleanNet + cleanSmoke < 23400) {
+            return cleanNet + cleanSmoke;
+        }
+
+        const deduct30 = Math.max(1800, cleanSmoke);
+        const presWith30 = cleanNet + deduct30;
+        if (presWith30 < 35100) {
+            return presWith30;
+        }
+
+        const deduct45 = Math.max(2700, cleanSmoke);
+        return cleanNet + deduct45;
+    }
+
     function updateWelcomeSollWidget() {
         if (!welcomeSollWidget) return;
 
@@ -475,15 +496,9 @@ document.addEventListener("DOMContentLoaded", () => {
             || (sollWidgetMode === "go" && welcomeActionMode === "go")
             || (sollWidgetMode === "come" && welcomeActionMode === "come");
 
-        if (!modeMatches) {
-            welcomeSollWidget.style.display = "none";
-            return;
-        }
-
         const pS = getParsedStart();
-        const pE = getParsedEnd();
         const sollTotalSecs = (sollHours * 3600) + (sollMinutes * 60);
-        if (!pS || pE || sollTotalSecs <= 0) {
+        if (!modeMatches || !pS || sollTotalSecs <= 0) {
             welcomeSollWidget.style.display = "none";
             return;
         }
@@ -494,14 +509,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const { totalGapSecs } = getSessionMetrics(null);
         const smokeSecs = getTodaySmokeSecs();
 
-        let requiredPauseSecs = 0;
-        if (sollTotalSecs >= 9 * 3600) requiredPauseSecs = 45 * 60;
-        else if (sollTotalSecs >= 6 * 3600) requiredPauseSecs = 30 * 60;
-        const extraDeductSecs = Math.max(requiredPauseSecs, smokeSecs);
-
+        const requiredPresSecs = getRequiredPresenceSecs(sollTotalSecs, smokeSecs);
         const startDate = new Date();
         startDate.setHours(stH, stM, stS, 0);
-        const targetDate = new Date(startDate.getTime() + (sollTotalSecs + totalGapSecs + extraDeductSecs) * 1000);
+        const targetDate = new Date(startDate.getTime() + (requiredPresSecs + totalGapSecs) * 1000);
 
         wswBadge.textContent = "Soll erreicht um";
         wswSollInfo.textContent = `Soll ${format2(sollHours)}:${format2(sollMinutes)}h`;
@@ -1477,6 +1488,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (keyboardMode === "system") return;
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
+        });
+        el.addEventListener("focus", () => {
+            if (keyboardMode !== "system") return;
+            setTimeout(() => {
+                try {
+                    if (typeof el.select === "function") el.select();
+                    else if (typeof el.setSelectionRange === "function") el.setSelectionRange(0, el.value.length);
+                } catch (e) {}
+            }, 0);
         });
         el.addEventListener("input", () => {
             if (keyboardMode !== "system") return;
