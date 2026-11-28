@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.3
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.4
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f4ecf3">
-    <title>Stempeluhr & Wochenübersicht (v2.0.3)</title>
+    <title>Stempeluhr & Wochenübersicht (v2.0.4)</title>
 
     <link rel="manifest" id="app-manifest-link" href="./manifest.json">
     <link rel="icon" id="fav-32" type="image/png" sizes="32x32" href="./favicon_32.png">
     <link rel="icon" id="fav-192" type="image/png" sizes="192x192" href="./favicon_192.png">
     <link rel="icon" id="fav-base" href="./favicon.png" type="image/png">
     <link rel="apple-touch-icon" id="fav-apple" sizes="180x180" href="./favicon_180.png">
-    <link rel="stylesheet" href="./styles.css?v=203">
+    <link rel="stylesheet" href="./styles.css?v=204">
 
     <script>
-        const APP_VERSION = "2.0.3";
+        const APP_VERSION = "2.0.4";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -37,12 +37,14 @@
             const fav192 = document.getElementById("fav-192");
             const favBase = document.getElementById("fav-base");
             const favApple = document.getElementById("fav-apple");
+            const splashImg = document.getElementById("welcome-splash-favicon");
 
             if (manifestEl) manifestEl.setAttribute("href", isRose ? "./manifest-rose.json" : "./manifest.json");
             if (fav32) fav32.setAttribute("href", isRose ? "./favicon_rose_32.png" : "./favicon_32.png");
             if (fav192) fav192.setAttribute("href", isRose ? "./favicon_rose_192.png" : "./favicon_192.png");
             if (favBase) favBase.setAttribute("href", isRose ? "./favicon_rose_192.png" : "./favicon.png");
             if (favApple) favApple.setAttribute("href", isRose ? "./favicon_rose_180.png" : "./favicon_180.png");
+            if (splashImg) splashImg.setAttribute("src", isRose ? "./favicon_rose_192.png" : "./favicon_192.png");
         };
 
         (function() {
@@ -77,11 +79,11 @@
     <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="./scribbles.js?v=203" defer></script>
-    <script src="./holidays-nds.js?v=203" defer></script>
-    <script src="./phrases.js?v=203" defer></script>
-    <script src="./pdf-export.js?v=203" defer></script>
-    <script src="./app.js?v=203" defer></script>
+    <script src="./scribbles.js?v=204" defer></script>
+    <script src="./holidays-nds.js?v=204" defer></script>
+    <script src="./phrases.js?v=204" defer></script>
+    <script src="./pdf-export.js?v=204" defer></script>
+    <script src="./app.js?v=204" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
@@ -91,20 +93,23 @@
         <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
         <div class="welcome-top-area">
-            <div class="welcome-date-sub" id="welcome-date-sub">-</div>
-            <h1 class="welcome-greeting" id="welcome-greeting">Guten Morgen!</h1>
+            <div class="welcome-date-sub seq-item" data-seq="1" id="welcome-date-sub">-</div>
+            <h1 class="welcome-greeting seq-item" data-seq="2" id="welcome-greeting">Guten Morgen!</h1>
+            <div class="welcome-favicon-hero seq-item" data-seq="3" id="welcome-favicon-hero" aria-hidden="true">
+                <img id="welcome-splash-favicon" src="./favicon_192.png" alt="">
+            </div>
         </div>
 
         <div class="welcome-actions-stack" id="welcome-actions-stack">
             <!-- KOMMEN / GEHEN IMMER ZUOBERST IM GOLDENEN SCHNITT -->
-            <button type="button" class="btn-welcome-action" id="btn-welcome-action">
+            <button type="button" class="btn-welcome-action seq-item" data-seq="4" id="btn-welcome-action">
                 <strong id="welcome-action-title">Kommen</strong>
                 <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
             </button>
             <div class="orb-gesture-hint" id="orb-gesture-hint" style="display: none;">↑ Feierabend · ↓ Zurück</div>
 
             <!-- STATUS-KACHEL MIT ZUSATZINFO -->
-            <div class="welcome-status-card is-neutral" id="welcome-status-card" aria-live="polite">
+            <div class="welcome-status-card is-neutral seq-item" data-seq="5" id="welcome-status-card" aria-live="polite">
                 <div class="wsc-main-row">
                     <span class="status-dot"></span>
                     <span class="wsc-title" id="welcome-status-text">Nicht eingestempelt</span>
@@ -113,7 +118,7 @@
             </div>
 
             <!-- SOLL-ERREICHT-INFO-PILLE -->
-            <div class="welcome-soll-widget" id="welcome-soll-widget" style="display: none;" aria-live="polite">
+            <div class="welcome-soll-widget seq-item" data-seq="5" id="welcome-soll-widget" style="display: none;" aria-live="polite">
                 <div class="wsw-top-row">
                     <span class="wsw-badge" id="wsw-badge">Soll erreicht um</span>
                     <span class="wsw-soll-info" id="wsw-soll-info">Soll 08:00h</span>
@@ -122,7 +127,7 @@
             </div>
 
             <!-- PAUSENWÄCHTER-WIDGET -->
-            <div class="welcome-pause-widget" id="welcome-pause-widget" style="display: none;" aria-live="polite">
+            <div class="welcome-pause-widget seq-item" data-seq="5" id="welcome-pause-widget" style="display: none;" aria-live="polite">
                 <div class="wpw-top-row">
                     <span class="wpw-badge" id="wpw-badge">30-Min-Grenze</span>
                     <span class="wpw-limit-time" id="wpw-limit-time">bis --:--:--</span>
@@ -130,12 +135,12 @@
                 <div class="wpw-countdown" id="wpw-countdown">00:00:00</div>
             </div>
 
-            <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
+            <button type="button" class="btn-welcome-menu seq-item" data-seq="5" id="btn-welcome-menu">
                 <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
                 <div class="welcome-menu-hint">Zur Uhr →</div>
             </button>
 
-            <div class="nav-compass-hint" id="welcome-compass-hint">
+            <div class="nav-compass-hint seq-item" data-seq="5" id="welcome-compass-hint">
                 <span>← Woche</span>
                 <span id="welcome-vertical-hint">↓ Menü · ↑ Start</span>
                 <span>Uhr →</span>
@@ -349,21 +354,16 @@
                             </button>
                         </div>
 
-                        <div class="settings-group">
-                            <div class="setting-box-row">
-                                <label class="toggle-label-nowrap" for="gesturesEnabledCheck">
-                                    <input type="checkbox" id="gesturesEnabledCheck" checked>
-                                    <span>👆 Wischsteuerung aktiv</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="settings-group">
-                            <div class="backup-card">
-                                <div class="backup-card-top">
-                                    <span class="backup-card-title">Datensicherung</span>
-                                    <span class="backup-status-pill" id="backup-status-pill">Noch kein Backup</span>
-                                </div>
+                        <!-- EINKLAPPBARE DATENSICHERUNG -->
+                        <div class="section-accordion-card" data-acc-group="main">
+                            <button type="button" class="section-accordion-btn" aria-expanded="false">
+                                <span class="section-acc-title">Datensicherung</span>
+                                <span class="section-acc-right">
+                                    <span class="section-acc-meta" id="backup-status-pill">Noch kein Backup</span>
+                                    <span class="section-acc-chevron">›</span>
+                                </span>
+                            </button>
+                            <div class="section-accordion-body">
                                 <div class="backup-btn-grid">
                                     <button type="button" class="btn-backup-action" id="btn-export-backup">💾 Sichern</button>
                                     <button type="button" class="btn-backup-action" id="btn-import-backup">📂 Laden</button>
@@ -382,7 +382,7 @@
                         </div>
 
                         <div class="version-update-bar">
-                            <span id="app-version-label" style="font-weight:bold;">Version 2.0.3</span>
+                            <span id="app-version-label" style="font-weight:bold;">Version 2.0.4</span>
                             <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                         </div>
                     </div>
@@ -606,7 +606,7 @@
                         </div>
                     </div>
 
-                    <!-- UNTERMENÜ 3: DARSTELLUNG & DESIGN -->
+                    <!-- UNTERMENÜ 3: DARSTELLUNG & DESIGN (FARBRAD DIREKT OFFEN) -->
                     <div id="settings-page-design" style="display: none;">
                         <div class="subpage-header">
                             <button type="button" class="btn-subpage-back" id="btn-back-from-design">← Zurück</button>
@@ -636,8 +636,8 @@
                             </div>
                         </div>
 
-                        <div class="section-accordion-card" data-acc-group="design">
-                            <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <div class="section-accordion-card is-open" data-acc-group="design" id="color-wheel-accordion-card">
+                            <button type="button" class="section-accordion-btn" aria-expanded="true">
                                 <span class="section-acc-title">Farbharmonie</span>
                                 <span class="section-acc-right">
                                     <span class="section-acc-meta" id="acc-meta-color">44%</span>
@@ -832,7 +832,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=203');
+        navigator.serviceWorker.register('./sw.js?v=204');
       }
     </script>
 </body>

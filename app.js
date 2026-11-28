@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.3)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.4)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const mods = window.StempeluhrModules || {};
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.3"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.4"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.3",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.4",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -242,8 +242,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let isSmoker = localStorage.getItem("isSmoker") === "true";
     let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"), 10);
     if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
-
-    let gesturesEnabled = localStorage.getItem("gesturesEnabled") !== "false";
 
     let selectedScribbles = ["bolt", "loop-arrow"];
     try {
@@ -412,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       SCREEN 1: START + ORB (GOLDENE RATIO HOCH / RUNTER)
+       SCREEN 1: START + TOP-DOWN-SEQUENZ + ORB
        ========================================================= */
     const welcomeOverlay = document.getElementById("welcome-overlay");
     const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -444,6 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let welcomeActionMode = "come";
     let ambientAnimTimer = null;
+    let bootSeqTimers = [];
 
     const PHI_THRESHOLD_PX = Math.round(48 * 1.618); // ~78px über die goldene Ratio
     let orbModeActive = false;
@@ -456,6 +455,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function isOrbGestureProtected() {
         return orbModeActive || orbGestureLock || Date.now() < orbReleaseCooldownUntil;
+    }
+
+    function clearBootSequence() {
+        bootSeqTimers.forEach(t => clearTimeout(t));
+        bootSeqTimers = [];
+        welcomeOverlay.classList.remove("is-boot-animating");
+        welcomeOverlay.querySelectorAll(".seq-item").forEach(el => el.classList.remove("is-shown"));
+    }
+
+    // Top-Down-Sequenz (~1000 ms gesamt): Datum -> Begrüßung -> Favicon -> Kommen -> Rest
+    function runTopDownBootSequence() {
+        clearBootSequence();
+        const items = Array.from(welcomeOverlay.querySelectorAll(".seq-item"));
+        if (!items.length) return;
+        welcomeOverlay.classList.add("is-boot-animating");
+
+        const stepDelays = { 1: 40, 2: 200, 3: 380, 4: 560, 5: 740 };
+        items.forEach((el) => {
+            const step = parseInt(el.getAttribute("data-seq"), 10) || 5;
+            const delay = stepDelays[step] !== undefined ? stepDelays[step] : 740;
+            const timer = setTimeout(() => {
+                el.classList.add("is-shown");
+            }, delay);
+            bootSeqTimers.push(timer);
+        });
+
+        const endTimer = setTimeout(() => {
+            welcomeOverlay.classList.remove("is-boot-animating");
+            items.forEach(el => el.classList.remove("is-shown"));
+        }, 1050);
+        bootSeqTimers.push(endTimer);
     }
 
     function formatSecsToHhMmSs(totalSecs) {
@@ -480,36 +510,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (todayFinalized && !hasOpenSession) {
             const untilStr = pE ? `${pE.h}:${pE.m}` : "jetzt";
-            return {
-                state: "final",
-                cardLabel: "Feierabend · Schluss für heute",
-                cardDetail: pE ? `Gegangen um ${untilStr} Uhr` : "Tag beendet"
-            };
+            return { state: "final", cardLabel: "Feierabend · Schluss für heute", cardDetail: pE ? `Gegangen um ${untilStr} Uhr` : "Tag beendet" };
         }
 
         if (hasOpenSession) {
             const sinceStr = pS ? `${pS.h}:${pS.m}` : (lastSess && lastSess.start ? `${format2(parseInt(lastSess.start.h, 10) || 0)}:${format2(parseInt(lastSess.start.m, 10) || 0)}` : "--:--");
-            return {
-                state: "in",
-                cardLabel: "Eingestempelt",
-                cardDetail: `Aktiv seit ${sinceStr} Uhr`
-            };
+            return { state: "in", cardLabel: "Eingestempelt", cardDetail: `Aktiv seit ${sinceStr} Uhr` };
         }
 
         if (pE) {
             const untilStr = `${pE.h}:${pE.m}`;
-            return {
-                state: "out",
-                cardLabel: "Ausgestempelt",
-                cardDetail: pS ? `Letzter Block: ${pS.h}:${pS.m} – ${untilStr} Uhr` : `Ausgestempelt um ${untilStr} Uhr`
-            };
+            return { state: "out", cardLabel: "Ausgestempelt", cardDetail: pS ? `Letzter Block: ${pS.h}:${pS.m} – ${untilStr} Uhr` : `Ausgestempelt um ${untilStr} Uhr` };
         }
 
-        return {
-            state: "neutral",
-            cardLabel: "Nicht eingestempelt",
-            cardDetail: "Heute noch keine Stempelung erfasst"
-        };
+        return { state: "neutral", cardLabel: "Nicht eingestempelt", cardDetail: "Heute noch keine Stempelung erfasst" };
     }
 
     function updateStampStatusUI() {
@@ -646,9 +660,7 @@ document.addEventListener("DOMContentLoaded", () => {
             wpwLimitTime.textContent = `bis ${addClock(limit45TargetSecs)}`;
             wpwCountdown.textContent = formatSecsToHhMmSs(remainingSecs);
             welcomePauseWidget.style.display = "flex";
-        } else {
-            welcomePauseWidget.style.display = "none";
-        }
+        } else welcomePauseWidget.style.display = "none";
     }
 
     function updateWelcomeWidgets() {
@@ -682,9 +694,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetOrbState() {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
-        if (orbModeActive) {
-            orbReleaseCooldownUntil = Date.now() + 150;
-        }
+        if (orbModeActive) orbReleaseCooldownUntil = Date.now() + 150;
         orbModeActive = false;
         orbArmedDecision = null;
         orbGestureLock = false;
@@ -723,13 +733,9 @@ document.addEventListener("DOMContentLoaded", () => {
         btnWelcomeAction.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
 
         const prevDecision = orbArmedDecision;
-        if (dy <= -PHI_THRESHOLD_PX) {
-            orbArmedDecision = "finalize";
-        } else if (dy >= PHI_THRESHOLD_PX) {
-            orbArmedDecision = "cancel";
-        } else {
-            orbArmedDecision = null;
-        }
+        if (dy <= -PHI_THRESHOLD_PX) orbArmedDecision = "finalize";
+        else if (dy >= PHI_THRESHOLD_PX) orbArmedDecision = "cancel";
+        else orbArmedDecision = null;
 
         btnWelcomeAction.classList.toggle("armed-finalize", orbArmedDecision === "finalize");
         btnWelcomeAction.classList.toggle("armed-cancel", orbArmedDecision === "cancel");
@@ -751,10 +757,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function releaseOrbMode() {
-        if (!orbModeActive) {
-            orbGestureLock = false;
-            return;
-        }
+        if (!orbModeActive) { orbGestureLock = false; return; }
         const decision = orbArmedDecision;
         resetOrbState();
         if (decision === "finalize") {
@@ -790,7 +793,7 @@ document.addEventListener("DOMContentLoaded", () => {
             attempts++;
             const x = 6 + rng() * 88;
             const y = 5 + rng() * 90;
-            const inGreetingZone = (y > 7 && y < 22 && x > 14 && x < 86);
+            const inGreetingZone = (y > 6 && y < 28 && x > 14 && x < 86);
             if (inGreetingZone) continue;
 
             let tooClose = false;
@@ -880,7 +883,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function openWelcomeScreen(mode = null) {
+    function openWelcomeScreen(mode = null, withBootSeq = false) {
         const targetMode = mode || getLogicalNextMode();
         const wasAlreadyOpen = welcomeOverlay.classList.contains("active");
         welcomeActionMode = targetMode;
@@ -900,10 +903,14 @@ document.addEventListener("DOMContentLoaded", () => {
             welcomeOverlay.classList.add("active");
             startAmbientPixelAnimations();
         }
+        if (withBootSeq) runTopDownBootSequence();
+        else clearBootSequence();
+
         updateWelcomeWidgets();
     }
 
     function closeWelcomeScreen() {
+        clearBootSequence();
         resetOrbState();
         stopAmbientPixelAnimations();
         welcomeOverlay.classList.remove("active", "welcome-mode-switch");
@@ -992,7 +999,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, true);
 
     /* =========================================================
-       MENÜ-EINSTELLUNGEN (DIREKT & AUTOMATISCH GESPEICHERT)
+       MENÜ-EINSTELLUNGEN
        ========================================================= */
     const userNameInput = document.getElementById("userNameInput");
     const phrasesEnabledCheck = document.getElementById("phrasesEnabledCheck");
@@ -1028,7 +1035,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const smokerMinsWrap = document.getElementById("smokerMinsWrap");
     const smokeBar = document.getElementById("smoke-bar");
     const smokeCountDisplay = document.getElementById("smoke-count-display");
-    const gesturesEnabledCheck = document.getElementById("gesturesEnabledCheck");
     const lightnessSlider = document.getElementById("lightnessSlider");
     const lightnessVal = document.getElementById("lightnessVal");
 
@@ -1048,7 +1054,6 @@ document.addEventListener("DOMContentLoaded", () => {
     asymIntensityVal.textContent = appAsymIntensity;
     isSmokerCheck.checked = isSmoker;
     smokeMinutesInput.value = smokeMinutesPerBreak;
-    gesturesEnabledCheck.checked = gesturesEnabled;
     lightnessSlider.value = appLightness;
     lightnessVal.textContent = appLightness;
     scribbleSizeSlider.value = scribbleSizePct;
@@ -1080,7 +1085,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         isSmoker = isSmokerCheck.checked;
         smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value, 10) || 5));
-        gesturesEnabled = gesturesEnabledCheck.checked;
 
         localStorage.setItem("userName", userName);
         localStorage.setItem("phrasesEnabled", phrasesEnabled);
@@ -1104,7 +1108,6 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("keyboardMode", keyboardMode);
         localStorage.setItem("isSmoker", isSmoker);
         localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
-        localStorage.setItem("gesturesEnabled", gesturesEnabled);
         localStorage.setItem("appHue", appHue);
         localStorage.setItem("appLightness", appLightness);
 
@@ -1125,7 +1128,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     userNameInput.addEventListener("input", persistAllSettings);
-    gesturesEnabledCheck.addEventListener("change", persistAllSettings);
     glzBaseDateInput.addEventListener("change", persistAllSettings);
 
     function syncPhrasesSettingsUI() {
@@ -1402,11 +1404,20 @@ document.addEventListener("DOMContentLoaded", () => {
             syncKeyboardModeUI();
             updateAccordionBadges();
         } else if (pageName === "design") {
-            collapseAccordionsInGroup("design", null);
+            // Farbrad direkt offen, andere Design-Akkordeons minimiert
+            const wheelCard = document.getElementById("color-wheel-accordion-card");
+            collapseAccordionsInGroup("design", wheelCard);
+            if (wheelCard) {
+                wheelCard.classList.add("is-open");
+                const btn = wheelCard.querySelector(".section-accordion-btn");
+                if (btn) btn.setAttribute("aria-expanded", "true");
+            }
             renderScribblePicker();
             syncIconThemePickerUI();
             updateAccordionBadges();
+            drawColorWheel();
         } else if (pageName === "main") {
+            collapseAccordionsInGroup("main", null);
             updateSettingsNavPreviews();
             updateBackupStatusBadge();
         }
@@ -1435,7 +1446,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       GLOBALE ZAHLENTASTATUR-ENGINE (RUHIGE HH:MM-MASKE)
+       GLOBALE ZAHLENTASTATUR-ENGINE (SAFARI-STABIL)
        ========================================================= */
     const startTimePill = document.getElementById("startTimePill");
     const endTimePill = document.getElementById("endTimePill");
@@ -1577,7 +1588,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let lastFire = 0;
         el.addEventListener("pointerdown", (e) => {
             if (keyboardMode === "system" || el.disabled) return;
-            if (e.cancelable) e.preventDefault();
             e.stopPropagation();
             const now = Date.now();
             if (now - lastFire < 180) return;
@@ -1587,7 +1597,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         el.addEventListener("click", (e) => {
             if (keyboardMode === "system") return;
-            if (e.cancelable) e.preventDefault();
             e.stopPropagation();
         });
         el.addEventListener("focus", () => {
@@ -1627,8 +1636,9 @@ document.addEventListener("DOMContentLoaded", () => {
     registerKeypadInput(glzBaseInput, { mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true, onCommit: () => persistAllSettings() });
     registerKeypadInput(weeklyHoursInput, { mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true, onCommit: () => persistAllSettings() });
 
-    document.getElementById("keypad-close-btn").addEventListener("pointerdown", (e) => {
-        e.preventDefault(); e.stopPropagation(); closeCustomKeypad();
+    document.getElementById("keypad-close-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeCustomKeypad();
     });
 
     function openNextBoundInput(nextTarget) {
@@ -1714,14 +1724,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     keypadSheet.querySelectorAll(".kp-key").forEach((keyBtn) => {
         keyBtn.addEventListener("pointerdown", (e) => {
-            if (e.cancelable) e.preventDefault(); e.stopPropagation();
+            e.stopPropagation();
             const now = Date.now();
             if (now - lastKeypadKeyTime < 75) return;
             lastKeypadKeyTime = now;
             const action = keyBtn.getAttribute("data-kp");
             if (action) handleKeypadPress(action);
         });
-        keyBtn.addEventListener("click", (e) => { if (e.cancelable) e.preventDefault(); e.stopPropagation(); });
+        keyBtn.addEventListener("click", (e) => { e.stopPropagation(); });
     });
 
     document.addEventListener("pointerdown", (e) => {
@@ -1987,7 +1997,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateWelcomeWidgets();
     }
 
-    // Long-Press auf Gehen -> Orb + alle Scribbles in Hauptfarbe; Goldene Ratio hoch/runter
     btnWelcomeAction.addEventListener("pointerdown", (e) => {
         if (welcomeActionMode !== "go") return;
         orbGestureLock = true;
@@ -2011,33 +2020,22 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("pointerup", () => {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
-        if (orbModeActive) {
-            releaseOrbMode();
-        } else if (orbGestureLock) {
-            orbGestureLock = false;
-            orbReleaseCooldownUntil = Date.now() + 150;
-        }
+        if (orbModeActive) releaseOrbMode();
+        else if (orbGestureLock) { orbGestureLock = false; orbReleaseCooldownUntil = Date.now() + 150; }
     });
 
     window.addEventListener("pointercancel", () => {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
-        if (orbModeActive) {
-            resetOrbState();
-        } else if (orbGestureLock) {
-            orbGestureLock = false;
-            orbReleaseCooldownUntil = Date.now() + 150;
-        }
+        if (orbModeActive) resetOrbState();
+        else if (orbGestureLock) { orbGestureLock = false; orbReleaseCooldownUntil = Date.now() + 150; }
     });
 
     document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
     document.getElementById("btn-now-end").addEventListener("click", triggerStampGoNow);
 
     btnWelcomeAction.addEventListener("click", () => {
-        if (suppressNextActionClick) {
-            suppressNextActionClick = false;
-            return;
-        }
+        if (suppressNextActionClick) { suppressNextActionClick = false; return; }
         if (welcomeActionMode === "go") triggerStampGoNow();
         else triggerStampComeNow();
     });
@@ -2642,7 +2640,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       VIER-WEGE-WISCHSTEUERUNG ÜBERALL (ORB-GESCHÜTZT)
+       VIER-WEGE-WISCHSTEUERUNG ÜBERALL (IMMER AKTIV, ORB-GESCHÜTZT)
        ========================================================= */
     const pdfExportModal = document.getElementById("pdf-export-modal");
     let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
@@ -2652,8 +2650,7 @@ document.addEventListener("DOMContentLoaded", () => {
             || (pdfExportModal && pdfExportModal.classList.contains("active"))
             || backfillModal.classList.contains("active");
 
-        if (!gesturesEnabled
-            || anyModalOpen
+        if (anyModalOpen
             || isOrbGestureProtected()
             || e.touches.length !== 1
             || e.target.closest("#btn-welcome-action, canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
@@ -2667,7 +2664,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
 
     document.addEventListener("touchend", (e) => {
-        if (!gesturesEnabled || touchBlocked || isOrbGestureProtected() || e.changedTouches.length !== 1) return;
+        if (touchBlocked || isOrbGestureProtected() || e.changedTouches.length !== 1) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         const absX = Math.abs(dx), absY = Math.abs(dy);
@@ -2737,7 +2734,7 @@ document.addEventListener("DOMContentLoaded", () => {
             || (todayRecordAtInit.status && todayRecordAtInit.status !== "work" && todayRecordAtInit.status !== "free")
         ));
 
-    if (!dismissedToday && !hasTimesToday) openWelcomeScreen("come");
+    if (!dismissedToday && !hasTimesToday) openWelcomeScreen("come", true);
 
     /* LIVE-UHR & TIMER */
     function tickLiveEngine() {
