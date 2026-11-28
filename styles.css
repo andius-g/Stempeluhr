@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.1)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.2)
    ========================================================= */
 :root {
     --hue: 195;
@@ -120,9 +120,7 @@ body {
     touch-action: none;
     animation: welcomeFadeIn 0.24s ease-out;
 }
-.welcome-overlay.active {
-    display: flex;
-}
+.welcome-overlay.active { display: flex; }
 @keyframes welcomeFadeIn {
     from { opacity: 0; transform: scale(1.02); }
     to { opacity: 1; transform: scale(1); }
@@ -151,30 +149,25 @@ body {
     cursor: pointer;
     padding: 8px;
 }
-.scatter-rot-wrap {
-    transform: rotate(var(--base-rot, 0deg));
-}
+.scatter-rot-wrap { transform: rotate(var(--base-rot, 0deg)); }
 .scatter-anim-wrap {
     width: var(--icon-size, 52px);
     height: var(--icon-size, 52px);
     color: #ffffff;
     opacity: var(--icon-alpha, 0.32);
     will-change: transform, opacity;
-    transition: opacity 0.25s ease, color 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+    transition: opacity 0.22s ease, color 0.22s ease, transform 0.22s ease, filter 0.22s ease;
 }
 .scatter-node:hover .scatter-anim-wrap,
-.scatter-node.is-animating .scatter-anim-wrap {
-    opacity: 0.72;
-}
-.scatter-node.is-final-target {
-    z-index: 5;
-}
-.scatter-node.is-final-target .scatter-anim-wrap {
+.scatter-node.is-animating .scatter-anim-wrap { opacity: 0.72; }
+
+/* ALLE SCRIBBLES LEUCHTEN IN HAUPTFARBE WENN ORB AKTIV IST */
+.welcome-overlay.orb-active .scatter-anim-wrap {
     color: var(--primary-color);
-    opacity: 1;
-    transform: scale(1.38);
-    filter: drop-shadow(0 0 12px var(--primary-color));
+    opacity: 0.92;
+    filter: drop-shadow(0 0 10px var(--primary-color));
 }
+
 .scatter-anim-wrap svg {
     width: 100%;
     height: 100%;
@@ -259,21 +252,29 @@ body {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    transition: width 0.22s ease, height 0.22s ease, border-radius 0.22s ease, transform 0.14s ease, box-shadow 0.22s ease;
+    transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 .btn-welcome-action.mode-go {
     background: var(--secondary-color);
     border-radius: var(--welcome-btn-go-radius);
 }
 .btn-welcome-action.is-round-drag {
-    width: 104px;
-    height: 104px;
-    min-height: 104px;
+    width: 102px;
+    height: 102px;
+    min-height: 102px;
     padding: 0;
     border-radius: 50% !important;
     align-self: center;
     z-index: 10;
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.24), 0 18px 36px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.26), 0 18px 36px rgba(0, 0, 0, 0.48);
+}
+.btn-welcome-action.is-round-drag.armed-finalize {
+    background: #7c3aed;
+    box-shadow: 0 0 0 7px rgba(216, 180, 254, 0.55), 0 18px 38px rgba(109, 40, 217, 0.65);
+}
+.btn-welcome-action.is-round-drag.armed-cancel {
+    background: #475569;
+    box-shadow: 0 0 0 7px rgba(203, 213, 225, 0.45), 0 16px 32px rgba(0, 0, 0, 0.45);
 }
 .btn-welcome-action.is-round-drag span {
     display: none;
@@ -283,10 +284,25 @@ body {
     letter-spacing: 0.3px;
     line-height: 1.12;
 }
+.btn-welcome-action.is-round-drag strong {
+    font-size: 0.96em;
+}
 .btn-welcome-action span {
     font-size: 0.8em;
     opacity: 0.92;
     font-weight: 500;
+}
+
+.orb-gesture-hint {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: #f3e8ff;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 4px 12px;
+    align-self: center;
+    pointer-events: none;
 }
 
 /* LÖSUNG 3: STATUS-KACHEL MIT ZUSATZINFO */
@@ -399,7 +415,7 @@ body {
 }
 
 /* =========================================================
-   HAUPT-APP CONTAINER (SCREEN 2 & SCREEN 3)
+   HAUPT-APP CONTAINER (SCREEN 2, 3 & 4)
    ========================================================= */
 .container {
     width: 100%;
@@ -422,11 +438,7 @@ body {
     justify-content: space-between;
     align-items: center;
 }
-.live-clock-box {
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-}
+.live-clock-box { display: flex; flex-direction: column; cursor: pointer; }
 .live-time {
     font-size: 1.7em;
     font-weight: 800;
@@ -442,11 +454,7 @@ body {
     margin-top: 2px;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+.header-actions { display: flex; align-items: center; gap: 8px; }
 .tab-btn,
 .settings-btn {
     background-color: var(--primary-color);
@@ -498,6 +506,21 @@ body {
     padding: 15px 15px 14px;
     margin-bottom: 0;
     box-shadow: var(--box-shadow);
+}
+
+.menu-screen-card {
+    background-color: var(--card-bg);
+}
+.menu-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.menu-top-bar h2 {
+    margin: 0;
+    font-size: 1.24em;
 }
 
 .bg-hour-watermark {
@@ -1070,7 +1093,7 @@ body {
 .glz-pill.ampel-rot .glz-dot { background-color: #d93030; }
 
 /* =========================================================
-   MODALS & SCREEN 4 (MENÜ + AKKORDEONS)
+   MODALS & MENÜ-AKKORDEONS
    ========================================================= */
 .modal-overlay {
     display: none;
@@ -1114,11 +1137,10 @@ body {
     align-items: center;
     gap: 10px;
     margin-bottom: 12px;
-    padding-right: 28px;
 }
 .subpage-header h2 { margin: 0; font-size: 1.15em; }
 .btn-subpage-back {
-    background-color: var(--bg-color);
+    background-color: var(--subcard-bg);
     color: var(--text-color);
     border: 1px solid var(--border-color);
     border-radius: 999px;
@@ -1352,7 +1374,7 @@ body {
     border-radius: 8px;
     font-size: 0.96em;
     color: var(--text-color);
-    background-color: var(--subcard-bg);
+    background-color: var(--white);
 }
 .soll-pair { display: flex; align-items: center; gap: 6px; }
 .soll-pair input {
@@ -1596,7 +1618,6 @@ canvas#colorWheel {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-subcard);
     padding: 7px 11px;
-    margin-bottom: 10px;
     font-size: 0.82em;
 }
 .btn-force-update {

@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.1)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.2)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const mods = window.StempeluhrModules || {};
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.1"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.2"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -44,9 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const startHold = () => {
             clearTimeout(longPressTimer);
             longPressTimer = setTimeout(() => {
-                if (confirm("Notfall-Update jetzt ausführen und Cache leeren?")) {
-                    forceAppReload();
-                }
+                if (confirm("Notfall-Update jetzt ausführen und Cache leeren?")) forceAppReload();
             }, 3000);
         };
         const cancelHold = () => clearTimeout(longPressTimer);
@@ -129,25 +127,20 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const lastMs = Date.parse(lastIso);
-        if (isNaN(lastMs)) {
-            backupStatusPill.textContent = "Gesichert";
-            return;
-        }
+        if (isNaN(lastMs)) { backupStatusPill.textContent = "Gesichert"; return; }
         const diffDays = Math.floor((Date.now() - lastMs) / 86400000);
         if (diffDays <= 0) backupStatusPill.textContent = "Heute gesichert";
         else if (diffDays === 1) backupStatusPill.textContent = "Vor 1 Tag";
         else if (diffDays >= 30) {
             backupStatusPill.textContent = `Vor ${diffDays} Tagen!`;
             backupStatusPill.classList.add("is-due");
-        } else {
-            backupStatusPill.textContent = `Vor ${diffDays} Tagen`;
-        }
+        } else backupStatusPill.textContent = `Vor ${diffDays} Tagen`;
     }
 
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.1",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.2",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -196,14 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!confirm(`Backup vom ${exportInfo} (${dayCount} gespeicherte Tage) einspielen?\n\nAktuelle Einträge werden ersetzt.`)) return;
 
                 localStorage.clear();
-                keys.forEach((k) => {
-                    if (typeof parsed.storage[k] === "string") localStorage.setItem(k, parsed.storage[k]);
-                });
+                keys.forEach((k) => { if (typeof parsed.storage[k] === "string") localStorage.setItem(k, parsed.storage[k]); });
                 alert("Backup erfolgreich wiederhergestellt! Die App wird neu geladen.");
                 window.location.reload();
-            } catch (err) {
-                alert("Fehler beim Lesen der Backup-Datei.");
-            }
+            } catch (err) { alert("Fehler beim Lesen der Backup-Datei."); }
         };
         reader.readAsText(file);
     });
@@ -259,9 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedScribbles = ["bolt", "loop-arrow"];
     try {
         const rawArr = JSON.parse(localStorage.getItem("selectedScribbles"));
-        if (Array.isArray(rawArr)) {
-            selectedScribbles = rawArr.filter(id => SCRIBBLE_ICONS.some(ic => ic.id === id)).slice(0, 5);
-        }
+        if (Array.isArray(rawArr)) selectedScribbles = rawArr.filter(id => SCRIBBLE_ICONS.some(ic => ic.id === id)).slice(0, 5);
     } catch (e) {}
 
     let scribbleSizePct = parseInt(localStorage.getItem("scribbleSizePct"), 10);
@@ -343,19 +330,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const mIcon = document.getElementById("acc-meta-icon");
         if (mIcon) mIcon.textContent = appIconTheme === "rose" ? "Rosé / Berry" : "Blau / Cyan";
 
-        if (scribbleAccordionMeta) {
-            scribbleAccordionMeta.textContent = `${selectedScribbles.length}/5 · ${scribbleSizePct}%`;
-        }
+        if (scribbleAccordionMeta) scribbleAccordionMeta.textContent = `${selectedScribbles.length}/5 · ${scribbleSizePct}%`;
         if (scribbleMiniStrip) {
             scribbleMiniStrip.innerHTML = "";
-            if (selectedScribbles.length === 0) {
-                scribbleMiniStrip.innerHTML = `<span style="font-size:0.68em; color:#fff; opacity:0.8;">aus</span>`;
-            } else {
-                selectedScribbles.forEach(id => {
-                    const found = SCRIBBLE_ICONS.find(ic => ic.id === id);
-                    if (found) scribbleMiniStrip.innerHTML += makeScribbleSvg(found);
-                });
-            }
+            if (selectedScribbles.length === 0) scribbleMiniStrip.innerHTML = `<span style="font-size:0.68em; color:#fff; opacity:0.8;">aus</span>`;
+            else selectedScribbles.forEach(id => {
+                const found = SCRIBBLE_ICONS.find(ic => ic.id === id);
+                if (found) scribbleMiniStrip.innerHTML += makeScribbleSvg(found);
+            });
         }
     }
 
@@ -377,9 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
             collapseAccordionsInGroup(groupName, willOpen ? card : null);
             card.classList.toggle("is-open", willOpen);
             btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-            if (willOpen && card.querySelector("#colorWheel")) {
-                drawColorWheel();
-            }
+            if (willOpen && card.querySelector("#colorWheel")) drawColorWheel();
         });
     });
 
@@ -432,7 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       SCREEN 1: START + LOGISCHER ABLAUF + LONG-PRESS FINAL-GO
+       SCREEN 1: START + ORB (GOLDENE RATIO HOCH / RUNTER)
        ========================================================= */
     const welcomeOverlay = document.getElementById("welcome-overlay");
     const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -442,6 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnWelcomeAction = document.getElementById("btn-welcome-action");
     const welcomeActionTitle = document.getElementById("welcome-action-title");
     const welcomeActionSub = document.getElementById("welcome-action-sub");
+    const orbGestureHint = document.getElementById("orb-gesture-hint");
     const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
 
     const welcomeStatusCard = document.getElementById("welcome-status-card");
@@ -463,8 +444,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let welcomeActionMode = "come";
     let ambientAnimTimer = null;
-    let finalDragActive = false;
-    let finalTargetNode = null;
+
+    const PHI_THRESHOLD_PX = Math.round(48 * 1.618); // ~78px über die goldene Ratio
+    let orbModeActive = false;
+    let orbArmedDecision = null; // "finalize" | "cancel" | null
+    let orbPointerId = null;
+    let orbStartX = 0, orbStartY = 0;
     let longPressGoTimer = null;
     let suppressNextActionClick = false;
 
@@ -478,9 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getLogicalNextMode() {
         const lastSess = todaySessions.length > 0 ? todaySessions[todaySessions.length - 1] : null;
-        if (lastSess && lastSess.start && (!lastSess.end || !lastSess.end.h)) {
-            return "go";
-        }
+        if (lastSess && lastSess.start && (!lastSess.end || !lastSess.end.h)) return "go";
         return "come";
     }
 
@@ -494,8 +477,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const untilStr = pE ? `${pE.h}:${pE.m}` : "jetzt";
             return {
                 state: "final",
-                cardLabel: "Tag final abgeschlossen",
-                cardDetail: pE ? `Final gegangen um ${untilStr} Uhr` : "Kein weiteres Kommen geplant"
+                cardLabel: "Feierabend · Schluss für heute",
+                cardDetail: pE ? `Gegangen um ${untilStr} Uhr` : "Tag beendet"
             };
         }
 
@@ -678,7 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function triggerNodeMicroAnim(nodeEl, animClass) {
-        if (!nodeEl || nodeEl.classList.contains("is-final-target")) return;
+        if (!nodeEl || orbModeActive) return;
         const animWrap = nodeEl.querySelector(".scatter-anim-wrap");
         if (!animWrap) return;
         nodeEl.classList.add("is-animating");
@@ -691,39 +674,86 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 900);
     }
 
-    function clearFinalGoDragState() {
+    function resetOrbState() {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
-        finalDragActive = false;
-        btnWelcomeAction.classList.remove("is-round-drag");
+        orbModeActive = false;
+        orbArmedDecision = null;
+        orbPointerId = null;
+        welcomeOverlay.classList.remove("orb-active");
+        btnWelcomeAction.classList.remove("is-round-drag", "armed-finalize", "armed-cancel");
         btnWelcomeAction.style.transform = "";
-        if (finalTargetNode) {
-            finalTargetNode.classList.remove("is-final-target");
-            finalTargetNode = null;
-        }
+        if (orbGestureHint) orbGestureHint.style.display = "none";
+        syncActionButtonVisuals();
     }
 
-    function activateFinalGoDragMode() {
-        const nodes = Array.from(welcomeScatterField.querySelectorAll(".scatter-node"));
-        if (nodes.length === 0) return;
-        finalDragActive = true;
+    function activateOrbMode(clientX, clientY) {
+        orbModeActive = true;
+        orbArmedDecision = null;
+        orbPointerId = clientX !== undefined ? true : null;
+        orbStartX = clientX || 0;
+        orbStartY = clientY || 0;
         suppressNextActionClick = true;
+
+        welcomeOverlay.classList.add("orb-active");
         btnWelcomeAction.classList.add("is-round-drag");
-        finalTargetNode = nodes[Math.floor(Math.random() * nodes.length)];
-        finalTargetNode.classList.add("is-final-target");
+        btnWelcomeAction.classList.remove("armed-finalize", "armed-cancel");
+        welcomeActionTitle.textContent = "Orb";
+        if (orbGestureHint) {
+            orbGestureHint.style.display = "inline-block";
+            orbGestureHint.textContent = "↑ Feierabend · ↓ Zurück";
+        }
         if ("vibrate" in navigator) {
-            try { navigator.vibrate([12, 30, 18]); } catch (e) {}
+            try { navigator.vibrate([12, 25, 16]); } catch (e) {}
         }
     }
 
-    function commitFinalGo() {
-        clearFinalGoDragState();
-        todayFinalized = true;
-        triggerStampGoNow();
+    function updateOrbPosition(clientX, clientY) {
+        if (!orbModeActive) return;
+        const dx = clientX - orbStartX;
+        const dy = clientY - orbStartY;
+        btnWelcomeAction.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+
+        const prevDecision = orbArmedDecision;
+        if (dy <= -PHI_THRESHOLD_PX) {
+            orbArmedDecision = "finalize";
+        } else if (dy >= PHI_THRESHOLD_PX) {
+            orbArmedDecision = "cancel";
+        } else {
+            orbArmedDecision = null;
+        }
+
+        btnWelcomeAction.classList.toggle("armed-finalize", orbArmedDecision === "finalize");
+        btnWelcomeAction.classList.toggle("armed-cancel", orbArmedDecision === "cancel");
+
+        if (orbArmedDecision === "finalize") {
+            welcomeActionTitle.textContent = "Schluss";
+            if (orbGestureHint) orbGestureHint.textContent = "Loslassen für Feierabend";
+        } else if (orbArmedDecision === "cancel") {
+            welcomeActionTitle.textContent = "Zurück";
+            if (orbGestureHint) orbGestureHint.textContent = "Loslassen zum Abbrechen";
+        } else {
+            welcomeActionTitle.textContent = "Orb";
+            if (orbGestureHint) orbGestureHint.textContent = "↑ Feierabend · ↓ Zurück";
+        }
+
+        if (prevDecision !== orbArmedDecision && orbArmedDecision && "vibrate" in navigator) {
+            try { navigator.vibrate(8); } catch (e) {}
+        }
+    }
+
+    function releaseOrbMode() {
+        if (!orbModeActive) return;
+        const decision = orbArmedDecision;
+        resetOrbState();
+        if (decision === "finalize") {
+            todayFinalized = true;
+            triggerStampGoNow();
+        }
     }
 
     function renderWelcomeScatter() {
-        clearFinalGoDragState();
+        resetOrbState();
         welcomeScatterField.innerHTML = "";
         if (selectedScribbles.length === 0) return;
 
@@ -756,10 +786,7 @@ document.addEventListener("DOMContentLoaded", () => {
             for (const pt of placed) {
                 const dx = (pt.x - x) * 0.65;
                 const dy = (pt.y - y);
-                if (Math.hypot(dx, dy) < minDistPct) {
-                    tooClose = true;
-                    break;
-                }
+                if (Math.hypot(dx, dy) < minDistPct) { tooClose = true; break; }
             }
             if (tooClose) continue;
             placed.push({ x, y });
@@ -784,26 +811,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
             node.addEventListener("click", (e) => {
                 e.stopPropagation();
-                if (finalDragActive && node === finalTargetNode) {
-                    commitFinalGo();
-                    return;
-                }
                 const anims = ["anim-pixel-spin", "anim-pixel-pop", "anim-pixel-wiggle"];
                 triggerNodeMicroAnim(node, anims[Math.floor(Math.random() * anims.length)]);
             });
 
             welcomeScatterField.appendChild(node);
-
-            if (idx % 4 === 0) {
-                setTimeout(() => triggerNodeMicroAnim(node, "anim-pixel-spin"), 160 + idx * 75);
-            }
+            if (idx % 4 === 0) setTimeout(() => triggerNodeMicroAnim(node, "anim-pixel-spin"), 160 + idx * 75);
         });
     }
 
     function startAmbientPixelAnimations() {
         stopAmbientPixelAnimations();
         ambientAnimTimer = setInterval(() => {
-            if (!welcomeOverlay.classList.contains("active") || finalDragActive) return;
+            if (!welcomeOverlay.classList.contains("active") || orbModeActive) return;
             const nodes = welcomeScatterField.querySelectorAll(".scatter-node");
             if (nodes.length === 0) return;
             const rndNode = nodes[Math.floor(Math.random() * nodes.length)];
@@ -813,10 +833,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function stopAmbientPixelAnimations() {
-        if (ambientAnimTimer) {
-            clearInterval(ambientAnimTimer);
-            ambientAnimTimer = null;
-        }
+        if (ambientAnimTimer) { clearInterval(ambientAnimTimer); ambientAnimTimer = null; }
     }
 
     function getDefaultGreetingText() {
@@ -830,24 +847,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateWelcomeGreetingText(overridePhrase = null) {
         const now = new Date();
-        if (typeof overridePhrase === "string" && overridePhrase.trim() !== "") {
-            activeWelcomePhrase = overridePhrase.trim();
-        } else if (!phrasesEnabled) {
-            activeWelcomePhrase = getDefaultGreetingText();
-        } else if (!activeWelcomePhrase) {
-            activeWelcomePhrase = getDefaultGreetingText();
-        }
+        if (typeof overridePhrase === "string" && overridePhrase.trim() !== "") activeWelcomePhrase = overridePhrase.trim();
+        else if (!phrasesEnabled || !activeWelcomePhrase) activeWelcomePhrase = getDefaultGreetingText();
         welcomeGreetingEl.textContent = activeWelcomePhrase;
         const dayName = weekdaysFull[now.getDay()];
         welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
     }
 
     function syncActionButtonVisuals() {
+        if (orbModeActive) return;
         if (welcomeActionMode === "go") {
             btnWelcomeAction.classList.add("mode-go");
             btnWelcomeMenu.classList.add("mode-go");
             welcomeActionTitle.textContent = "Gehen";
-            welcomeActionSub.textContent = "Jetzt ausstempeln · lang halten für finales Gehen";
+            welcomeActionSub.textContent = "Jetzt ausstempeln · lang halten für Feierabend-Orb";
         } else {
             btnWelcomeAction.classList.remove("mode-go");
             btnWelcomeMenu.classList.remove("mode-go");
@@ -880,7 +893,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function closeWelcomeScreen() {
-        clearFinalGoDragState();
+        resetOrbState();
         stopAmbientPixelAnimations();
         welcomeOverlay.classList.remove("active", "welcome-mode-switch");
         if (welcomeSollWidget) welcomeSollWidget.style.display = "none";
@@ -890,60 +903,49 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       SCREEN 2 (UHR) <-> SCREEN 3 (WOCHE) NAVIGATION
+       VOLLBILD-ANSICHTEN: UHR / WOCHE / MENÜ
        ========================================================= */
     const viewsStage = document.getElementById("views-stage");
     const viewClock = document.getElementById("view-clock");
     const viewWeek = document.getElementById("view-week");
+    const viewMenu = document.getElementById("view-menu");
     const toggleViewBtn = document.getElementById("btn-toggle-view");
     const iconViewWeek = document.getElementById("icon-view-week");
     const iconViewClock = document.getElementById("icon-view-clock");
     const weekDatePicker = document.getElementById("week-date-picker");
     let weekOffset = 0;
 
-    function switchToClockView() {
-        if (viewClock.classList.contains("active")) return;
-        viewWeek.classList.remove("active");
-        viewClock.classList.add("active");
+    function setActiveMainView(targetView) {
+        if (welcomeOverlay.classList.contains("active")) closeWelcomeScreen();
+        closeCustomKeypad();
+        viewClock.classList.toggle("active", targetView === "clock");
+        viewWeek.classList.toggle("active", targetView === "week");
+        viewMenu.classList.toggle("active", targetView === "menu");
         viewsStage.scrollTop = 0;
-        iconViewWeek.style.display = "block";
-        iconViewClock.style.display = "none";
-        toggleViewBtn.title = "Woche";
-        calculateAllTimes();
+
+        if (targetView === "week") {
+            iconViewWeek.style.display = "none";
+            iconViewClock.style.display = "block";
+            toggleViewBtn.title = "Uhr";
+            buildWeekView();
+        } else {
+            iconViewWeek.style.display = "block";
+            iconViewClock.style.display = "none";
+            toggleViewBtn.title = "Woche";
+            if (targetView === "clock") calculateAllTimes();
+        }
     }
 
-    function switchToWeekView() {
-        if (welcomeOverlay.classList.contains("active")) {
-            closeWelcomeScreen();
-        }
-        closeCustomKeypad();
-        if (viewWeek.classList.contains("active")) return;
-        viewClock.classList.remove("active");
-        viewWeek.classList.add("active");
-        viewsStage.scrollTop = 0;
-        iconViewWeek.style.display = "none";
-        iconViewClock.style.display = "block";
-        toggleViewBtn.title = "Uhr";
-        weekOffset = 0;
-        buildWeekView();
-    }
+    function switchToClockView() { setActiveMainView("clock"); }
+    function switchToWeekView() { weekOffset = 0; setActiveMainView("week"); }
 
     toggleViewBtn.addEventListener("click", () => {
-        if (viewClock.classList.contains("active")) switchToWeekView();
-        else switchToClockView();
+        if (viewWeek.classList.contains("active")) switchToClockView();
+        else switchToWeekView();
     });
 
-    function changeWeek(delta) {
-        weekOffset += delta;
-        buildWeekView();
-    }
-
-    function jumpToCurrentWeek() {
-        if (weekOffset === 0) return;
-        weekOffset = 0;
-        buildWeekView();
-    }
-
+    function changeWeek(delta) { weekOffset += delta; buildWeekView(); }
+    function jumpToCurrentWeek() { if (weekOffset !== 0) { weekOffset = 0; buildWeekView(); } }
     function jumpToDateStr(dateStr) {
         if (!dateStr) return;
         const parts = dateStr.split("-").map(Number);
@@ -979,7 +981,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, true);
 
     /* =========================================================
-       SCREEN 4: MENÜ & EINSTELLUNGEN
+       MENÜ-EINSTELLUNGEN (DIREKT & AUTOMATISCH GESPEICHERT)
        ========================================================= */
     const userNameInput = document.getElementById("userNameInput");
     const phrasesEnabledCheck = document.getElementById("phrasesEnabledCheck");
@@ -1041,6 +1043,80 @@ document.addEventListener("DOMContentLoaded", () => {
     scribbleSizeSlider.value = scribbleSizePct;
     scribbleSizeVal.textContent = scribbleSizePct;
 
+    function persistAllSettings() {
+        userName = userNameInput.value.trim();
+        phrasesEnabled = phrasesEnabledCheck.checked;
+        sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value, 10) || 0));
+        sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value, 10) || 0));
+
+        const parsedWeekly = parseFloat(String(weeklyHoursInput.value).replace(',', '.'));
+        weeklyHours = (!isNaN(parsedWeekly) && parsedWeekly > 0 && parsedWeekly <= 48) ? parsedWeekly : 40;
+
+        const parsedGlzBase = parseFloat(String(glzBaseInput.value).replace(',', '.'));
+        glzBaseHours = !isNaN(parsedGlzBase) ? parsedGlzBase : 0;
+
+        glzBaseDate = glzBaseDateInput.value || "";
+
+        pauseNotifyEnabled = pauseNotifyCheck.checked && ("Notification" in window) && Notification.permission === "granted";
+        pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput.value, 10) || 10));
+
+        sollWidgetEnabled = sollWidgetEnabledCheck.checked;
+        pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
+
+        appStyleMode = styleModeSelect.value;
+        appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
+        document.documentElement.setAttribute("data-style", appStyleMode);
+
+        isSmoker = isSmokerCheck.checked;
+        smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value, 10) || 5));
+        gesturesEnabled = gesturesEnabledCheck.checked;
+
+        localStorage.setItem("userName", userName);
+        localStorage.setItem("phrasesEnabled", phrasesEnabled);
+        localStorage.setItem("phraseProfile", phraseProfile);
+        localStorage.setItem("selectedScribbles", JSON.stringify(selectedScribbles));
+        localStorage.setItem("scribbleSizePct", scribbleSizePct);
+        localStorage.setItem("appStyleMode", appStyleMode);
+        localStorage.setItem("appAsymIntensity", appAsymIntensity);
+        localStorage.setItem("appIconTheme", appIconTheme);
+        localStorage.setItem("sollHours", sollHours);
+        localStorage.setItem("sollMinutes", sollMinutes);
+        localStorage.setItem("weeklyHours", weeklyHours);
+        localStorage.setItem("glzBaseHours", glzBaseHours);
+        localStorage.setItem("glzBaseDate", glzBaseDate);
+        localStorage.setItem("pauseNotifyEnabled", pauseNotifyEnabled);
+        localStorage.setItem("pauseNotifyLeadMins", pauseNotifyLeadMins);
+        localStorage.setItem("sollWidgetEnabled", sollWidgetEnabled);
+        localStorage.setItem("sollWidgetMode", sollWidgetMode);
+        localStorage.setItem("pauseWatcherEnabled", pauseWatcherEnabled);
+        localStorage.setItem("pauseWatcherMode", pauseWatcherMode);
+        localStorage.setItem("keyboardMode", keyboardMode);
+        localStorage.setItem("isSmoker", isSmoker);
+        localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
+        localStorage.setItem("gesturesEnabled", gesturesEnabled);
+        localStorage.setItem("appHue", appHue);
+        localStorage.setItem("appLightness", appLightness);
+
+        if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
+        if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
+        applyThemeColors(appHue, appLightness);
+        applyKeyboardModeToInputs();
+        if (isSmoker) saveTodaySmokeData();
+        updateSmokerUI();
+        updateAccordionBadges();
+        updateSettingsNavPreviews();
+        updateWelcomeGreetingText();
+        calculateAllTimes();
+        checkPauseNotifications();
+        updateWelcomeWidgets();
+        if (viewWeek.classList.contains("active")) buildWeekView();
+        else updateAmpelPill();
+    }
+
+    userNameInput.addEventListener("input", persistAllSettings);
+    gesturesEnabledCheck.addEventListener("change", persistAllSettings);
+    glzBaseDateInput.addEventListener("change", persistAllSettings);
+
     function syncPhrasesSettingsUI() {
         phrasesOptionsWrap.style.opacity = phrasesEnabled ? "1" : "0.45";
         phrasesOptionsWrap.style.pointerEvents = phrasesEnabled ? "auto" : "none";
@@ -1055,8 +1131,7 @@ document.addEventListener("DOMContentLoaded", () => {
         phrasesEnabled = phrasesEnabledCheck.checked;
         if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
         syncPhrasesSettingsUI();
-        updateAccordionBadges();
-        updateSettingsNavPreviews();
+        persistAllSettings();
     });
 
     phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
@@ -1065,7 +1140,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (["male", "female", "uni"].includes(nextProf)) {
                 phraseProfile = nextProf;
                 syncPhrasesSettingsUI();
-                updateAccordionBadges();
+                persistAllSettings();
             }
         });
     });
@@ -1106,26 +1181,28 @@ document.addEventListener("DOMContentLoaded", () => {
     sollWidgetEnabledCheck.addEventListener("change", () => {
         sollWidgetEnabled = sollWidgetEnabledCheck.checked;
         syncSollWidgetSettingsUI();
-        updateAccordionBadges();
+        persistAllSettings();
     });
 
     sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
         pill.addEventListener("click", () => {
             sollWidgetMode = pill.getAttribute("data-sw-mode") || "both";
             syncSollWidgetSettingsUI();
+            persistAllSettings();
         });
     });
 
     pauseWatcherEnabledCheck.addEventListener("change", () => {
         pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
         syncPauseWatcherSettingsUI();
-        updateAccordionBadges();
+        persistAllSettings();
     });
 
     pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
         pill.addEventListener("click", () => {
             pauseWatcherMode = pill.getAttribute("data-pw-mode") || "both";
             syncPauseWatcherSettingsUI();
+            persistAllSettings();
         });
     });
 
@@ -1133,9 +1210,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pill.addEventListener("click", () => {
             keyboardMode = pill.getAttribute("data-kb-mode") === "system" ? "system" : "app";
             syncKeyboardModeUI();
-            applyKeyboardModeToInputs();
-            updateAccordionBadges();
-            updateSettingsNavPreviews();
+            persistAllSettings();
         });
     });
 
@@ -1148,13 +1223,13 @@ document.addEventListener("DOMContentLoaded", () => {
         appStyleMode = styleModeSelect.value;
         document.documentElement.setAttribute("data-style", appStyleMode);
         syncStyleControlsUI();
-        updateAccordionBadges();
+        persistAllSettings();
     });
 
     asymIntensitySlider.addEventListener("input", () => {
         appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
         asymIntensityVal.textContent = appAsymIntensity;
-        updateAccordionBadges();
+        persistAllSettings();
     });
 
     function updatePauseNotifyUI() {
@@ -1169,7 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Dieser Browser unterstützt leider keine System-Benachrichtigungen.");
                 pauseNotifyCheck.checked = false;
                 updatePauseNotifyUI();
-                updateAccordionBadges();
+                persistAllSettings();
                 return;
             }
             let perm = Notification.permission;
@@ -1186,11 +1261,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     "pause-test"
                 );
             }
-        } else {
-            pauseNotifyEnabled = false;
-        }
+        } else pauseNotifyEnabled = false;
         updatePauseNotifyUI();
-        updateAccordionBadges();
+        persistAllSettings();
     });
 
     function updateSmokerUI() {
@@ -1200,9 +1273,9 @@ document.addEventListener("DOMContentLoaded", () => {
         smokeCountDisplay.textContent = `${todaySmokeCount}× (-${todaySmokeCount * smokeMinutesPerBreak}m)`;
     }
     isSmokerCheck.addEventListener("change", () => {
-        smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
-        smokeMinutesInput.disabled = !isSmokerCheck.checked;
-        updateAccordionBadges();
+        isSmoker = isSmokerCheck.checked;
+        updateSmokerUI();
+        persistAllSettings();
     });
 
     function saveTodaySmokeData() {
@@ -1236,7 +1309,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSettingsNavPreviews();
     updateBackupStatusBadge();
 
-    /* FARBRAD */
     const canvas = document.getElementById("colorWheel");
     const ctx = canvas.getContext("2d");
     const radius = canvas.width / 2;
@@ -1273,7 +1345,7 @@ document.addEventListener("DOMContentLoaded", () => {
         lightnessVal.textContent = appLightness;
         applyThemeColors(appHue, appLightness);
         drawColorWheel();
-        updateAccordionBadges();
+        persistAllSettings();
     });
 
     function handleColorPick(e) {
@@ -1287,6 +1359,7 @@ document.addEventListener("DOMContentLoaded", () => {
         appHue = Math.round(angle);
         applyThemeColors(appHue, appLightness);
         drawColorWheel();
+        localStorage.setItem("appHue", appHue);
     }
 
     canvas.addEventListener("mousedown", (e) => { handleColorPick(e); canvas.addEventListener("mousemove", handleColorPick); });
@@ -1294,87 +1367,6 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.addEventListener("touchstart", (e) => { handleColorPick(e); canvas.addEventListener("touchmove", handleColorPick, { passive: false }); }, { passive: false });
     window.addEventListener("touchend", () => canvas.removeEventListener("touchmove", handleColorPick));
 
-    /* EINSTELLUNGS-PERSISTENZ */
-    function persistAllSettings() {
-        userName = userNameInput.value.trim();
-        phrasesEnabled = phrasesEnabledCheck.checked;
-        sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value, 10) || 0));
-        sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value, 10) || 0));
-        sollHoursInput.value = sollHours;
-        sollMinutesInput.value = sollMinutes;
-
-        const parsedWeekly = parseFloat(String(weeklyHoursInput.value).replace(',', '.'));
-        weeklyHours = (!isNaN(parsedWeekly) && parsedWeekly > 0 && parsedWeekly <= 48) ? parsedWeekly : 40;
-        weeklyHoursInput.value = String(weeklyHours).replace('.', ',');
-
-        const parsedGlzBase = parseFloat(String(glzBaseInput.value).replace(',', '.'));
-        glzBaseHours = !isNaN(parsedGlzBase) ? parsedGlzBase : 0;
-        glzBaseInput.value = String(glzBaseHours).replace('.', ',');
-
-        glzBaseDate = glzBaseDateInput.value || "";
-
-        pauseNotifyEnabled = pauseNotifyCheck.checked && ("Notification" in window) && Notification.permission === "granted";
-        pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput.value, 10) || 10));
-        pauseNotifyLeadInput.value = pauseNotifyLeadMins;
-
-        sollWidgetEnabled = sollWidgetEnabledCheck.checked;
-        pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
-
-        appStyleMode = styleModeSelect.value;
-        appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
-        document.documentElement.setAttribute("data-style", appStyleMode);
-
-        isSmoker = isSmokerCheck.checked;
-        smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value, 10) || 5));
-        smokeMinutesInput.value = smokeMinutesPerBreak;
-
-        gesturesEnabled = gesturesEnabledCheck.checked;
-
-        localStorage.setItem("userName", userName);
-        localStorage.setItem("phrasesEnabled", phrasesEnabled);
-        localStorage.setItem("phraseProfile", phraseProfile);
-        localStorage.setItem("selectedScribbles", JSON.stringify(selectedScribbles));
-        localStorage.setItem("scribbleSizePct", scribbleSizePct);
-        localStorage.setItem("appStyleMode", appStyleMode);
-        localStorage.setItem("appAsymIntensity", appAsymIntensity);
-        localStorage.setItem("appIconTheme", appIconTheme);
-        localStorage.setItem("sollHours", sollHours);
-        localStorage.setItem("sollMinutes", sollMinutes);
-        localStorage.setItem("weeklyHours", weeklyHours);
-        localStorage.setItem("glzBaseHours", glzBaseHours);
-        localStorage.setItem("glzBaseDate", glzBaseDate);
-        localStorage.setItem("pauseNotifyEnabled", pauseNotifyEnabled);
-        localStorage.setItem("pauseNotifyLeadMins", pauseNotifyLeadMins);
-        localStorage.setItem("sollWidgetEnabled", sollWidgetEnabled);
-        localStorage.setItem("sollWidgetMode", sollWidgetMode);
-        localStorage.setItem("pauseWatcherEnabled", pauseWatcherEnabled);
-        localStorage.setItem("pauseWatcherMode", pauseWatcherMode);
-        localStorage.setItem("keyboardMode", keyboardMode);
-        localStorage.setItem("isSmoker", isSmoker);
-        localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
-        localStorage.setItem("gesturesEnabled", gesturesEnabled);
-        localStorage.setItem("appHue", appHue);
-        localStorage.setItem("appLightness", appLightness);
-
-        if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
-        else activeWelcomePhrase = "";
-
-        if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
-        applyThemeColors(appHue, appLightness);
-        applyKeyboardModeToInputs();
-        if (isSmoker) saveTodaySmokeData();
-        updateSmokerUI();
-        updateAccordionBadges();
-        updateSettingsNavPreviews();
-        updateWelcomeGreetingText();
-        calculateAllTimes();
-        checkPauseNotifications();
-        updateWelcomeWidgets();
-        if (viewWeek.classList.contains("active")) buildWeekView();
-        else updateAmpelPill();
-    }
-
-    const settingsModal = document.getElementById("settings-modal");
     const settingsPageMain = document.getElementById("settings-page-main");
     const settingsPageWork = document.getElementById("settings-page-work");
     const settingsPageWidgets = document.getElementById("settings-page-widgets");
@@ -1411,55 +1403,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function leaveSubpageAndSave() {
-        closeCustomKeypad();
+    function openSettingsMenu() {
         persistAllSettings();
         showSettingsSubpage("main");
-    }
-
-    function openSettingsMenu() {
-        if (welcomeOverlay.classList.contains("active")) closeWelcomeScreen();
-        closeCustomKeypad();
-        userNameInput.value = userName;
-        phrasesEnabledCheck.checked = phrasesEnabled;
-        weeklyHoursInput.value = String(weeklyHours).replace('.', ',');
-        glzBaseInput.value = String(glzBaseHours).replace('.', ',');
-        glzBaseDateInput.value = glzBaseDate;
-        pauseNotifyCheck.checked = pauseNotifyEnabled;
-        pauseNotifyLeadInput.value = pauseNotifyLeadMins;
-        sollWidgetEnabledCheck.checked = sollWidgetEnabled;
-        pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
-        syncPhrasesSettingsUI();
-        syncSollWidgetSettingsUI();
-        syncPauseWatcherSettingsUI();
-        syncKeyboardModeUI();
-        updatePauseNotifyUI();
-        syncStyleControlsUI();
-        syncIconThemePickerUI();
-        updateAccordionBadges();
-        updateBackupStatusBadge();
-        showSettingsSubpage("main");
-        settingsModal.classList.add("active");
+        setActiveMainView("menu");
     }
 
     document.getElementById("btn-settings").addEventListener("click", openSettingsMenu);
     document.getElementById("btn-open-work-subpage").addEventListener("click", () => showSettingsSubpage("work"));
     document.getElementById("btn-open-widgets-subpage").addEventListener("click", () => showSettingsSubpage("widgets"));
     document.getElementById("btn-open-design-subpage").addEventListener("click", () => showSettingsSubpage("design"));
-    document.getElementById("btn-back-from-work").addEventListener("click", leaveSubpageAndSave);
-    document.getElementById("btn-done-work").addEventListener("click", leaveSubpageAndSave);
-    document.getElementById("btn-back-from-widgets").addEventListener("click", leaveSubpageAndSave);
-    document.getElementById("btn-done-widgets").addEventListener("click", leaveSubpageAndSave);
-    document.getElementById("btn-back-from-design").addEventListener("click", leaveSubpageAndSave);
-    document.getElementById("btn-done-design").addEventListener("click", leaveSubpageAndSave);
-
-    function closeSettings() {
-        closeCustomKeypad();
-        persistAllSettings();
-        settingsModal.classList.remove("active");
-    }
-    document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
-    document.getElementById("btn-save-settings").addEventListener("click", closeSettings);
+    document.getElementById("btn-back-from-work").addEventListener("click", () => { persistAllSettings(); showSettingsSubpage("main"); });
+    document.getElementById("btn-back-from-widgets").addEventListener("click", () => { persistAllSettings(); showSettingsSubpage("main"); });
+    document.getElementById("btn-back-from-design").addEventListener("click", () => { persistAllSettings(); showSettingsSubpage("main"); });
+    document.getElementById("btn-close-settings").addEventListener("click", () => { persistAllSettings(); switchToClockView(); });
 
     document.getElementById("btn-force-update").addEventListener("click", async () => {
         const btn = document.getElementById("btn-force-update");
@@ -1576,9 +1533,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (kpState.mode === "hhmm") {
             const parsed = parseHhMmString(kpState.el.value);
             kpState.buffer = parsed ? `${parsed.h}${parsed.m}` : "";
-        } else {
-            kpState.buffer = (kpState.el.value || "").trim();
-        }
+        } else kpState.buffer = (kpState.el.value || "").trim();
 
         keypadTargetBadge.textContent = kpState.label;
         if (kpState.el === startTimePill) pillStartWrap.classList.add("is-active");
@@ -1656,12 +1611,12 @@ document.addEventListener("DOMContentLoaded", () => {
         onCommit: (_, fin) => { if (fin) onManualTimeInputChange(); calculateAllTimes(); }
     }, () => pushUndoSnapshot());
 
-    registerKeypadInput(sollHoursInput, { mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput, onCommit: () => calculateAllTimes() });
-    registerKeypadInput(sollMinutesInput, { mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5, onCommit: () => calculateAllTimes() });
-    registerKeypadInput(pauseNotifyLeadInput, { mode: "number", label: "Vorwarnung (Minuten)", min: 1, max: 60, step: 5 });
-    registerKeypadInput(smokeMinutesInput, { mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1, onCommit: () => calculateAllTimes() });
-    registerKeypadInput(glzBaseInput, { mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true });
-    registerKeypadInput(weeklyHoursInput, { mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true });
+    registerKeypadInput(sollHoursInput, { mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput, onCommit: () => persistAllSettings() });
+    registerKeypadInput(sollMinutesInput, { mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5, onCommit: () => persistAllSettings() });
+    registerKeypadInput(pauseNotifyLeadInput, { mode: "number", label: "Vorwarnung (Minuten)", min: 1, max: 60, step: 5, onCommit: () => persistAllSettings() });
+    registerKeypadInput(smokeMinutesInput, { mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1, onCommit: () => persistAllSettings() });
+    registerKeypadInput(glzBaseInput, { mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true, onCommit: () => persistAllSettings() });
+    registerKeypadInput(weeklyHoursInput, { mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true, onCommit: () => persistAllSettings() });
 
     document.getElementById("keypad-close-btn").addEventListener("pointerdown", (e) => {
         e.preventDefault(); e.stopPropagation(); closeCustomKeypad();
@@ -2023,41 +1978,30 @@ document.addEventListener("DOMContentLoaded", () => {
         updateWelcomeWidgets();
     }
 
-    // Long-Press & Drag auf btn-welcome-action im Gehen-Modus
-    let dragStartX = 0, dragStartY = 0;
+    // Long-Press auf Gehen -> Orb + alle Scribbles in Hauptfarbe; Goldene Ratio hoch/runter
     btnWelcomeAction.addEventListener("pointerdown", (e) => {
         if (welcomeActionMode !== "go") return;
-        dragStartX = e.clientX;
-        dragStartY = e.clientY;
+        orbStartX = e.clientX;
+        orbStartY = e.clientY;
         clearTimeout(longPressGoTimer);
         longPressGoTimer = setTimeout(() => {
-            activateFinalGoDragMode();
+            activateOrbMode(orbStartX, orbStartY);
         }, 460);
     });
 
     window.addEventListener("pointermove", (e) => {
-        if (longPressGoTimer && !finalDragActive && Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 12) {
+        if (longPressGoTimer && !orbModeActive && Math.hypot(e.clientX - orbStartX, e.clientY - orbStartY) > 12) {
             clearTimeout(longPressGoTimer);
             longPressGoTimer = null;
         }
-        if (!finalDragActive) return;
-        const dx = e.clientX - dragStartX;
-        const dy = e.clientY - dragStartY;
-        btnWelcomeAction.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+        if (!orbModeActive) return;
+        updateOrbPosition(e.clientX, e.clientY);
     }, { passive: true });
 
-    window.addEventListener("pointerup", (e) => {
+    window.addEventListener("pointerup", () => {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
-        if (!finalDragActive) return;
-        const dropEl = document.elementFromPoint(e.clientX, e.clientY);
-        const hitTarget = dropEl && dropEl.closest(".scatter-node.is-final-target");
-        btnWelcomeAction.style.transform = "";
-        if (hitTarget) {
-            commitFinalGo();
-        } else {
-            clearFinalGoDragState();
-        }
+        if (orbModeActive) releaseOrbMode();
     });
 
     document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
@@ -2185,12 +2129,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (hasOpenLast && allowLive) {
                 isLive = true;
                 totalPresSecs = getSessionMetricsFromList(saved.sessions, liveEndSecs).totalPresSecs;
-            } else if (saved.customPresSecs && saved.customPresSecs > 0) {
-                totalPresSecs = saved.customPresSecs;
-            } else totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
-        } else if (saved.customPresSecs && saved.customPresSecs > 0) {
-            totalPresSecs = saved.customPresSecs;
-        } else if (saved.startH !== '' && saved.startH !== undefined) {
+            } else if (saved.customPresSecs && saved.customPresSecs > 0) totalPresSecs = saved.customPresSecs;
+            else totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
+        } else if (saved.customPresSecs && saved.customPresSecs > 0) totalPresSecs = saved.customPresSecs;
+        else if (saved.startH !== '' && saved.startH !== undefined) {
             const sh = parseInt(saved.startH, 10), sm = parseInt(saved.startM, 10) || 0;
             if (isNaN(sh)) return { presSecs: 0, deductSecs: 0, netSecs: 0, isLive: false };
             const sSecs = sh * 3600 + sm * 60;
@@ -2239,9 +2181,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (dayCredited === 0 && bd.presSecs === 0 && dateStr > todayStr) continue;
             } else if (saved.status === "vacation" || saved.status === "sick" || saved.status === "holiday") {
                 dayCredited = daySoll;
-            } else if (saved.status === "free") {
-                dayCredited = 0;
-            }
+            } else if (saved.status === "free") dayCredited = 0;
 
             deltaSecs += (dayCredited - daySoll);
         }
@@ -2348,9 +2288,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (existing) {
             editingDraft = JSON.parse(JSON.stringify(existing));
             if (editingDraft.status === "free" && !hasWeekendBooking(editingDraft)) editingDraft.status = "work";
-        } else {
-            editingDraft = { status: defaultStatus, startH: '', startM: '', endH: '', endM: '', sessions: [], smokeCount: 0, dayFinalized: false };
-        }
+        } else editingDraft = { status: defaultStatus, startH: '', startM: '', endH: '', endM: '', sessions: [], smokeCount: 0, dayFinalized: false };
 
         if (!editingDraft.sessions || editingDraft.sessions.length === 0) {
             if (editingDraft.startH !== '' && editingDraft.startH !== undefined) {
@@ -2633,12 +2571,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const hasEnd = saved.endH !== '' && saved.endH !== undefined;
             const smokeSub = (saved.smokeCount && saved.smokeCount > 0) ? ` · 🚬${saved.smokeCount}` : '';
             const splitSub = (saved.sessions && saved.sessions.length > 1) ? ` · ⏸️${saved.sessions.length}` : '';
-            const finalSub = saved.dayFinalized ? ` · ✦` : '';
+            const finalSub = saved.dayFinalized ? ` · ✓` : '';
 
             let middleHtml = "";
             if (saved.status === 'work') {
                 if (hasStart || hasEnd) {
-                    middleHtml = `<div class="day-time-display">${hasStart ? `${saved.startH}:${saved.startM || '00'}` : '--:--'} – ${hasEnd ? `${saved.endH}:${saved.endM || '00'}` : (saved.dayFinalized ? 'final' : 'läuft...')}</div>`;
+                    middleHtml = `<div class="day-time-display">${hasStart ? `${saved.startH}:${saved.startM || '00'}` : '--:--'} – ${hasEnd ? `${saved.endH}:${saved.endM || '00'}` : (saved.dayFinalized ? 'schluss' : 'läuft...')}</div>`;
                 } else middleHtml = `<div class="day-time-display empty">--:-- – --:--</div>`;
             } else if (saved.status === 'holiday') {
                 middleHtml = `<div class="day-status-note">🎉 ${holidayName || 'Feiertag'}</div>`;
@@ -2678,18 +2616,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       WISCHSTEUERUNG: UNTEN->OBEN = START | OBEN->UNTEN = MENÜ
+       VIER-WEGE-WISCHSTEUERUNG ÜBERALL (UNTEN->OBEN = START | OBEN->UNTEN = MENÜ)
        ========================================================= */
     const pdfExportModal = document.getElementById("pdf-export-modal");
     let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
 
     document.addEventListener("touchstart", (e) => {
-        const anyModalOpen = settingsModal.classList.contains("active")
-            || dayEditorModal.classList.contains("active")
+        const anyModalOpen = dayEditorModal.classList.contains("active")
             || (pdfExportModal && pdfExportModal.classList.contains("active"))
             || backfillModal.classList.contains("active");
 
-        if (!gesturesEnabled || anyModalOpen || finalDragActive || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
+        if (!gesturesEnabled || anyModalOpen || orbModeActive || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
             touchBlocked = true;
             return;
         }
@@ -2700,17 +2637,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
 
     document.addEventListener("touchend", (e) => {
-        if (!gesturesEnabled || touchBlocked || finalDragActive || e.changedTouches.length !== 1) return;
+        if (!gesturesEnabled || touchBlocked || orbModeActive || e.changedTouches.length !== 1) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         const absX = Math.abs(dx), absY = Math.abs(dy);
         const threshold = 55;
 
         if (absX > threshold && absX > absY * 1.3) {
-            if (dx < 0) switchToWeekView();
-            else {
-                if (viewWeek.classList.contains("active")) switchToClockView();
-                else if (welcomeOverlay.classList.contains("active")) closeWelcomeScreen();
+            if (welcomeOverlay.classList.contains("active")) {
+                if (dx < 0) switchToWeekView();
+                else closeWelcomeScreen();
+            } else if (viewClock.classList.contains("active")) {
+                if (dx < 0) switchToWeekView();
+                else openSettingsMenu();
+            } else if (viewWeek.classList.contains("active")) {
+                if (dx > 0) switchToClockView();
+                else openSettingsMenu();
+            } else if (viewMenu.classList.contains("active")) {
+                if (dx > 0) switchToWeekView();
+                else switchToClockView();
             }
             return;
         }
@@ -2722,7 +2667,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (dy < 0) {
                 // Wischen von unten nach oben -> Startschirm öffnen
                 if (!welcomeOverlay.classList.contains("active")) {
-                    if (viewClock.classList.contains("active") || (!scrolledDuringSwipe && ((maxScroll - stageScrollAtStart) <= 8 || maxScroll <= 4))) {
+                    if (!scrolledDuringSwipe && ((maxScroll - stageScrollAtStart) <= 10 || maxScroll <= 4)) {
                         openWelcomeScreen();
                     }
                 }
