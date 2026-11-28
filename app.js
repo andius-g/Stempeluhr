@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const SCRIBBLE_ICONS = mods.SCRIBBLE_ICONS || [];
     const makeScribbleSvg = mods.makeScribbleSvg || ((iconObj) => (iconObj && iconObj.inner ? `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>` : ""));
     const getHolidayName = mods.getHolidayName || (() => null);
+    const getPhrasePool = mods.getPhrasePool || (() => []);
+    const formatPhraseText = mods.formatPhraseText || ((rawPhrase, rawName) => String(rawPhrase || "").replace(/\[Name\]/g, (rawName || "").trim() || "Amici"));
     const getRotatedPhrase = mods.getRotatedPhrase || null;
 
     const on = (id, ev, fn, opts) => {
@@ -245,8 +247,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let userName = storageGet("userName") || "";
     let phrasesEnabled = storageGet("phrasesEnabled") !== "false";
-    let phraseProfile = storageGet("phraseProfile") || "uni";
-    if (!["male", "female", "uni"].includes(phraseProfile)) phraseProfile = "uni";
+    let phraseGreetingSelected = storageGet("phraseGreetingSelected") || "";
+    let phraseFarewellSelected = storageGet("phraseFarewellSelected") || "";
+    let phraseGreetingCustom = storageGet("phraseGreetingCustom") || "";
+    let phraseFarewellCustom = storageGet("phraseFarewellCustom") || "";
     let activeWelcomePhrase = "";
 
     let appStyleMode = storageGet("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
@@ -337,6 +341,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const navWidgetsSummary = document.getElementById("nav-widgets-summary");
     const navDesignSummary = document.getElementById("nav-design-summary");
 
+    function getFixedPhraseTemplate(direction) {
+        const isFarewell = direction === "farewell";
+        const customText = (isFarewell ? phraseFarewellCustom : phraseGreetingCustom).trim();
+        if (customText) return customText;
+        const selectedText = (isFarewell ? phraseFarewellSelected : phraseGreetingSelected).trim();
+        if (selectedText) return selectedText;
+        return "";
+    }
+
     function updateAccordionBadges() {
         const mSoll = document.getElementById("acc-meta-soll");
         if (mSoll) mSoll.textContent = `${format2(sollHours)}:${format2(sollMinutes)} Std`;
@@ -352,8 +365,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const mPhrases = document.getElementById("acc-meta-phrases");
         if (mPhrases) {
-            const pLabel = phraseProfile === "male" ? "Männlich" : (phraseProfile === "female" ? "Weiblich" : "Uni");
-            mPhrases.textContent = phrasesEnabled ? `An · ${pLabel}` : `Aus · ${pLabel}`;
+            if (phrasesEnabled) mPhrases.textContent = "Rotation an";
+            else mPhrases.textContent = getFixedPhraseTemplate("greeting") ? "Fest" : "Standard";
         }
 
         const mSollW = document.getElementById("acc-meta-soll-widget");
@@ -415,7 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (navWidgetsSummary) {
             const wTxt = sollWidgetEnabled || pauseWatcherEnabled ? "Widgets aktiv" : "Widgets aus";
-            const phTxt = phrasesEnabled ? "Sprüche an" : "Sprüche aus";
+            const phTxt = phrasesEnabled ? "Sprüche rotieren" : "Spruch fest";
             navWidgetsSummary.textContent = `${wTxt} · ${phTxt}`;
         }
         if (navDesignSummary) {
@@ -907,13 +920,33 @@ document.addEventListener("DOMContentLoaded", () => {
         return cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
     }
 
+    function resolveCurrentPhraseText(direction = "greeting", allowRotationStep = false) {
+        if (phrasesEnabled) {
+            if (allowRotationStep && typeof getRotatedPhrase === "function") {
+                const rotated = getRotatedPhrase(direction, userName);
+                if (rotated) return rotated;
+            }
+            if (activeWelcomePhrase) return activeWelcomePhrase;
+            const pool = getPhrasePool(direction);
+            if (pool.length) return formatPhraseText(pool[0], userName);
+            return getDefaultGreetingText();
+        }
+
+        const fixedTpl = getFixedPhraseTemplate(direction);
+        if (fixedTpl) return formatPhraseText(fixedTpl, userName);
+        return getDefaultGreetingText();
+    }
+
     function updateWelcomeGreetingText(overridePhrase = null) {
         const now = new Date();
-        if (typeof overridePhrase === "string" && overridePhrase.trim() !== "") activeWelcomePhrase = overridePhrase.trim();
-        else if (!phrasesEnabled || !activeWelcomePhrase) activeWelcomePhrase = getDefaultGreetingText();
-        welcomeGreetingEl.textContent = activeWelcomePhrase;
+        if (typeof overridePhrase === "string" && overridePhrase.trim() !== "") {
+            activeWelcomePhrase = overridePhrase.trim();
+        } else {
+            activeWelcomePhrase = resolveCurrentPhraseText("greeting", false);
+        }
+        if (welcomeGreetingEl) welcomeGreetingEl.textContent = activeWelcomePhrase;
         const dayName = weekdaysFull[now.getDay()];
-        welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
+        if (welcomeDateSubEl) welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
     }
 
     function syncActionButtonVisuals() {
@@ -1055,8 +1088,11 @@ document.addEventListener("DOMContentLoaded", () => {
        ========================================================= */
     const userNameInput = document.getElementById("userNameInput");
     const phrasesEnabledCheck = document.getElementById("phrasesEnabledCheck");
-    const phrasesOptionsWrap = document.getElementById("phrases-options-wrap");
-    const phraseProfilePills = document.getElementById("phrase-profile-pills");
+    const phrasesFixedOptionsWrap = document.getElementById("phrases-fixed-options-wrap");
+    const phraseGreetingSelect = document.getElementById("phraseGreetingSelect");
+    const phraseFarewellSelect = document.getElementById("phraseFarewellSelect");
+    const phraseGreetingCustomInput = document.getElementById("phraseGreetingCustomInput");
+    const phraseFarewellCustomInput = document.getElementById("phraseFarewellCustomInput");
 
     const sollHoursInput = document.getElementById("sollHours");
     const sollMinutesInput = document.getElementById("sollMinutes");
@@ -1090,8 +1126,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const lightnessSlider = document.getElementById("lightnessSlider");
     const lightnessVal = document.getElementById("lightnessVal");
 
+    function populatePhraseSelect(selectEl, direction, currentVal) {
+        if (!selectEl) return;
+        const pool = getPhrasePool(direction);
+        selectEl.innerHTML = `<option value="">Standard (zeitabhängig)</option>`;
+        pool.forEach((tpl) => {
+            const opt = document.createElement("option");
+            opt.value = tpl;
+            opt.textContent = tpl;
+            selectEl.appendChild(opt);
+        });
+        selectEl.value = pool.includes(currentVal) ? currentVal : "";
+    }
+
+    populatePhraseSelect(phraseGreetingSelect, "greeting", phraseGreetingSelected);
+    populatePhraseSelect(phraseFarewellSelect, "farewell", phraseFarewellSelected);
+
     if (userNameInput) userNameInput.value = userName;
     if (phrasesEnabledCheck) phrasesEnabledCheck.checked = phrasesEnabled;
+    if (phraseGreetingCustomInput) phraseGreetingCustomInput.value = phraseGreetingCustom;
+    if (phraseFarewellCustomInput) phraseFarewellCustomInput.value = phraseFarewellCustom;
     if (sollHoursInput) sollHoursInput.value = sollHours;
     if (sollMinutesInput) sollMinutesInput.value = sollMinutes;
     if (weeklyHoursInput) weeklyHoursInput.value = String(weeklyHours).replace(".", ",");
@@ -1114,6 +1168,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function persistAllSettings() {
         userName = userNameInput ? userNameInput.value.trim() : userName;
         phrasesEnabled = phrasesEnabledCheck ? phrasesEnabledCheck.checked : phrasesEnabled;
+        phraseGreetingSelected = phraseGreetingSelect ? phraseGreetingSelect.value : phraseGreetingSelected;
+        phraseFarewellSelected = phraseFarewellSelect ? phraseFarewellSelect.value : phraseFarewellSelected;
+        phraseGreetingCustom = phraseGreetingCustomInput ? phraseGreetingCustomInput.value : phraseGreetingCustom;
+        phraseFarewellCustom = phraseFarewellCustomInput ? phraseFarewellCustomInput.value : phraseFarewellCustom;
+
         sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput ? sollHoursInput.value : sollHours, 10) || 0));
         sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput ? sollMinutesInput.value : sollMinutes, 10) || 0));
 
@@ -1140,7 +1199,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         storageSet("userName", userName);
         storageSet("phrasesEnabled", phrasesEnabled);
-        storageSet("phraseProfile", phraseProfile);
+        storageSet("phraseGreetingSelected", phraseGreetingSelected);
+        storageSet("phraseFarewellSelected", phraseFarewellSelected);
+        storageSet("phraseGreetingCustom", phraseGreetingCustom);
+        storageSet("phraseFarewellCustom", phraseFarewellCustom);
         storageSet("selectedScribbles", JSON.stringify(selectedScribbles));
         storageSet("scribbleSizePct", scribbleSizePct);
         storageSet("appStyleMode", appStyleMode);
@@ -1163,7 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
         storageSet("appHue", appHue);
         storageSet("appLightness", appLightness);
 
-        if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
+        activeWelcomePhrase = resolveCurrentPhraseText("greeting", false);
         if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
         applyThemeColors(appHue, appLightness);
         applyKeyboardModeToInputs();
@@ -1183,40 +1245,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (glzBaseDateInput) glzBaseDateInput.addEventListener("change", persistAllSettings);
 
     function syncPhrasesSettingsUI() {
-        if (phrasesOptionsWrap) {
-            phrasesOptionsWrap.style.opacity = phrasesEnabled ? "1" : "0.45";
-            phrasesOptionsWrap.style.pointerEvents = phrasesEnabled ? "auto" : "none";
-        }
-        if (phraseProfilePills) {
-            phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-                const isSel = pill.getAttribute("data-ph-profile") === phraseProfile;
-                pill.classList.toggle("selected", isSel);
-                pill.setAttribute("aria-checked", isSel ? "true" : "false");
-            });
+        if (phrasesFixedOptionsWrap) {
+            phrasesFixedOptionsWrap.style.display = phrasesEnabled ? "none" : "block";
         }
     }
 
     if (phrasesEnabledCheck) {
         phrasesEnabledCheck.addEventListener("change", () => {
             phrasesEnabled = phrasesEnabledCheck.checked;
-            if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
             syncPhrasesSettingsUI();
             persistAllSettings();
         });
     }
-
-    if (phraseProfilePills) {
-        phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-            pill.addEventListener("click", () => {
-                const nextProf = pill.getAttribute("data-ph-profile");
-                if (["male", "female", "uni"].includes(nextProf)) {
-                    phraseProfile = nextProf;
-                    syncPhrasesSettingsUI();
-                    persistAllSettings();
-                }
-            });
-        });
-    }
+    if (phraseGreetingSelect) phraseGreetingSelect.addEventListener("change", persistAllSettings);
+    if (phraseFarewellSelect) phraseFarewellSelect.addEventListener("change", persistAllSettings);
+    if (phraseGreetingCustomInput) phraseGreetingCustomInput.addEventListener("input", persistAllSettings);
+    if (phraseFarewellCustomInput) phraseFarewellCustomInput.addEventListener("input", persistAllSettings);
 
     function syncSollWidgetSettingsUI() {
         if (sollWidgetOptionsWrap) {
@@ -1496,6 +1540,10 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (pageName === "widgets") {
             collapseAccordionsInGroup("widgets", null);
             if (phrasesEnabledCheck) phrasesEnabledCheck.checked = phrasesEnabled;
+            populatePhraseSelect(phraseGreetingSelect, "greeting", phraseGreetingSelected);
+            populatePhraseSelect(phraseFarewellSelect, "farewell", phraseFarewellSelected);
+            if (phraseGreetingCustomInput) phraseGreetingCustomInput.value = phraseGreetingCustom;
+            if (phraseFarewellCustomInput) phraseFarewellCustomInput.value = phraseFarewellCustom;
             if (sollWidgetEnabledCheck) sollWidgetEnabledCheck.checked = sollWidgetEnabled;
             if (pauseWatcherEnabledCheck) pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
             syncPhrasesSettingsUI();
@@ -2060,13 +2108,17 @@ document.addEventListener("DOMContentLoaded", () => {
         saveSessionsAndDay();
     }
 
-    function applyRotatedPhraseFor(direction) {
-        if (!phrasesEnabled || typeof getRotatedPhrase !== "function") {
-            updateWelcomeGreetingText(getDefaultGreetingText());
+    function applyPhraseForDirection(direction, allowRotationStep) {
+        if (!phrasesEnabled) {
+            updateWelcomeGreetingText(resolveCurrentPhraseText(direction, false));
             return;
         }
-        const phrase = getRotatedPhrase(phraseProfile, direction, userName);
-        updateWelcomeGreetingText(phrase);
+        if (allowRotationStep && typeof getRotatedPhrase === "function") {
+            const phrase = getRotatedPhrase(direction, userName);
+            updateWelcomeGreetingText(phrase || getDefaultGreetingText());
+            return;
+        }
+        updateWelcomeGreetingText(resolveCurrentPhraseText(direction, false));
     }
 
     function triggerStampComeNow() {
@@ -2087,7 +2139,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         syncInputsFromSessions();
         saveSessionsAndDay();
-        applyRotatedPhraseFor("greeting");
+        applyPhraseForDirection("greeting", true);
         welcomeActionMode = getLogicalNextMode();
         syncActionButtonVisuals();
         calculateAllTimes();
@@ -2103,7 +2155,7 @@ document.addEventListener("DOMContentLoaded", () => {
         else todaySessions[todaySessions.length - 1].end = tObj;
         syncInputsFromSessions();
         saveSessionsAndDay();
-        applyRotatedPhraseFor("farewell");
+        applyPhraseForDirection("farewell", true);
         welcomeActionMode = getLogicalNextMode();
         syncActionButtonVisuals();
         calculateAllTimes();

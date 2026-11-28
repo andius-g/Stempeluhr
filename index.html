@@ -337,7 +337,7 @@
                             <button type="button" class="settings-nav-card" id="btn-open-widgets-subpage">
                                 <div class="settings-nav-info">
                                     <strong>Widgets, Sprüche & Tastatur</strong>
-                                    <span id="nav-widgets-summary">Widgets aktiv · Sprüche an</span>
+                                    <span id="nav-widgets-summary">Widgets aktiv · Sprüche rotieren</span>
                                 </div>
                                 <div class="settings-nav-right">
                                     <span class="nav-chevron">›</span>
@@ -505,7 +505,7 @@
                             <button type="button" class="section-accordion-btn" aria-expanded="false">
                                 <span class="section-acc-title">💬 Begrüßung & Abschied</span>
                                 <span class="section-acc-right">
-                                    <span class="section-acc-meta" id="acc-meta-phrases">An · Uni</span>
+                                    <span class="section-acc-meta" id="acc-meta-phrases">Rotation an</span>
                                     <span class="section-acc-chevron">›</span>
                                 </span>
                             </button>
@@ -513,21 +513,32 @@
                                 <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
                                     <label class="toggle-label-nowrap" for="phrasesEnabledCheck">
                                         <input type="checkbox" id="phrasesEnabledCheck" checked>
-                                        <span>Sprüche-Rotation aktiv</span>
+                                        <span>Sprüche rotieren</span>
                                     </label>
                                 </div>
 
-                                <div id="phrases-options-wrap">
-                                    <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Ansprache-Stil</label>
-                                    <div class="widget-mode-pills" id="phrase-profile-pills" role="radiogroup" aria-label="Ansprache-Stil">
-                                        <button type="button" class="widget-mode-pill" data-ph-profile="male">Männlich</button>
-                                        <button type="button" class="widget-mode-pill" data-ph-profile="female">Weiblich</button>
-                                        <button type="button" class="widget-mode-pill" data-ph-profile="uni">Uni (neutral)</button>
+                                <div id="phrases-fixed-options-wrap" style="display:none;">
+                                    <div class="settings-group">
+                                        <label for="phraseGreetingSelect" style="display:block; font-weight:bold; font-size:0.82em; margin-bottom:4px;">Begrüßung aus Liste wählen</label>
+                                        <select id="phraseGreetingSelect" class="harmony-select" aria-label="Begrüßung aus Liste wählen"></select>
+                                    </div>
+                                    <div class="settings-group">
+                                        <label for="phraseGreetingCustomInput" style="display:block; font-weight:bold; font-size:0.82em; margin-bottom:4px;">Eigene Begrüßung (überschreibt Liste)</label>
+                                        <input type="text" id="phraseGreetingCustomInput" class="text-input-full" placeholder="z. B. Auf geht's, [Name]!" aria-label="Eigene Begrüßung">
+                                    </div>
+
+                                    <div class="settings-group">
+                                        <label for="phraseFarewellSelect" style="display:block; font-weight:bold; font-size:0.82em; margin-bottom:4px;">Abschied aus Liste wählen</label>
+                                        <select id="phraseFarewellSelect" class="harmony-select" aria-label="Abschied aus Liste wählen"></select>
+                                    </div>
+                                    <div class="settings-group" style="margin-bottom:4px;">
+                                        <label for="phraseFarewellCustomInput" style="display:block; font-weight:bold; font-size:0.82em; margin-bottom:4px;">Eigener Abschied (überschreibt Liste)</label>
+                                        <input type="text" id="phraseFarewellCustomInput" class="text-input-full" placeholder="z. B. Schönen Feierabend, [Name]!" aria-label="Eigener Abschied">
                                     </div>
                                 </div>
 
                                 <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
-                                    Rotiert ohne direkte Wiederholung durch 50 Sprüche je Richtung. Ohne Namen wird automatisch „Amici“ verwendet.
+                                    Bei aktiver Rotation wird durch die Sprüche rotiert. Bei deaktivierter Rotation gilt der gewählte oder eigene Spruch (`[Name]` wird ersetzt).
                                 </div>
                             </div>
                         </div>
