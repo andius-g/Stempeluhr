@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.2)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.3)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const mods = window.StempeluhrModules || {};
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.2"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.3"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.2",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.3",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -448,10 +448,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const PHI_THRESHOLD_PX = Math.round(48 * 1.618); // ~78px über die goldene Ratio
     let orbModeActive = false;
     let orbArmedDecision = null; // "finalize" | "cancel" | null
-    let orbPointerId = null;
     let orbStartX = 0, orbStartY = 0;
     let longPressGoTimer = null;
     let suppressNextActionClick = false;
+    let orbGestureLock = false;
+    let orbReleaseCooldownUntil = 0;
+
+    function isOrbGestureProtected() {
+        return orbModeActive || orbGestureLock || Date.now() < orbReleaseCooldownUntil;
+    }
 
     function formatSecsToHhMmSs(totalSecs) {
         const s = Math.max(0, Math.floor(totalSecs));
@@ -677,9 +682,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetOrbState() {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
+        if (orbModeActive) {
+            orbReleaseCooldownUntil = Date.now() + 150;
+        }
         orbModeActive = false;
         orbArmedDecision = null;
-        orbPointerId = null;
+        orbGestureLock = false;
         welcomeOverlay.classList.remove("orb-active");
         btnWelcomeAction.classList.remove("is-round-drag", "armed-finalize", "armed-cancel");
         btnWelcomeAction.style.transform = "";
@@ -689,8 +697,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function activateOrbMode(clientX, clientY) {
         orbModeActive = true;
+        orbGestureLock = true;
         orbArmedDecision = null;
-        orbPointerId = clientX !== undefined ? true : null;
         orbStartX = clientX || 0;
         orbStartY = clientY || 0;
         suppressNextActionClick = true;
@@ -743,7 +751,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function releaseOrbMode() {
-        if (!orbModeActive) return;
+        if (!orbModeActive) {
+            orbGestureLock = false;
+            return;
+        }
         const decision = orbArmedDecision;
         resetOrbState();
         if (decision === "finalize") {
@@ -1214,9 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    function syncStyleControlsUI() {
-        asymSliderWrap.style.display = styleModeSelect.value === "asymmetric" ? "block" : "none";
-    }
+    function syncStyleControlsUI() { asymSliderWrap.style.display = styleModeSelect.value === "asymmetric" ? "block" : "none"; }
     syncStyleControlsUI();
 
     styleModeSelect.addEventListener("change", () => {
@@ -1981,6 +1990,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Long-Press auf Gehen -> Orb + alle Scribbles in Hauptfarbe; Goldene Ratio hoch/runter
     btnWelcomeAction.addEventListener("pointerdown", (e) => {
         if (welcomeActionMode !== "go") return;
+        orbGestureLock = true;
         orbStartX = e.clientX;
         orbStartY = e.clientY;
         clearTimeout(longPressGoTimer);
@@ -2001,7 +2011,23 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("pointerup", () => {
         clearTimeout(longPressGoTimer);
         longPressGoTimer = null;
-        if (orbModeActive) releaseOrbMode();
+        if (orbModeActive) {
+            releaseOrbMode();
+        } else if (orbGestureLock) {
+            orbGestureLock = false;
+            orbReleaseCooldownUntil = Date.now() + 150;
+        }
+    });
+
+    window.addEventListener("pointercancel", () => {
+        clearTimeout(longPressGoTimer);
+        longPressGoTimer = null;
+        if (orbModeActive) {
+            resetOrbState();
+        } else if (orbGestureLock) {
+            orbGestureLock = false;
+            orbReleaseCooldownUntil = Date.now() + 150;
+        }
     });
 
     document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
@@ -2616,7 +2642,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       VIER-WEGE-WISCHSTEUERUNG ÜBERALL (UNTEN->OBEN = START | OBEN->UNTEN = MENÜ)
+       VIER-WEGE-WISCHSTEUERUNG ÜBERALL (ORB-GESCHÜTZT)
        ========================================================= */
     const pdfExportModal = document.getElementById("pdf-export-modal");
     let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
@@ -2626,7 +2652,11 @@ document.addEventListener("DOMContentLoaded", () => {
             || (pdfExportModal && pdfExportModal.classList.contains("active"))
             || backfillModal.classList.contains("active");
 
-        if (!gesturesEnabled || anyModalOpen || orbModeActive || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
+        if (!gesturesEnabled
+            || anyModalOpen
+            || isOrbGestureProtected()
+            || e.touches.length !== 1
+            || e.target.closest("#btn-welcome-action, canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
             touchBlocked = true;
             return;
         }
@@ -2637,7 +2667,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
 
     document.addEventListener("touchend", (e) => {
-        if (!gesturesEnabled || touchBlocked || orbModeActive || e.changedTouches.length !== 1) return;
+        if (!gesturesEnabled || touchBlocked || isOrbGestureProtected() || e.changedTouches.length !== 1) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         const absX = Math.abs(dx), absY = Math.abs(dy);
@@ -2665,14 +2695,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const maxScroll = Math.max(0, viewsStage.scrollHeight - viewsStage.clientHeight);
 
             if (dy < 0) {
-                // Wischen von unten nach oben -> Startschirm öffnen
                 if (!welcomeOverlay.classList.contains("active")) {
                     if (!scrolledDuringSwipe && ((maxScroll - stageScrollAtStart) <= 10 || maxScroll <= 4)) {
                         openWelcomeScreen();
                     }
                 }
             } else {
-                // Wischen von oben nach unten -> Menü öffnen
                 if (!scrolledDuringSwipe && (welcomeOverlay.classList.contains("active") || stageScrollAtStart <= 2)) {
                     openSettingsMenu();
                 }
