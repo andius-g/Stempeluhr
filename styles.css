@@ -1,5 +1,5 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.0)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.1)
    ========================================================= */
 :root {
     --hue: 195;
@@ -33,9 +33,6 @@
     --welcome-menu-radius: 20px;
 }
 
-/* =========================================================
-   ASYMMETRISCHES & ORGANISCHES FORM-DESIGN (STUFENLOS 0–100%)
-   ========================================================= */
 html[data-style="asymmetric"] {
     --a: var(--asym-intensity);
 
@@ -50,7 +47,6 @@ html[data-style="asymmetric"] {
     --welcome-menu-radius: calc(20px - 4px * var(--a)) calc(20px + 18px * var(--a)) calc(20px - 6px * var(--a)) calc(20px + 16px * var(--a)) / calc(20px - 4px * var(--a)) calc(20px + 10px * var(--a)) calc(20px - 4px * var(--a)) calc(20px + 10px * var(--a));
 }
 
-/* GLOBALER SCHUTZ GEGEN ANDROID-TEXTMARKIERUNG & TOUCH-TO-SEARCH */
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
@@ -164,11 +160,20 @@ body {
     color: #ffffff;
     opacity: var(--icon-alpha, 0.32);
     will-change: transform, opacity;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.25s ease, color 0.25s ease, transform 0.25s ease, filter 0.25s ease;
 }
 .scatter-node:hover .scatter-anim-wrap,
 .scatter-node.is-animating .scatter-anim-wrap {
     opacity: 0.72;
+}
+.scatter-node.is-final-target {
+    z-index: 5;
+}
+.scatter-node.is-final-target .scatter-anim-wrap {
+    color: var(--primary-color);
+    opacity: 1;
+    transform: scale(1.38);
+    filter: drop-shadow(0 0 12px var(--primary-color));
 }
 .scatter-anim-wrap svg {
     width: 100%;
@@ -218,11 +223,11 @@ body {
     letter-spacing: 0.3px;
 }
 .welcome-greeting {
-    font-size: 1.82em;
+    font-size: 1.76em;
     font-weight: 800;
-    margin: 3px 0 0;
+    margin: 4px 0 0;
     line-height: 1.15;
-    letter-spacing: -0.4px;
+    letter-spacing: -0.3px;
     text-shadow: 0 3px 16px rgba(0, 0, 0, 0.34);
     word-break: break-word;
 }
@@ -235,6 +240,53 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+/* HAUPTAKTION IM GOLDENEN SCHNITT (φ ≈ 1.618) — IMMER ZUOBERST */
+.btn-welcome-action {
+    --phi: 1.618;
+    width: 100%;
+    min-height: calc(56px * var(--phi));
+    padding: calc(11px * var(--phi)) 20px;
+    border-radius: var(--welcome-btn-come-radius);
+    border: 1.5px solid rgba(255, 255, 255, 0.40);
+    background: var(--primary-color);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.36);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: width 0.22s ease, height 0.22s ease, border-radius 0.22s ease, transform 0.14s ease, box-shadow 0.22s ease;
+}
+.btn-welcome-action.mode-go {
+    background: var(--secondary-color);
+    border-radius: var(--welcome-btn-go-radius);
+}
+.btn-welcome-action.is-round-drag {
+    width: 104px;
+    height: 104px;
+    min-height: 104px;
+    padding: 0;
+    border-radius: 50% !important;
+    align-self: center;
+    z-index: 10;
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.24), 0 18px 36px rgba(0, 0, 0, 0.45);
+}
+.btn-welcome-action.is-round-drag span {
+    display: none;
+}
+.btn-welcome-action strong {
+    font-size: calc(1.02em * var(--phi));
+    letter-spacing: 0.3px;
+    line-height: 1.12;
+}
+.btn-welcome-action span {
+    font-size: 0.8em;
+    opacity: 0.92;
+    font-weight: 500;
 }
 
 /* LÖSUNG 3: STATUS-KACHEL MIT ZUSATZINFO */
@@ -303,73 +355,6 @@ body {
 .welcome-status-card.is-finalized .status-dot {
     background-color: #d8b4fe;
     box-shadow: 0 0 8px rgba(216, 180, 254, 0.75);
-}
-
-/* FINALER FEIERABEND-SCHALTER */
-.welcome-final-toggle {
-    width: 100%;
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: 1.5px solid rgba(255, 255, 255, 0.26);
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: #ffffff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    font-size: 0.84em;
-    font-weight: 700;
-}
-.welcome-final-toggle.is-final {
-    background: rgba(139, 92, 246, 0.42);
-    border-color: rgba(233, 213, 255, 0.78);
-    box-shadow: 0 6px 18px rgba(109, 40, 217, 0.35);
-}
-.wft-state {
-    padding: 2px 9px;
-    border-radius: 999px;
-    font-size: 0.84em;
-    background: rgba(255, 255, 255, 0.16);
-}
-.welcome-final-toggle.is-final .wft-state {
-    background: rgba(255, 255, 255, 0.26);
-    color: #ffffff;
-}
-
-/* HAUPTAKTION IM GOLDENEN SCHNITT (φ ≈ 1.618) */
-.btn-welcome-action {
-    --phi: 1.618;
-    width: 100%;
-    min-height: calc(56px * var(--phi));
-    padding: calc(11px * var(--phi)) 20px;
-    border-radius: var(--welcome-btn-come-radius);
-    border: 1.5px solid rgba(255, 255, 255, 0.40);
-    background: var(--primary-color);
-    color: #ffffff;
-    cursor: pointer;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.36);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-.btn-welcome-action.mode-go {
-    background: var(--secondary-color);
-    border-radius: var(--welcome-btn-go-radius);
-}
-.btn-welcome-action strong {
-    font-size: calc(1.02em * var(--phi));
-    letter-spacing: 0.3px;
-    line-height: 1.12;
-}
-.btn-welcome-action span {
-    font-size: 0.86em;
-    opacity: 0.94;
-    font-weight: 500;
 }
 
 .btn-welcome-menu {
@@ -618,7 +603,6 @@ body {
     cursor: pointer;
 }
 
-/* AKTUELLER STEMPEL-STATUS AUF SCREEN 2 */
 .clock-status-card {
     background-color: var(--subcard-bg);
     border: 1.5px solid var(--border-color);
@@ -681,9 +665,6 @@ body {
     margin: 13px 0 12px;
 }
 
-/* =========================================================
-   ZWEI K/G PILLEN MIT AUTO-HH:MM
-   ========================================================= */
 .dual-manual-pills {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -744,18 +725,13 @@ body {
     font-weight: 600;
 }
 
-.keypad-bound-input {
-    cursor: pointer;
-}
+.keypad-bound-input { cursor: pointer; }
 .keypad-bound-input.kp-focused {
     border-color: var(--primary-color) !important;
     background-color: var(--white) !important;
     box-shadow: 0 0 0 3px hsla(var(--hue), 72%, var(--lightness), 0.22) !important;
 }
 
-/* =========================================================
-   GLOBALE ZAHLENTASTATUR (4 TASTEN IN REIHE 4: ,  0  .  ↵)
-   ========================================================= */
 .custom-keypad-sheet {
     position: fixed;
     left: 0;
@@ -773,9 +749,7 @@ body {
     transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
     touch-action: manipulation;
 }
-.custom-keypad-sheet.active {
-    transform: translateY(0);
-}
+.custom-keypad-sheet.active { transform: translateY(0); }
 .keypad-topbar {
     display: flex;
     justify-content: space-between;
@@ -927,11 +901,9 @@ body {
 }
 
 /* =========================================================
-   SCREEN 3: WOCHE (KOMPAKT & AMPELKONTO)
+   SCREEN 3: WOCHE
    ========================================================= */
-#view-week .feature-section {
-    padding: 11px 12px 12px;
-}
+#view-week .feature-section { padding: 11px 12px 12px; }
 .week-window-card {
     background-color: var(--subcard-bg);
     border: 1px solid var(--border-color);
@@ -939,11 +911,7 @@ body {
     padding: 7px 8px;
     margin-bottom: 9px;
 }
-#week-days-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
+#week-days-container { display: flex; flex-direction: column; gap: 5px; }
 .week-row {
     background-color: var(--white);
     border: 1px solid var(--border-color);
@@ -959,11 +927,7 @@ body {
     border: 2px solid var(--primary-color);
     background-color: var(--bg-color);
 }
-.day-label {
-    display: flex;
-    flex-direction: column;
-    min-width: 72px;
-}
+.day-label { display: flex; flex-direction: column; min-width: 72px; }
 .day-label strong { font-size: 0.92em; line-height: 1.12; }
 .day-label span { font-size: 0.74em; opacity: 0.78; margin-top: 1px; }
 
@@ -1017,12 +981,7 @@ body {
     gap: 6px;
 }
 
-.week-switcher-row {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-    margin-bottom: 9px;
-}
+.week-switcher-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 9px; }
 .kw-merged-swipebar {
     flex: 1 1 auto;
     display: grid;
@@ -1061,17 +1020,9 @@ body {
     justify-content: center;
     text-align: center;
 }
-.kw-center-title {
-    font-size: 0.9em;
-    font-weight: bold;
-    line-height: 1.1;
-}
+.kw-center-title { font-size: 0.9em; font-weight: bold; line-height: 1.1; }
 
-.date-jump-wrap {
-    position: relative;
-    width: 42px;
-    flex-shrink: 0;
-}
+.date-jump-wrap { position: relative; width: 42px; flex-shrink: 0; }
 .btn-date-jump {
     width: 100%;
     height: 100%;
@@ -1094,16 +1045,9 @@ body {
     border: none;
 }
 
-.week-summary-pair .output-decimal {
-    padding: 8px 8px;
-}
+.week-summary-pair .output-decimal { padding: 8px 8px; }
 
-/* GLZ-AMPEL-PILL (GBV § 5) */
-.glz-pill-wrap {
-    margin-top: 8px;
-    display: flex;
-    justify-content: center;
-}
+.glz-pill-wrap { margin-top: 8px; display: flex; justify-content: center; }
 .glz-pill {
     width: 100%;
     padding: 7px 12px;
@@ -1117,33 +1061,16 @@ body {
     border: 1px solid transparent;
     font-variant-numeric: tabular-nums;
 }
-.glz-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.glz-pill.ampel-gruen {
-    background-color: #e7f6ec;
-    color: #165b33;
-    border-color: #b7e2c7;
-}
+.glz-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.glz-pill.ampel-gruen { background-color: #e7f6ec; color: #165b33; border-color: #b7e2c7; }
 .glz-pill.ampel-gruen .glz-dot { background-color: #22a055; }
-.glz-pill.ampel-gelb {
-    background-color: #fff6df;
-    color: #7c5200;
-    border-color: #f3d48b;
-}
+.glz-pill.ampel-gelb { background-color: #fff6df; color: #7c5200; border-color: #f3d48b; }
 .glz-pill.ampel-gelb .glz-dot { background-color: #e59c00; }
-.glz-pill.ampel-rot {
-    background-color: #fdeaea;
-    color: #8b1e1e;
-    border-color: #f2b8b8;
-}
+.glz-pill.ampel-rot { background-color: #fdeaea; color: #8b1e1e; border-color: #f2b8b8; }
 .glz-pill.ampel-rot .glz-dot { background-color: #d93030; }
 
 /* =========================================================
-   MODALS & SCREEN 4 (MENÜ + UNTERMENÜ-AKKORDEONS)
+   MODALS & SCREEN 4 (MENÜ + AKKORDEONS)
    ========================================================= */
 .modal-overlay {
     display: none;
@@ -1232,7 +1159,6 @@ body {
 }
 .nav-chevron { font-size: 1.35em; font-weight: bold; opacity: 0.65; line-height: 1; }
 
-/* EINHEITLICHE UNTERMENÜ-AKKORDEONS (IMMER NUR EINER OFFEN) */
 .section-accordion-card {
     background-color: var(--subcard-bg);
     border: 1px solid var(--border-color);
@@ -1253,16 +1179,8 @@ body {
     text-align: left;
     color: var(--text-color);
 }
-.section-acc-title {
-    font-size: 0.9em;
-    font-weight: 700;
-}
-.section-acc-right {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-}
+.section-acc-title { font-size: 0.9em; font-weight: 700; }
+.section-acc-right { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .section-acc-meta {
     font-size: 0.76em;
     font-weight: 600;
@@ -1276,21 +1194,14 @@ body {
     line-height: 1;
     transition: transform 0.2s ease;
 }
-.section-accordion-card.is-open .section-acc-chevron {
-    transform: rotate(90deg);
-}
+.section-accordion-card.is-open .section-acc-chevron { transform: rotate(90deg); }
 .section-accordion-body {
     display: none;
     padding: 0 11px 11px;
     border-top: 1px dashed var(--border-color);
 }
-.section-accordion-card.is-open .section-accordion-body {
-    display: block;
-    padding-top: 9px;
-}
-.section-accordion-card.is-open .section-accordion-body.color-wheel-container {
-    display: flex;
-}
+.section-accordion-card.is-open .section-accordion-body { display: block; padding-top: 9px; }
+.section-accordion-card.is-open .section-accordion-body.color-wheel-container { display: flex; }
 
 .day-status-grid {
     display: grid;
@@ -1339,11 +1250,7 @@ body {
     cursor: pointer;
     font-size: 0.95em;
 }
-.editor-time-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
+.editor-time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .editor-time-col {
     background-color: var(--white);
     border: 1px solid var(--border-color);
@@ -1715,9 +1622,6 @@ canvas#colorWheel {
     cursor: pointer;
 }
 
-/* =========================================================
-   STARTBILDSCHIRM-WIDGETS (SOLL-ERREICHT & PAUSENWÄCHTER) & TASTATUR-PILLEN
-   ========================================================= */
 .welcome-soll-widget {
     width: 100%;
     padding: 8px 15px;
@@ -1751,10 +1655,7 @@ canvas#colorWheel {
     color: #d8ffec;
     letter-spacing: 0.2px;
 }
-.wsw-soll-info {
-    opacity: 0.88;
-    font-variant-numeric: tabular-nums;
-}
+.wsw-soll-info { opacity: 0.88; font-variant-numeric: tabular-nums; }
 .wsw-target-time {
     font-size: 1.65em;
     font-weight: bold;
@@ -1804,10 +1705,7 @@ canvas#colorWheel {
     background: rgba(255, 196, 92, 0.28);
     color: #ffe7ba;
 }
-.wpw-limit-time {
-    opacity: 0.88;
-    font-variant-numeric: tabular-nums;
-}
+.wpw-limit-time { opacity: 0.88; font-variant-numeric: tabular-nums; }
 .wpw-countdown {
     font-size: 1.7em;
     font-weight: bold;
@@ -1817,16 +1715,8 @@ canvas#colorWheel {
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
-.widget-mode-pills {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-}
-.keyboard-mode-pills {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
+.widget-mode-pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.keyboard-mode-pills { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .widget-mode-pill {
     padding: 9px 4px;
     border-radius: 999px;
@@ -1845,14 +1735,7 @@ canvas#colorWheel {
     border-color: var(--primary-color);
 }
 
-/* =========================================================
-   APP-ICON AUSWAHL (BLAU / ROSÉ) — v2.0.0
-   ========================================================= */
-.icon-variant-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
+.icon-variant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .icon-variant-card {
     background-color: var(--white);
     border: 2px solid var(--border-color);
@@ -1879,16 +1762,8 @@ canvas#colorWheel {
     object-fit: cover;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
 }
-.icon-install-hint {
-    font-size: 0.74em;
-    opacity: 0.78;
-    margin-top: 7px;
-    line-height: 1.35;
-}
+.icon-install-hint { font-size: 0.74em; opacity: 0.78; margin-top: 7px; line-height: 1.35; }
 
-/* =========================================================
-   SUBTILE PRESS-RÜCKMELDUNG (v2.0.0)
-   ========================================================= */
 button,
 .kg-pill,
 .week-row,

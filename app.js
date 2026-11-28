@@ -1,11 +1,12 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.0)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.1)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const mods = window.StempeluhrModules || {};
     const SCRIBBLE_ICONS = mods.SCRIBBLE_ICONS || [];
     const makeScribbleSvg = mods.makeScribbleSvg || ((iconObj) => `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>`);
     const getHolidayName = mods.getHolidayName || (() => null);
+    const getRotatedPhrase = mods.getRotatedPhrase || null;
 
     const format2 = (val) => String(val).padStart(2, '0');
     const getTodayStr = () => {
@@ -14,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.0"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.1"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -81,13 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function showAppNotification(title, body, tag) {
         if (!("Notification" in window) || Notification.permission !== "granted") return;
         const iconFile = localStorage.getItem("appIconTheme") === "rose" ? "./favicon_rose_192.png" : "./favicon_192.png";
-        const options = {
-            body,
-            icon: iconFile,
-            badge: iconFile,
-            tag,
-            renotify: true
-        };
+        const options = { body, icon: iconFile, badge: iconFile, tag, renotify: true };
         try {
             if ("serviceWorker" in navigator) {
                 const reg = await navigator.serviceWorker.ready;
@@ -97,9 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         } catch (e) {}
-        try {
-            new Notification(title, options);
-        } catch (e) {}
+        try { new Notification(title, options); } catch (e) {}
     }
 
     function getDayData(dateStr) {
@@ -120,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       BACKUP-FUNKTIONEN (JSON EXPORT & IMPORT)
+       BACKUP-FUNKTIONEN
        ========================================================= */
     const backupStatusPill = document.getElementById("backup-status-pill");
     const backupFileInput = document.getElementById("backup-file-input");
@@ -154,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.0",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.1",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
@@ -216,6 +209,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     let userName = localStorage.getItem("userName") || "";
+    let phrasesEnabled = localStorage.getItem("phrasesEnabled") !== "false";
+    let phraseProfile = localStorage.getItem("phraseProfile") || "uni";
+    if (!["male", "female", "uni"].includes(phraseProfile)) phraseProfile = "uni";
+    let activeWelcomePhrase = "";
+
     let appStyleMode = localStorage.getItem("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
     let appAsymIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
     if (isNaN(appAsymIntensity)) appAsymIntensity = 55;
@@ -298,7 +296,6 @@ document.addEventListener("DOMContentLoaded", () => {
     applyAsymIntensity(appAsymIntensity);
     applyThemeColors(appHue, appLightness);
 
-    const scribbleAccordionCard = document.getElementById("scribble-accordion-card");
     const scribbleAccordionMeta = document.getElementById("scribble-accordion-meta");
     const scribbleMiniStrip = document.getElementById("scribble-mini-strip");
     const scribbleSvgGrid = document.getElementById("scribble-svg-grid");
@@ -321,6 +318,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const mAmpel = document.getElementById("acc-meta-ampel");
         if (mAmpel) mAmpel.textContent = `${String(glzBaseHours).replace(".", ",")}h · ${String(weeklyHours).replace(".", ",")}h/Wo`;
+
+        const mPhrases = document.getElementById("acc-meta-phrases");
+        if (mPhrases) {
+            const pLabel = phraseProfile === "male" ? "Männlich" : (phraseProfile === "female" ? "Weiblich" : "Uni");
+            mPhrases.textContent = phrasesEnabled ? `An · ${pLabel}` : `Aus · ${pLabel}`;
+        }
 
         const mSollW = document.getElementById("acc-meta-soll-widget");
         if (mSollW) mSollW.textContent = sollWidgetEnabled ? "Aktiv" : "Aus";
@@ -387,9 +390,9 @@ document.addEventListener("DOMContentLoaded", () => {
             navWorkSummary.textContent = `${format2(sollHours)}:${format2(sollMinutes)}/Tag · ${weeklyHours}h/Wo · ${smokeTxt}${pushTxt}`;
         }
         if (navWidgetsSummary) {
-            const kbTxt = keyboardMode === "system" ? "System-Tastatur" : "App-Tastatur";
             const wTxt = sollWidgetEnabled || pauseWatcherEnabled ? "Widgets aktiv" : "Widgets aus";
-            navWidgetsSummary.textContent = `${wTxt} · ${kbTxt}`;
+            const phTxt = phrasesEnabled ? "Sprüche an" : "Sprüche aus";
+            navWidgetsSummary.textContent = `${wTxt} · ${phTxt}`;
         }
         if (navDesignSummary) {
             const styleTxt = appStyleMode === "asymmetric" ? `Asymmetrisch (${appAsymIntensity}%)` : "Klassisch";
@@ -429,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================================================
-       SCREEN 1: START (KOMMEN / GEHEN) + SCRIBBLES + WIDGETS
+       SCREEN 1: START + LOGISCHER ABLAUF + LONG-PRESS FINAL-GO
        ========================================================= */
     const welcomeOverlay = document.getElementById("welcome-overlay");
     const welcomeScatterField = document.getElementById("welcome-scatter-field");
@@ -440,10 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const welcomeActionTitle = document.getElementById("welcome-action-title");
     const welcomeActionSub = document.getElementById("welcome-action-sub");
     const btnWelcomeMenu = document.getElementById("btn-welcome-menu");
-
-    const btnWelcomeFinalToggle = document.getElementById("btn-welcome-final-toggle");
-    const welcomeFinalLabel = document.getElementById("welcome-final-label");
-    const welcomeFinalState = document.getElementById("welcome-final-state");
 
     const welcomeStatusCard = document.getElementById("welcome-status-card");
     const welcomeStatusText = document.getElementById("welcome-status-text");
@@ -464,6 +463,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let welcomeActionMode = "come";
     let ambientAnimTimer = null;
+    let finalDragActive = false;
+    let finalTargetNode = null;
+    let longPressGoTimer = null;
+    let suppressNextActionClick = false;
 
     function formatSecsToHhMmSs(totalSecs) {
         const s = Math.max(0, Math.floor(totalSecs));
@@ -473,24 +476,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${format2(hh)}:${format2(mm)}:${format2(ss)}`;
     }
 
-    function syncWelcomeFinalUI() {
-        if (!btnWelcomeFinalToggle) return;
-        const showOnGo = welcomeOverlay.classList.contains("active") && welcomeActionMode === "go";
-        btnWelcomeFinalToggle.style.display = showOnGo ? "flex" : "none";
-        btnWelcomeFinalToggle.classList.toggle("is-final", todayFinalized);
-        btnWelcomeFinalToggle.setAttribute("aria-pressed", todayFinalized ? "true" : "false");
-        if (welcomeFinalLabel) welcomeFinalLabel.textContent = "Finaler Feierabend";
-        if (welcomeFinalState) welcomeFinalState.textContent = todayFinalized ? "Aktiv · Tag beendet" : "Aus";
-    }
-
-    if (btnWelcomeFinalToggle) {
-        btnWelcomeFinalToggle.addEventListener("click", (e) => {
-            e.stopPropagation();
-            todayFinalized = !todayFinalized;
-            syncWelcomeFinalUI();
-            saveSessionsAndDay();
-            calculateAllTimes();
-        });
+    function getLogicalNextMode() {
+        const lastSess = todaySessions.length > 0 ? todaySessions[todaySessions.length - 1] : null;
+        if (lastSess && lastSess.start && (!lastSess.end || !lastSess.end.h)) {
+            return "go";
+        }
+        return "come";
     }
 
     function getStampStatusInfo() {
@@ -503,7 +494,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const untilStr = pE ? `${pE.h}:${pE.m}` : "jetzt";
             return {
                 state: "final",
-                pillText: `Tag abgeschlossen · ${untilStr}`,
                 cardLabel: "Tag final abgeschlossen",
                 cardDetail: pE ? `Final gegangen um ${untilStr} Uhr` : "Kein weiteres Kommen geplant"
             };
@@ -513,7 +503,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const sinceStr = pS ? `${pS.h}:${pS.m}` : (lastSess && lastSess.start ? `${format2(parseInt(lastSess.start.h, 10) || 0)}:${format2(parseInt(lastSess.start.m, 10) || 0)}` : "--:--");
             return {
                 state: "in",
-                pillText: `Eingestempelt · seit ${sinceStr}`,
                 cardLabel: "Eingestempelt",
                 cardDetail: `Aktiv seit ${sinceStr} Uhr`
             };
@@ -523,7 +512,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const untilStr = `${pE.h}:${pE.m}`;
             return {
                 state: "out",
-                pillText: `Ausgestempelt · ${untilStr}`,
                 cardLabel: "Ausgestempelt",
                 cardDetail: pS ? `Letzter Block: ${pS.h}:${pS.m} – ${untilStr} Uhr` : `Ausgestempelt um ${untilStr} Uhr`
             };
@@ -531,7 +519,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return {
             state: "neutral",
-            pillText: "Nicht eingestempelt",
             cardLabel: "Nicht eingestempelt",
             cardDetail: "Heute noch keine Stempelung erfasst"
         };
@@ -566,29 +553,20 @@ document.addEventListener("DOMContentLoaded", () => {
     function getRequiredPresenceSecs(targetNetSecs, smokeSecs = 0) {
         const cleanNet = Math.max(0, targetNetSecs);
         const cleanSmoke = Math.max(0, smokeSecs);
-
-        if (cleanNet + cleanSmoke < 23400) {
-            return cleanNet + cleanSmoke;
-        }
-
+        if (cleanNet + cleanSmoke < 23400) return cleanNet + cleanSmoke;
         const deduct30 = Math.max(1800, cleanSmoke);
         const presWith30 = cleanNet + deduct30;
-        if (presWith30 < 35100) {
-            return presWith30;
-        }
-
+        if (presWith30 < 35100) return presWith30;
         const deduct45 = Math.max(2700, cleanSmoke);
         return cleanNet + deduct45;
     }
 
     function updateWelcomeSollWidget() {
         if (!welcomeSollWidget) return;
-
         if (!sollWidgetEnabled || !welcomeOverlay.classList.contains("active")) {
             welcomeSollWidget.style.display = "none";
             return;
         }
-
         const modeMatches = (sollWidgetMode === "both")
             || (sollWidgetMode === "go" && welcomeActionMode === "go")
             || (sollWidgetMode === "come" && welcomeActionMode === "come");
@@ -619,12 +597,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateWelcomePauseWidget() {
         if (!welcomePauseWidget) return;
-
         if (!pauseWatcherEnabled || !welcomeOverlay.classList.contains("active")) {
             welcomePauseWidget.style.display = "none";
             return;
         }
-
         const modeMatches = (pauseWatcherMode === "both")
             || (pauseWatcherMode === "go" && welcomeActionMode === "go")
             || (pauseWatcherMode === "come" && welcomeActionMode === "come");
@@ -633,7 +609,6 @@ document.addEventListener("DOMContentLoaded", () => {
             welcomePauseWidget.style.display = "none";
             return;
         }
-
         const pS = getParsedStart();
         const pE = getParsedEnd();
         if (!pS || pE) {
@@ -646,7 +621,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const stS = (todaySessions.length > 0 && todaySessions[0].start) ? (parseInt(todaySessions[0].start.s, 10) || 0) : 0;
         const startSecs = (stH * 3600) + (stM * 60) + stS;
         const nowSecs = getNowSecsOfDay();
-
         if (nowSecs < startSecs) {
             welcomePauseWidget.style.display = "none";
             return;
@@ -704,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function triggerNodeMicroAnim(nodeEl, animClass) {
-        if (!nodeEl) return;
+        if (!nodeEl || nodeEl.classList.contains("is-final-target")) return;
         const animWrap = nodeEl.querySelector(".scatter-anim-wrap");
         if (!animWrap) return;
         nodeEl.classList.add("is-animating");
@@ -717,7 +691,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 900);
     }
 
+    function clearFinalGoDragState() {
+        clearTimeout(longPressGoTimer);
+        longPressGoTimer = null;
+        finalDragActive = false;
+        btnWelcomeAction.classList.remove("is-round-drag");
+        btnWelcomeAction.style.transform = "";
+        if (finalTargetNode) {
+            finalTargetNode.classList.remove("is-final-target");
+            finalTargetNode = null;
+        }
+    }
+
+    function activateFinalGoDragMode() {
+        const nodes = Array.from(welcomeScatterField.querySelectorAll(".scatter-node"));
+        if (nodes.length === 0) return;
+        finalDragActive = true;
+        suppressNextActionClick = true;
+        btnWelcomeAction.classList.add("is-round-drag");
+        finalTargetNode = nodes[Math.floor(Math.random() * nodes.length)];
+        finalTargetNode.classList.add("is-final-target");
+        if ("vibrate" in navigator) {
+            try { navigator.vibrate([12, 30, 18]); } catch (e) {}
+        }
+    }
+
+    function commitFinalGo() {
+        clearFinalGoDragState();
+        todayFinalized = true;
+        triggerStampGoNow();
+    }
+
     function renderWelcomeScatter() {
+        clearFinalGoDragState();
         welcomeScatterField.innerHTML = "";
         if (selectedScribbles.length === 0) return;
 
@@ -743,7 +749,6 @@ document.addEventListener("DOMContentLoaded", () => {
             attempts++;
             const x = 6 + rng() * 88;
             const y = 5 + rng() * 90;
-
             const inGreetingZone = (y > 7 && y < 22 && x > 14 && x < 86);
             if (inGreetingZone) continue;
 
@@ -779,6 +784,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             node.addEventListener("click", (e) => {
                 e.stopPropagation();
+                if (finalDragActive && node === finalTargetNode) {
+                    commitFinalGo();
+                    return;
+                }
                 const anims = ["anim-pixel-spin", "anim-pixel-pop", "anim-pixel-wiggle"];
                 triggerNodeMicroAnim(node, anims[Math.floor(Math.random() * anims.length)]);
             });
@@ -794,7 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function startAmbientPixelAnimations() {
         stopAmbientPixelAnimations();
         ambientAnimTimer = setInterval(() => {
-            if (!welcomeOverlay.classList.contains("active")) return;
+            if (!welcomeOverlay.classList.contains("active") || finalDragActive) return;
             const nodes = welcomeScatterField.querySelectorAll(".scatter-node");
             if (nodes.length === 0) return;
             const rndNode = nodes[Math.floor(Math.random() * nodes.length)];
@@ -810,47 +819,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function updateWelcomeGreetingText() {
-        const now = new Date();
-        const hr = now.getHours();
+    function getDefaultGreetingText() {
+        const hr = new Date().getHours();
         const cleanName = (userName || "").trim();
+        let salutation = "Guten Tag";
+        if (hr < 11) salutation = "Guten Morgen";
+        else if (hr >= 18) salutation = "Guten Abend";
+        return cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+    }
 
-        if (welcomeActionMode === "go") {
-            const salutation = hr >= 16 ? "Schönen Feierabend" : "Bis später";
-            welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
-        } else {
-            let salutation = "Guten Tag";
-            if (hr < 11) salutation = "Guten Morgen";
-            else if (hr >= 18) salutation = "Guten Abend";
-            welcomeGreetingEl.textContent = cleanName ? `${salutation}, ${cleanName}!` : `${salutation}!`;
+    function updateWelcomeGreetingText(overridePhrase = null) {
+        const now = new Date();
+        if (typeof overridePhrase === "string" && overridePhrase.trim() !== "") {
+            activeWelcomePhrase = overridePhrase.trim();
+        } else if (!phrasesEnabled) {
+            activeWelcomePhrase = getDefaultGreetingText();
+        } else if (!activeWelcomePhrase) {
+            activeWelcomePhrase = getDefaultGreetingText();
         }
-
+        welcomeGreetingEl.textContent = activeWelcomePhrase;
         const dayName = weekdaysFull[now.getDay()];
         welcomeDateSubEl.textContent = `${dayName}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
     }
 
-    function openWelcomeScreen(mode = "come") {
-        const newMode = mode === "go" ? "go" : "come";
-        const wasAlreadyOpen = welcomeOverlay.classList.contains("active");
-        welcomeActionMode = newMode;
-
+    function syncActionButtonVisuals() {
         if (welcomeActionMode === "go") {
             btnWelcomeAction.classList.add("mode-go");
             btnWelcomeMenu.classList.add("mode-go");
             welcomeActionTitle.textContent = "Gehen";
-            welcomeActionSub.textContent = todayFinalized ? "Finales Gehen stempeln" : "Jetzt direkt ausstempeln";
+            welcomeActionSub.textContent = "Jetzt ausstempeln · lang halten für finales Gehen";
         } else {
             btnWelcomeAction.classList.remove("mode-go");
             btnWelcomeMenu.classList.remove("mode-go");
             welcomeActionTitle.textContent = "Kommen";
             welcomeActionSub.textContent = "Jetzt direkt einstempeln";
         }
+    }
+
+    function openWelcomeScreen(mode = null) {
+        const targetMode = mode || getLogicalNextMode();
+        const wasAlreadyOpen = welcomeOverlay.classList.contains("active");
+        welcomeActionMode = targetMode;
+        syncActionButtonVisuals();
 
         if (metaThemeColor) metaThemeColor.setAttribute("content", window.hslToHex(appHue, 44, 22));
 
         updateWelcomeGreetingText();
         updateStampStatusUI();
-        syncWelcomeFinalUI();
         renderWelcomeScatter();
 
         if (wasAlreadyOpen) {
@@ -865,11 +880,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function closeWelcomeScreen() {
+        clearFinalGoDragState();
         stopAmbientPixelAnimations();
         welcomeOverlay.classList.remove("active", "welcome-mode-switch");
         if (welcomeSollWidget) welcomeSollWidget.style.display = "none";
         if (welcomePauseWidget) welcomePauseWidget.style.display = "none";
-        if (btnWelcomeFinalToggle) btnWelcomeFinalToggle.style.display = "none";
         localStorage.setItem("welcomeDismissedDate", getTodayStr());
         applyThemeColors(appHue, appLightness);
     }
@@ -941,54 +956,36 @@ document.addEventListener("DOMContentLoaded", () => {
         buildWeekView();
     }
 
-    document.getElementById("btn-prev-week").addEventListener("click", (e) => {
-        e.stopPropagation();
-        changeWeek(-1);
-    });
-    document.getElementById("btn-next-week").addEventListener("click", (e) => {
-        e.stopPropagation();
-        changeWeek(1);
-    });
-    document.getElementById("week-kw-badge").addEventListener("click", (e) => {
-        e.stopPropagation();
-        jumpToCurrentWeek();
-    });
+    document.getElementById("btn-prev-week").addEventListener("click", (e) => { e.stopPropagation(); changeWeek(-1); });
+    document.getElementById("btn-next-week").addEventListener("click", (e) => { e.stopPropagation(); changeWeek(1); });
+    document.getElementById("week-kw-badge").addEventListener("click", (e) => { e.stopPropagation(); jumpToCurrentWeek(); });
     weekDatePicker.addEventListener("change", () => jumpToDateStr(weekDatePicker.value));
 
     const kwMergedSwipebar = document.getElementById("kw-merged-swipebar");
     let kwBarStartX = 0, kwBarDidSwipe = false;
     kwMergedSwipebar.addEventListener("touchstart", (e) => {
-        if (e.touches.length === 1) {
-            kwBarStartX = e.touches[0].clientX;
-            kwBarDidSwipe = false;
-        }
+        if (e.touches.length === 1) { kwBarStartX = e.touches[0].clientX; kwBarDidSwipe = false; }
     }, { passive: true });
     kwMergedSwipebar.addEventListener("touchmove", (e) => {
-        if (e.touches.length === 1 && Math.abs(e.touches[0].clientX - kwBarStartX) > 22) {
-            kwBarDidSwipe = true;
-        }
+        if (e.touches.length === 1 && Math.abs(e.touches[0].clientX - kwBarStartX) > 22) kwBarDidSwipe = true;
     }, { passive: true });
     kwMergedSwipebar.addEventListener("touchend", (e) => {
         if (e.changedTouches.length !== 1) return;
         const dx = e.changedTouches[0].clientX - kwBarStartX;
-        if (Math.abs(dx) > 36) {
-            e.preventDefault();
-            e.stopPropagation();
-            changeWeek(dx < 0 ? 1 : -1);
-        }
+        if (Math.abs(dx) > 36) { e.preventDefault(); e.stopPropagation(); changeWeek(dx < 0 ? 1 : -1); }
     });
     kwMergedSwipebar.addEventListener("click", (e) => {
-        if (kwBarDidSwipe) {
-            e.preventDefault();
-            e.stopPropagation();
-            kwBarDidSwipe = false;
-        }
+        if (kwBarDidSwipe) { e.preventDefault(); e.stopPropagation(); kwBarDidSwipe = false; }
     }, true);
 
     /* =========================================================
-       SCREEN 4: MENÜ (EINSTELLUNGEN & UNTERMENÜS)
+       SCREEN 4: MENÜ & EINSTELLUNGEN
        ========================================================= */
     const userNameInput = document.getElementById("userNameInput");
+    const phrasesEnabledCheck = document.getElementById("phrasesEnabledCheck");
+    const phrasesOptionsWrap = document.getElementById("phrases-options-wrap");
+    const phraseProfilePills = document.getElementById("phrase-profile-pills");
+
     const sollHoursInput = document.getElementById("sollHours");
     const sollMinutesInput = document.getElementById("sollMinutes");
     const weeklyHoursInput = document.getElementById("weeklyHoursInput");
@@ -1023,6 +1020,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lightnessVal = document.getElementById("lightnessVal");
 
     userNameInput.value = userName;
+    phrasesEnabledCheck.checked = phrasesEnabled;
     sollHoursInput.value = sollHours;
     sollMinutesInput.value = sollMinutes;
     weeklyHoursInput.value = String(weeklyHours).replace(".", ",");
@@ -1042,6 +1040,35 @@ document.addEventListener("DOMContentLoaded", () => {
     lightnessVal.textContent = appLightness;
     scribbleSizeSlider.value = scribbleSizePct;
     scribbleSizeVal.textContent = scribbleSizePct;
+
+    function syncPhrasesSettingsUI() {
+        phrasesOptionsWrap.style.opacity = phrasesEnabled ? "1" : "0.45";
+        phrasesOptionsWrap.style.pointerEvents = phrasesEnabled ? "auto" : "none";
+        phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            const isSel = pill.getAttribute("data-ph-profile") === phraseProfile;
+            pill.classList.toggle("selected", isSel);
+            pill.setAttribute("aria-checked", isSel ? "true" : "false");
+        });
+    }
+
+    phrasesEnabledCheck.addEventListener("change", () => {
+        phrasesEnabled = phrasesEnabledCheck.checked;
+        if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
+        syncPhrasesSettingsUI();
+        updateAccordionBadges();
+        updateSettingsNavPreviews();
+    });
+
+    phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+        pill.addEventListener("click", () => {
+            const nextProf = pill.getAttribute("data-ph-profile");
+            if (["male", "female", "uni"].includes(nextProf)) {
+                phraseProfile = nextProf;
+                syncPhrasesSettingsUI();
+                updateAccordionBadges();
+            }
+        });
+    });
 
     function syncSollWidgetSettingsUI() {
         sollWidgetOptionsWrap.style.opacity = sollWidgetEnabled ? "1" : "0.45";
@@ -1071,6 +1098,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    syncPhrasesSettingsUI();
     syncSollWidgetSettingsUI();
     syncPauseWatcherSettingsUI();
     syncKeyboardModeUI();
@@ -1145,9 +1173,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
             let perm = Notification.permission;
-            if (perm === "default") {
-                perm = await Notification.requestPermission();
-            }
+            if (perm === "default") perm = await Notification.requestPermission();
             if (perm !== "granted") {
                 alert("Benachrichtigungen wurden im Browser blockiert. Bitte erlaube sie in den Website-Einstellungen.");
                 pauseNotifyCheck.checked = false;
@@ -1263,20 +1289,15 @@ document.addEventListener("DOMContentLoaded", () => {
         drawColorWheel();
     }
 
-    canvas.addEventListener("mousedown", (e) => {
-        handleColorPick(e);
-        canvas.addEventListener("mousemove", handleColorPick);
-    });
+    canvas.addEventListener("mousedown", (e) => { handleColorPick(e); canvas.addEventListener("mousemove", handleColorPick); });
     window.addEventListener("mouseup", () => canvas.removeEventListener("mousemove", handleColorPick));
-    canvas.addEventListener("touchstart", (e) => {
-        handleColorPick(e);
-        canvas.addEventListener("touchmove", handleColorPick, { passive: false });
-    }, { passive: false });
+    canvas.addEventListener("touchstart", (e) => { handleColorPick(e); canvas.addEventListener("touchmove", handleColorPick, { passive: false }); }, { passive: false });
     window.addEventListener("touchend", () => canvas.removeEventListener("touchmove", handleColorPick));
 
     /* EINSTELLUNGS-PERSISTENZ */
     function persistAllSettings() {
         userName = userNameInput.value.trim();
+        phrasesEnabled = phrasesEnabledCheck.checked;
         sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value, 10) || 0));
         sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value, 10) || 0));
         sollHoursInput.value = sollHours;
@@ -1310,6 +1331,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gesturesEnabled = gesturesEnabledCheck.checked;
 
         localStorage.setItem("userName", userName);
+        localStorage.setItem("phrasesEnabled", phrasesEnabled);
+        localStorage.setItem("phraseProfile", phraseProfile);
         localStorage.setItem("selectedScribbles", JSON.stringify(selectedScribbles));
         localStorage.setItem("scribbleSizePct", scribbleSizePct);
         localStorage.setItem("appStyleMode", appStyleMode);
@@ -1333,6 +1356,9 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("appHue", appHue);
         localStorage.setItem("appLightness", appLightness);
 
+        if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
+        else activeWelcomePhrase = "";
+
         if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
         applyThemeColors(appHue, appLightness);
         applyKeyboardModeToInputs();
@@ -1340,6 +1366,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateSmokerUI();
         updateAccordionBadges();
         updateSettingsNavPreviews();
+        updateWelcomeGreetingText();
         calculateAllTimes();
         checkPauseNotifications();
         updateWelcomeWidgets();
@@ -1365,8 +1392,10 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAccordionBadges();
         } else if (pageName === "widgets") {
             collapseAccordionsInGroup("widgets", null);
+            phrasesEnabledCheck.checked = phrasesEnabled;
             sollWidgetEnabledCheck.checked = sollWidgetEnabled;
             pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
+            syncPhrasesSettingsUI();
             syncSollWidgetSettingsUI();
             syncPauseWatcherSettingsUI();
             syncKeyboardModeUI();
@@ -1389,11 +1418,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function openSettingsMenu() {
-        if (welcomeOverlay.classList.contains("active")) {
-            closeWelcomeScreen();
-        }
+        if (welcomeOverlay.classList.contains("active")) closeWelcomeScreen();
         closeCustomKeypad();
         userNameInput.value = userName;
+        phrasesEnabledCheck.checked = phrasesEnabled;
         weeklyHoursInput.value = String(weeklyHours).replace('.', ',');
         glzBaseInput.value = String(glzBaseHours).replace('.', ',');
         glzBaseDateInput.value = glzBaseDate;
@@ -1401,6 +1429,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pauseNotifyLeadInput.value = pauseNotifyLeadMins;
         sollWidgetEnabledCheck.checked = sollWidgetEnabled;
         pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
+        syncPhrasesSettingsUI();
         syncSollWidgetSettingsUI();
         syncPauseWatcherSettingsUI();
         syncKeyboardModeUI();
@@ -1414,7 +1443,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById("btn-settings").addEventListener("click", openSettingsMenu);
-
     document.getElementById("btn-open-work-subpage").addEventListener("click", () => showSettingsSubpage("work"));
     document.getElementById("btn-open-widgets-subpage").addEventListener("click", () => showSettingsSubpage("widgets"));
     document.getElementById("btn-open-design-subpage").addEventListener("click", () => showSettingsSubpage("design"));
@@ -1475,7 +1503,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Ruhige Links-nach-Rechts-Anzeige beim Tippen (kein Springen der Stunden bei 3. Ziffer)
     function formatLiveHhMmDigits(digits) {
         const clean = digits.replace(/\D/g, "").slice(0, 4);
         if (!clean) return "";
@@ -1485,24 +1512,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${clean.slice(0, 2)}:${clean.slice(2, 4)}`;
     }
 
-    // Finalisiert Ziffernfolge (z. B. beim Schließen / Enter) zu gültigem hh:mm
     function finalizeHhMmDigits(digits) {
         const clean = digits.replace(/\D/g, "").slice(0, 4);
         if (!clean) return "";
         let h = 0, m = 0;
-        if (clean.length === 1) {
-            h = parseInt(clean, 10) || 0;
-            m = 0;
-        } else if (clean.length === 2) {
-            h = parseInt(clean, 10) || 0;
-            m = 0;
-        } else if (clean.length === 3) {
-            h = parseInt(clean.slice(0, 2), 10) || 0;
-            m = (parseInt(clean[2], 10) || 0) * 10;
-        } else {
-            h = parseInt(clean.slice(0, 2), 10) || 0;
-            m = parseInt(clean.slice(2, 4), 10) || 0;
-        }
+        if (clean.length === 1) { h = parseInt(clean, 10) || 0; m = 0; }
+        else if (clean.length === 2) { h = parseInt(clean, 10) || 0; m = 0; }
+        else if (clean.length === 3) { h = parseInt(clean.slice(0, 2), 10) || 0; m = (parseInt(clean[2], 10) || 0) * 10; }
+        else { h = parseInt(clean.slice(0, 2), 10) || 0; m = parseInt(clean.slice(2, 4), 10) || 0; }
         h = Math.min(23, Math.max(0, h));
         m = Math.min(59, Math.max(0, m));
         return `${format2(h)}:${format2(m)}`;
@@ -1526,12 +1543,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return { h: hh, m: mm };
     }
 
-    function getParsedStart() {
-        return startTimePill.value.trim() !== "" ? parseHhMmString(startTimePill.value) : null;
-    }
-    function getParsedEnd() {
-        return endTimePill.value.trim() !== "" ? parseHhMmString(endTimePill.value) : null;
-    }
+    function getParsedStart() { return startTimePill.value.trim() !== "" ? parseHhMmString(startTimePill.value) : null; }
+    function getParsedEnd() { return endTimePill.value.trim() !== "" ? parseHhMmString(endTimePill.value) : null; }
 
     function clearAllKeypadHighlights() {
         pillStartWrap.classList.remove("is-active");
@@ -1541,9 +1554,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openGlobalKeypad(config) {
         if (keyboardMode === "system") return;
-        if (kpState && kpState.onCommit) {
-            kpState.onCommit(kpState.el, true);
-        }
+        if (kpState && kpState.onCommit) kpState.onCommit(kpState.el, true);
         clearAllKeypadHighlights();
 
         lastKeypadOpenTime = Date.now();
@@ -1596,10 +1607,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function registerKeypadInput(el, opts, beforeOpen = null) {
         if (!el) return;
         el._kpOpts = opts;
-        if (boundKeypadInputs.has(el)) {
-            applyKeyboardModeToInputs();
-            return;
-        }
+        if (boundKeypadInputs.has(el)) { applyKeyboardModeToInputs(); return; }
         boundKeypadInputs.add(el);
 
         let lastFire = 0;
@@ -1627,19 +1635,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {}
             }, 0);
         });
-        el.addEventListener("input", () => {
-            if (keyboardMode !== "system") return;
-            if (opts.onCommit) opts.onCommit(el, false);
-        });
-        el.addEventListener("change", () => {
-            if (keyboardMode !== "system") return;
-            if (opts.onCommit) opts.onCommit(el, true);
-        });
+        el.addEventListener("input", () => { if (keyboardMode === "system" && opts.onCommit) opts.onCommit(el, false); });
+        el.addEventListener("change", () => { if (keyboardMode === "system" && opts.onCommit) opts.onCommit(el, true); });
         el.addEventListener("blur", () => {
             if (keyboardMode !== "system") return;
-            if (opts.mode === "hhmm" && el.value.trim()) {
-                el.value = finalizeHhMmDigits(el.value);
-            }
+            if (opts.mode === "hhmm" && el.value.trim()) el.value = finalizeHhMmDigits(el.value);
             if (opts.onCommit) opts.onCommit(el, true);
         });
 
@@ -1647,61 +1647,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     registerKeypadInput(startTimePill, {
-        mode: "hhmm",
-        label: "Kommen (hh:mm)",
-        nextEl: endTimePill,
-        onCommit: (_, fin) => {
-            if (fin) onManualTimeInputChange();
-            calculateAllTimes();
-        }
+        mode: "hhmm", label: "Kommen (hh:mm)", nextEl: endTimePill,
+        onCommit: (_, fin) => { if (fin) onManualTimeInputChange(); calculateAllTimes(); }
     }, () => pushUndoSnapshot());
 
     registerKeypadInput(endTimePill, {
-        mode: "hhmm",
-        label: "Gehen (hh:mm)",
-        onCommit: (_, fin) => {
-            if (fin) onManualTimeInputChange();
-            calculateAllTimes();
-        }
+        mode: "hhmm", label: "Gehen (hh:mm)",
+        onCommit: (_, fin) => { if (fin) onManualTimeInputChange(); calculateAllTimes(); }
     }, () => pushUndoSnapshot());
 
-    registerKeypadInput(sollHoursInput, {
-        mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput,
-        onCommit: () => calculateAllTimes()
-    });
-    registerKeypadInput(sollMinutesInput, {
-        mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5,
-        onCommit: () => calculateAllTimes()
-    });
-    registerKeypadInput(pauseNotifyLeadInput, {
-        mode: "number", label: "Vorwarnung (Minuten)", min: 1, max: 60, step: 5
-    });
-    registerKeypadInput(smokeMinutesInput, {
-        mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1,
-        onCommit: () => calculateAllTimes()
-    });
-    registerKeypadInput(glzBaseInput, {
-        mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true
-    });
-    registerKeypadInput(weeklyHoursInput, {
-        mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true
-    });
+    registerKeypadInput(sollHoursInput, { mode: "number", label: "Soll-Stunden (0–24)", min: 0, max: 24, step: 1, nextEl: sollMinutesInput, onCommit: () => calculateAllTimes() });
+    registerKeypadInput(sollMinutesInput, { mode: "number", label: "Soll-Minuten (0–59)", min: 0, max: 59, step: 5, onCommit: () => calculateAllTimes() });
+    registerKeypadInput(pauseNotifyLeadInput, { mode: "number", label: "Vorwarnung (Minuten)", min: 1, max: 60, step: 5 });
+    registerKeypadInput(smokeMinutesInput, { mode: "number", label: "Minuten pro Raucherpause", min: 1, max: 60, step: 1, onCommit: () => calculateAllTimes() });
+    registerKeypadInput(glzBaseInput, { mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true });
+    registerKeypadInput(weeklyHoursInput, { mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true });
 
     document.getElementById("keypad-close-btn").addEventListener("pointerdown", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        closeCustomKeypad();
+        e.preventDefault(); e.stopPropagation(); closeCustomKeypad();
     });
 
     function openNextBoundInput(nextTarget) {
         if (!nextTarget || nextTarget.disabled) return;
-        if (keyboardMode === "system") {
-            if (typeof nextTarget.focus === "function") nextTarget.focus();
-            return;
-        }
-        if (nextTarget._kpOpts) {
-            openGlobalKeypad({ el: nextTarget, ...nextTarget._kpOpts });
-        }
+        if (keyboardMode === "system") { if (typeof nextTarget.focus === "function") nextTarget.focus(); return; }
+        if (nextTarget._kpOpts) openGlobalKeypad({ el: nextTarget, ...nextTarget._kpOpts });
     }
 
     function handleKeypadPress(action) {
@@ -1711,12 +1680,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (st.mode === "hhmm") {
             if (/^[0-9]$/.test(action)) {
-                if (st.fresh || st.buffer.length >= 4) {
-                    st.buffer = action;
-                    st.fresh = false;
-                } else {
-                    st.buffer += action;
-                }
+                if (st.fresh || st.buffer.length >= 4) { st.buffer = action; st.fresh = false; }
+                else st.buffer += action;
                 el.value = formatLiveHhMmDigits(st.buffer);
                 if (st.onCommit) st.onCommit(el, false);
             } else if (action === "del") {
@@ -1734,12 +1699,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 st.fresh = false;
                 el.value = `${nh}:${nm}`;
                 if (st.onCommit) st.onCommit(el, false);
-            } else if (action === "," || action === ".") {
-                return;
             } else if (action === "enter") {
-                if (st.buffer) {
-                    el.value = finalizeHhMmDigits(st.buffer);
-                }
+                if (st.buffer) el.value = finalizeHhMmDigits(st.buffer);
                 const nextTarget = st.nextEl;
                 closeCustomKeypad();
                 openNextBoundInput(nextTarget);
@@ -1748,20 +1709,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (/^[0-9]$/.test(action)) {
-            if (st.fresh) {
-                st.buffer = action;
-                st.fresh = false;
-            } else {
-                st.buffer = (st.buffer === "0") ? action : st.buffer + action;
-            }
+            if (st.fresh) { st.buffer = action; st.fresh = false; }
+            else st.buffer = (st.buffer === "0") ? action : st.buffer + action;
             el.value = st.buffer;
             if (st.onCommit) st.onCommit(el, false);
         } else if (action === "," || action === ".") {
             if (!st.allowDecimal) return;
-            if (st.fresh) {
-                st.buffer = "0,";
-                st.fresh = false;
-            } else if (!st.buffer.includes(",") && !st.buffer.includes(".")) {
+            if (st.fresh) { st.buffer = "0,"; st.fresh = false; }
+            else if (!st.buffer.includes(",") && !st.buffer.includes(".")) {
                 st.buffer = (st.buffer === "" || st.buffer === "-") ? st.buffer + "0," : st.buffer + ",";
             }
             el.value = st.buffer;
@@ -1773,22 +1728,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (st.onCommit) st.onCommit(el, false);
         } else if (action === "-" || action === "+") {
             if (st.allowNegative && (st.fresh || st.buffer === "") && action === "-") {
-                st.buffer = "-";
-                st.fresh = false;
-                el.value = st.buffer;
+                st.buffer = "-"; st.fresh = false; el.value = st.buffer;
             } else {
                 const rawVal = (st.buffer !== "" ? st.buffer : el.value) || "0";
                 let num = parseFloat(String(rawVal).replace(",", "."));
                 if (isNaN(num)) num = 0;
-                const delta = action === "-" ? -st.step : st.step;
-                num = Math.round((num + delta) * 100) / 100;
+                num = Math.round((num + (action === "-" ? -st.step : st.step)) * 100) / 100;
                 if (!st.allowNegative && num < 0) num = 0;
                 if (st.min !== null && num < st.min) num = st.min;
                 if (st.max !== null && num > st.max) num = st.max;
                 const formatted = String(num).replace(".", ",");
-                st.buffer = formatted;
-                st.fresh = false;
-                el.value = formatted;
+                st.buffer = formatted; st.fresh = false; el.value = formatted;
             }
             if (st.onCommit) st.onCommit(el, false);
         } else if (action === "enter") {
@@ -1800,27 +1750,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     keypadSheet.querySelectorAll(".kp-key").forEach((keyBtn) => {
         keyBtn.addEventListener("pointerdown", (e) => {
-            if (e.cancelable) e.preventDefault();
-            e.stopPropagation();
+            if (e.cancelable) e.preventDefault(); e.stopPropagation();
             const now = Date.now();
             if (now - lastKeypadKeyTime < 75) return;
             lastKeypadKeyTime = now;
             const action = keyBtn.getAttribute("data-kp");
             if (action) handleKeypadPress(action);
         });
-        keyBtn.addEventListener("click", (e) => {
-            if (e.cancelable) e.preventDefault();
-            e.stopPropagation();
-        });
+        keyBtn.addEventListener("click", (e) => { if (e.cancelable) e.preventDefault(); e.stopPropagation(); });
     });
 
     document.addEventListener("pointerdown", (e) => {
         if (!keypadSheet.classList.contains("active")) return;
         if (Date.now() - lastKeypadOpenTime < 220) return;
-        if (!e.target.closest("#custom-keypad-sheet")
-            && !e.target.closest(".keypad-bound-input")
-            && !e.target.closest("#pill-start")
-            && !e.target.closest("#pill-end")) {
+        if (!e.target.closest("#custom-keypad-sheet") && !e.target.closest(".keypad-bound-input") && !e.target.closest("#pill-start") && !e.target.closest("#pill-end")) {
             closeCustomKeypad();
         }
     });
@@ -1837,11 +1780,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const updateUndoButtonState = () => { btnUndo.disabled = undoStack.length === 0; };
     function pushUndoSnapshot() {
-        undoStack.push({
-            sessions: JSON.parse(JSON.stringify(todaySessions)),
-            smokeCount: todaySmokeCount,
-            dayFinalized: todayFinalized
-        });
+        undoStack.push({ sessions: JSON.parse(JSON.stringify(todaySessions)), smokeCount: todaySmokeCount, dayFinalized: todayFinalized });
         if (undoStack.length > 20) undoStack.shift();
         updateUndoButtonState();
     }
@@ -1854,7 +1793,6 @@ document.addEventListener("DOMContentLoaded", () => {
         todayFinalized = !!prev.dayFinalized;
         updateUndoButtonState();
         updateSmokerUI();
-        syncWelcomeFinalUI();
         saveTodaySmokeData();
         syncInputsFromSessions();
         saveSessionsAndDay();
@@ -1898,10 +1836,7 @@ document.addEventListener("DOMContentLoaded", () => {
         startTime.setHours(hours, minutes, seconds, 0);
         const addS = (s) => new Date(startTime.getTime() + (s + totalGapSecs) * 1000);
         const formatT = (d) => `${format2(d.getHours())}:${format2(d.getMinutes())}:${format2(d.getSeconds())}`;
-        return {
-            limit30Time: formatT(addS(6 * 3600 + 30 * 60)),
-            limit45Time: formatT(addS(9 * 3600 + 45 * 60))
-        };
+        return { limit30Time: formatT(addS(6 * 3600 + 30 * 60)), limit45Time: formatT(addS(9 * 3600 + 45 * 60)) };
     }
 
     function checkPauseNotifications() {
@@ -1933,13 +1868,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!localStorage.getItem(key30)) {
                 localStorage.setItem(key30, "1");
                 const remMins = Math.max(0, Math.ceil((limit30Secs - totalPresSecs) / 60));
-                showAppNotification(
-                    "Achtung: 30-Min-Pause droht!",
-                    remMins > 0
-                        ? `In ca. ${remMins} Min (ab ${limit30Time}) greift der automatische 30-Min-Pausenabzug.`
-                        : `Die 6:30-Std-Grenze (${limit30Time}) ist erreicht – 30 Min Pause werden jetzt abgezogen.`,
-                    "pause-30"
-                );
+                showAppNotification("Achtung: 30-Min-Pause droht!", remMins > 0 ? `In ca. ${remMins} Min (ab ${limit30Time}) greift der automatische 30-Min-Pausenabzug.` : `Die 6:30-Std-Grenze (${limit30Time}) ist erreicht – 30 Min Pause werden jetzt abgezogen.`, "pause-30");
             }
         }
 
@@ -1949,22 +1878,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!localStorage.getItem(key45)) {
                 localStorage.setItem(key45, "1");
                 const remMins = Math.max(0, Math.ceil((limit45Secs - totalPresSecs) / 60));
-                showAppNotification(
-                    "Achtung: 45-Min-Pause droht!",
-                    remMins > 0
-                        ? `In ca. ${remMins} Min (ab ${limit45Time}) greift der automatische 45-Min-Pausenabzug.`
-                        : `Die 9:45-Std-Grenze (${limit45Time}) ist erreicht – 45 Min Pause werden jetzt abgezogen.`,
-                    "pause-45"
-                );
+                showAppNotification("Achtung: 45-Min-Pause droht!", remMins > 0 ? `In ca. ${remMins} Min (ab ${limit45Time}) greift der automatische 45-Min-Pausenabzug.` : `Die 9:45-Std-Grenze (${limit45Time}) ist erreicht – 45 Min Pause werden jetzt abgezogen.`, "pause-45");
             }
         }
     }
 
     function renderSessionsBox() {
-        if (todaySessions.length <= 1) {
-            sessionsBox.style.display = "none";
-            return;
-        }
+        if (todaySessions.length <= 1) { sessionsBox.style.display = "none"; return; }
         sessionsBox.style.display = "block";
         sessionsList.innerHTML = "";
 
@@ -1993,17 +1913,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (totalGapSecs > 0) {
             sessionsBreakInfo.style.display = "flex";
             sessionsGapSum.textContent = `${Math.round(totalGapSecs / 60)} min`;
-        } else {
-            sessionsBreakInfo.style.display = "none";
-        }
+        } else sessionsBreakInfo.style.display = "none";
     }
 
     function syncInputsFromSessions() {
-        if (todaySessions.length === 0) {
-            startTimePill.value = "";
-            endTimePill.value = "";
-            return;
-        }
+        if (todaySessions.length === 0) { startTimePill.value = ""; endTimePill.value = ""; return; }
         startTimePill.value = `${todaySessions[0].start.h}:${todaySessions[0].start.m || "00"}`;
         const last = todaySessions[todaySessions.length - 1];
         endTimePill.value = last.end ? `${last.end.h}:${last.end.m || "00"}` : "";
@@ -2013,11 +1927,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const todayStr = getTodayStr();
         renderSessionsBox();
 
-        if (todaySessions.length > 0) {
-            localStorage.setItem("savedTodaySessions", JSON.stringify({ date: todayStr, sessions: todaySessions }));
-        } else {
-            localStorage.removeItem("savedTodaySessions");
-        }
+        if (todaySessions.length > 0) localStorage.setItem("savedTodaySessions", JSON.stringify({ date: todayStr, sessions: todaySessions }));
+        else localStorage.removeItem("savedTodaySessions");
 
         const dow = new Date().getDay();
         if (todaySessions.length === 0 && todaySmokeCount === 0 && !todayFinalized && (dow === 0 || dow === 6)) {
@@ -2043,11 +1954,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function onManualTimeInputChange() {
         const pS = getParsedStart();
         const pE = getParsedEnd();
-        if (!pS && !pE) {
-            todaySessions = [];
-            saveSessionsAndDay();
-            return;
-        }
+        if (!pS && !pE) { todaySessions = []; saveSessionsAndDay(); return; }
         const startObj = pS ? { h: pS.h, m: pS.m, s: "00" } : null;
         const endObj = pE ? { h: pE.h, m: pE.m, s: "00" } : null;
 
@@ -2061,17 +1968,23 @@ document.addEventListener("DOMContentLoaded", () => {
             if (endObj) {
                 const oldE = todaySessions[todaySessions.length - 1].end;
                 todaySessions[todaySessions.length - 1].end = { ...endObj, s: (oldE && oldE.h === endObj.h && oldE.m === endObj.m) ? (oldE.s || "00") : "00" };
-            } else {
-                todaySessions[todaySessions.length - 1].end = null;
-            }
+            } else todaySessions[todaySessions.length - 1].end = null;
         }
         saveSessionsAndDay();
+    }
+
+    function applyRotatedPhraseFor(direction) {
+        if (!phrasesEnabled || typeof getRotatedPhrase !== "function") {
+            updateWelcomeGreetingText(getDefaultGreetingText());
+            return;
+        }
+        const phrase = getRotatedPhrase(phraseProfile, direction, userName);
+        updateWelcomeGreetingText(phrase);
     }
 
     function triggerStampComeNow() {
         pushUndoSnapshot();
         todayFinalized = false;
-        syncWelcomeFinalUI();
         const now = new Date();
         const tObj = { h: format2(now.getHours()), m: format2(now.getMinutes()), s: format2(now.getSeconds()) };
         if (todaySessions.length === 0) todaySessions.push({ start: tObj, end: null });
@@ -2087,6 +2000,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         syncInputsFromSessions();
         saveSessionsAndDay();
+        applyRotatedPhraseFor("greeting");
+        welcomeActionMode = getLogicalNextMode();
+        syncActionButtonVisuals();
         calculateAllTimes();
         checkPauseNotifications();
         updateWelcomeWidgets();
@@ -2100,17 +2016,62 @@ document.addEventListener("DOMContentLoaded", () => {
         else todaySessions[todaySessions.length - 1].end = tObj;
         syncInputsFromSessions();
         saveSessionsAndDay();
+        applyRotatedPhraseFor("farewell");
+        welcomeActionMode = getLogicalNextMode();
+        syncActionButtonVisuals();
         calculateAllTimes();
         updateWelcomeWidgets();
     }
 
+    // Long-Press & Drag auf btn-welcome-action im Gehen-Modus
+    let dragStartX = 0, dragStartY = 0;
+    btnWelcomeAction.addEventListener("pointerdown", (e) => {
+        if (welcomeActionMode !== "go") return;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        clearTimeout(longPressGoTimer);
+        longPressGoTimer = setTimeout(() => {
+            activateFinalGoDragMode();
+        }, 460);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+        if (longPressGoTimer && !finalDragActive && Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 12) {
+            clearTimeout(longPressGoTimer);
+            longPressGoTimer = null;
+        }
+        if (!finalDragActive) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        btnWelcomeAction.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+    }, { passive: true });
+
+    window.addEventListener("pointerup", (e) => {
+        clearTimeout(longPressGoTimer);
+        longPressGoTimer = null;
+        if (!finalDragActive) return;
+        const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+        const hitTarget = dropEl && dropEl.closest(".scatter-node.is-final-target");
+        btnWelcomeAction.style.transform = "";
+        if (hitTarget) {
+            commitFinalGo();
+        } else {
+            clearFinalGoDragState();
+        }
+    });
+
     document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
     document.getElementById("btn-now-end").addEventListener("click", triggerStampGoNow);
+
     btnWelcomeAction.addEventListener("click", () => {
+        if (suppressNextActionClick) {
+            suppressNextActionClick = false;
+            return;
+        }
         if (welcomeActionMode === "go") triggerStampGoNow();
         else triggerStampComeNow();
-        closeWelcomeScreen();
     });
+
     btnWelcomeMenu.addEventListener("click", closeWelcomeScreen);
 
     const getTodaySmokeSecs = () => isSmoker ? todaySmokeCount * smokeMinutesPerBreak * 60 : 0;
@@ -2198,9 +2159,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (totalDeductSecs > 0) {
                 pauseHintEl.textContent = `inkl. -${Math.round(totalDeductSecs / 60)}m Pause`;
                 pauseHintEl.style.display = "block";
-            } else {
-                pauseHintEl.style.display = "none";
-            }
+            } else pauseHintEl.style.display = "none";
         } else {
             decOutputEl.textContent = (netSecs / 3600).toFixed(2);
             pauseHintEl.style.display = "none";
@@ -2228,9 +2187,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 totalPresSecs = getSessionMetricsFromList(saved.sessions, liveEndSecs).totalPresSecs;
             } else if (saved.customPresSecs && saved.customPresSecs > 0) {
                 totalPresSecs = saved.customPresSecs;
-            } else {
-                totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
-            }
+            } else totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
         } else if (saved.customPresSecs && saved.customPresSecs > 0) {
             totalPresSecs = saved.customPresSecs;
         } else if (saved.startH !== '' && saved.startH !== undefined) {
@@ -2263,9 +2220,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const key = localStorage.key(i);
             if (!key || !key.startsWith("day_")) continue;
             const dateStr = key.slice(4);
-
             if (glzBaseDate && dateStr < glzBaseDate) continue;
-
             const parts = dateStr.split("-").map(Number);
             if (parts.length !== 3 || parts.some(isNaN)) continue;
 
@@ -2309,7 +2264,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const rotMax   = 100 * faktor;
 
         pill.classList.remove("ampel-gruen", "ampel-gelb", "ampel-rot");
-
         const fmtSigned = (num) => (num >= 0 ? "+" : "") + num.toFixed(2).replace(".", ",");
         const fmtPlain = (num) => Math.abs(num).toFixed(1).replace(".", ",");
 
@@ -2321,20 +2275,14 @@ document.addEventListener("DOMContentLoaded", () => {
             infoText = `Grün · noch ${fmtPlain(gruenMax - gesamtSaldo)}h bis Gelb`;
         } else if ((gesamtSaldo > gruenMax && gesamtSaldo <= gelbMax) || (gesamtSaldo < gruenMin && gesamtSaldo >= gelbMin)) {
             statusClass = "ampel-gelb";
-            if (gesamtSaldo > gruenMax) {
-                infoText = `Gelb · noch ${fmtPlain(gelbMax - gesamtSaldo)}h bis Rot`;
-            } else {
-                infoText = `Gelb (Minus) · noch ${fmtPlain(gesamtSaldo - gelbMin)}h Puffer`;
-            }
+            infoText = gesamtSaldo > gruenMax
+                ? `Gelb · noch ${fmtPlain(gelbMax - gesamtSaldo)}h bis Rot`
+                : `Gelb (Minus) · noch ${fmtPlain(gesamtSaldo - gelbMin)}h Puffer`;
         } else {
             statusClass = "ampel-rot";
-            if (gesamtSaldo > rotMax) {
-                infoText = `Rot (> ${rotMax.toFixed(0)}h Max!)`;
-            } else if (gesamtSaldo < gelbMin) {
-                infoText = `Rot (Minus-Grenze!)`;
-            } else {
-                infoText = `Rot · Rückführung nötig`;
-            }
+            infoText = gesamtSaldo > rotMax
+                ? `Rot (> ${rotMax.toFixed(0)}h Max!)`
+                : (gesamtSaldo < gelbMin ? `Rot (Minus-Grenze!)` : `Rot · Rückführung nötig`);
         }
 
         pill.classList.add(statusClass);
@@ -2426,7 +2374,6 @@ document.addEventListener("DOMContentLoaded", () => {
         editingDraft = null;
     }
 
-    // Einheitliche hh:mm-Eingabe im Tages-Editor (wie K/G auf der Uhr-Seite)
     function renderDayEditor() {
         if (!editingDraft) return;
         document.querySelectorAll("#day-status-chips .day-status-chip").forEach(chip => {
@@ -2494,40 +2441,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ps = parseHhMmString(startInp.value);
                 const pe = parseHhMmString(endInp.value);
 
-                if (!ps) {
-                    blk.start = null;
-                } else {
+                if (!ps) blk.start = null;
+                else {
                     const oldS = blk.start;
-                    blk.start = {
-                        h: ps.h,
-                        m: ps.m,
-                        s: (oldS && oldS.h === ps.h && oldS.m === ps.m) ? (oldS.s || "00") : "00"
-                    };
+                    blk.start = { h: ps.h, m: ps.m, s: (oldS && oldS.h === ps.h && oldS.m === ps.m) ? (oldS.s || "00") : "00" };
                 }
 
-                if (!pe) {
-                    blk.end = null;
-                } else {
+                if (!pe) blk.end = null;
+                else {
                     const oldE = blk.end;
-                    blk.end = {
-                        h: pe.h,
-                        m: pe.m,
-                        s: (oldE && oldE.h === pe.h && oldE.m === pe.m) ? (oldE.s || "00") : "00"
-                    };
+                    blk.end = { h: pe.h, m: pe.m, s: (oldE && oldE.h === pe.h && oldE.m === pe.m) ? (oldE.s || "00") : "00" };
                 }
             };
 
-            registerKeypadInput(startInp, {
-                mode: "hhmm",
-                label: `#${idx + 1} Kommen (hh:mm)`,
-                nextEl: endInp,
-                onCommit: (_, fin) => syncBlockFromInputs(fin)
-            });
-            registerKeypadInput(endInp, {
-                mode: "hhmm",
-                label: `#${idx + 1} Gehen (hh:mm)`,
-                onCommit: (_, fin) => syncBlockFromInputs(fin)
-            });
+            registerKeypadInput(startInp, { mode: "hhmm", label: `#${idx + 1} Kommen (hh:mm)`, nextEl: endInp, onCommit: (_, fin) => syncBlockFromInputs(fin) });
+            registerKeypadInput(endInp, { mode: "hhmm", label: `#${idx + 1} Gehen (hh:mm)`, onCommit: (_, fin) => syncBlockFromInputs(fin) });
         });
 
         applyKeyboardModeToInputs();
@@ -2567,7 +2495,6 @@ document.addEventListener("DOMContentLoaded", () => {
             todaySmokeCount = 0;
             todayFinalized = false;
             updateSmokerUI();
-            syncWelcomeFinalUI();
             syncInputsFromSessions();
             renderSessionsBox();
             localStorage.removeItem("savedTodaySessions");
@@ -2610,7 +2537,6 @@ document.addEventListener("DOMContentLoaded", () => {
             todaySmokeCount = editingDraft.smokeCount || 0;
             todayFinalized = !!editingDraft.dayFinalized;
             updateSmokerUI();
-            syncWelcomeFinalUI();
             syncInputsFromSessions();
             renderSessionsBox();
             if (todaySessions.length > 0) localStorage.setItem("savedTodaySessions", JSON.stringify({ date: editingDateStr, sessions: todaySessions }));
@@ -2713,16 +2639,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (saved.status === 'work') {
                 if (hasStart || hasEnd) {
                     middleHtml = `<div class="day-time-display">${hasStart ? `${saved.startH}:${saved.startM || '00'}` : '--:--'} – ${hasEnd ? `${saved.endH}:${saved.endM || '00'}` : (saved.dayFinalized ? 'final' : 'läuft...')}</div>`;
-                } else {
-                    middleHtml = `<div class="day-time-display empty">--:-- – --:--</div>`;
-                }
+                } else middleHtml = `<div class="day-time-display empty">--:-- – --:--</div>`;
             } else if (saved.status === 'holiday') {
                 middleHtml = `<div class="day-status-note">🎉 ${holidayName || 'Feiertag'}</div>`;
             } else if (saved.status === 'vacation' || saved.status === 'sick') {
                 middleHtml = `<div class="day-status-note">Soll gutgeschrieben</div>`;
-            } else {
-                middleHtml = `<div class="day-status-note">${(isSaturday || isSunday) ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
-            }
+            } else middleHtml = `<div class="day-status-note">${(isSaturday || isSunday) ? 'Wochenende (frei)' : 'Gleitzeitabbau'}</div>`;
 
             row.innerHTML = `<div class="day-label"><strong>${dayShort[i]}</strong><span>${dateShort}${smokeSub}${splitSub}${finalSub}</span></div>${middleHtml}<div class="status-badge-pill" data-status="${saved.status}">${statusLabels[saved.status] || 'Arbeit'}</div>`;
             row.addEventListener("click", () => openDayEditor(dateStr, `${dayFullNames[i]}, ${dateShort}${currDate.getFullYear()}`, isSaturday ? 'work' : defaultStatus));
@@ -2756,7 +2678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       4-RICHTUNGS-STEUERUNG
+       WISCHSTEUERUNG: UNTEN->OBEN = START | OBEN->UNTEN = MENÜ
        ========================================================= */
     const pdfExportModal = document.getElementById("pdf-export-modal");
     let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
@@ -2767,7 +2689,7 @@ document.addEventListener("DOMContentLoaded", () => {
             || (pdfExportModal && pdfExportModal.classList.contains("active"))
             || backfillModal.classList.contains("active");
 
-        if (!gesturesEnabled || anyModalOpen || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
+        if (!gesturesEnabled || anyModalOpen || finalDragActive || e.touches.length !== 1 || e.target.closest("canvas, input, select, textarea, #custom-keypad-sheet, #kw-merged-swipebar")) {
             touchBlocked = true;
             return;
         }
@@ -2778,42 +2700,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
 
     document.addEventListener("touchend", (e) => {
-        if (!gesturesEnabled || touchBlocked || e.changedTouches.length !== 1) return;
+        if (!gesturesEnabled || touchBlocked || finalDragActive || e.changedTouches.length !== 1) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         const absX = Math.abs(dx), absY = Math.abs(dy);
         const threshold = 55;
 
         if (absX > threshold && absX > absY * 1.3) {
-            if (dx < 0) {
-                switchToWeekView();
-            } else {
-                if (viewWeek.classList.contains("active")) {
-                    switchToClockView();
-                } else if (welcomeOverlay.classList.contains("active")) {
-                    closeWelcomeScreen();
-                }
+            if (dx < 0) switchToWeekView();
+            else {
+                if (viewWeek.classList.contains("active")) switchToClockView();
+                else if (welcomeOverlay.classList.contains("active")) closeWelcomeScreen();
             }
             return;
         }
 
         if (absY > threshold && absY > absX * 1.3) {
-            if (welcomeOverlay.classList.contains("active")) {
-                if (dy < 0) {
-                    openWelcomeScreen(welcomeActionMode === "come" ? "go" : "come");
-                } else {
-                    openWelcomeScreen(welcomeActionMode === "go" ? "come" : "go");
-                }
-            } else if (viewClock.classList.contains("active")) {
-                openWelcomeScreen(dy < 0 ? "come" : "go");
-            } else if (viewWeek.classList.contains("active")) {
-                const maxScroll = Math.max(0, viewsStage.scrollHeight - viewsStage.clientHeight);
-                const scrolledDuringSwipe = Math.abs(viewsStage.scrollTop - stageScrollAtStart) > 12;
-                const atTopPullingDown = dy > 0 && stageScrollAtStart <= 2 && viewsStage.scrollTop <= 2;
-                const atBottomPullingUp = dy < 0 && (maxScroll - stageScrollAtStart) <= 8 && (maxScroll - viewsStage.scrollTop) <= 8;
+            const scrolledDuringSwipe = Math.abs(viewsStage.scrollTop - stageScrollAtStart) > 12;
+            const maxScroll = Math.max(0, viewsStage.scrollHeight - viewsStage.clientHeight);
 
-                if (!scrolledDuringSwipe && (atTopPullingDown || atBottomPullingUp || maxScroll <= 4)) {
-                    openWelcomeScreen(dy < 0 ? "come" : "go");
+            if (dy < 0) {
+                // Wischen von unten nach oben -> Startschirm öffnen
+                if (!welcomeOverlay.classList.contains("active")) {
+                    if (viewClock.classList.contains("active") || (!scrolledDuringSwipe && ((maxScroll - stageScrollAtStart) <= 8 || maxScroll <= 4))) {
+                        openWelcomeScreen();
+                    }
+                }
+            } else {
+                // Wischen von oben nach unten -> Menü öffnen
+                if (!scrolledDuringSwipe && (welcomeOverlay.classList.contains("active") || stageScrollAtStart <= 2)) {
+                    openSettingsMenu();
                 }
             }
         }
@@ -2830,14 +2746,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 syncInputsFromSessions();
                 renderSessionsBox();
                 calculateAllTimes();
-            } else {
-                localStorage.removeItem("savedTodaySessions");
-            }
+            } else localStorage.removeItem("savedTodaySessions");
         }
-    } catch (e) {
-        localStorage.removeItem("savedTodaySessions");
-    }
+    } catch (e) { localStorage.removeItem("savedTodaySessions"); }
 
+    welcomeActionMode = getLogicalNextMode();
+    syncActionButtonVisuals();
     updateStampStatusUI();
     updateAmpelPill();
 
@@ -2876,20 +2790,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     sessionsPresSum.textContent = `Anwesenheit: ${format2(Math.floor(totalPresSecs / 3600))}:${format2(Math.floor((totalPresSecs % 3600) / 60))} h`;
                 }
             }
-        } else {
-            updateWelcomeWidgets();
-        }
+        } else updateWelcomeWidgets();
 
-        if (viewWeek.classList.contains("active") && weekHasLiveToday) {
-            renderWeekSummaryLive();
-        }
+        if (viewWeek.classList.contains("active") && weekHasLiveToday) renderWeekSummaryLive();
     }
 
-    document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) tickLiveEngine();
-    });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) tickLiveEngine(); });
 
-    /* SUBTILES HAPTIK-FEEDBACK BEI INTERAKTION (6 ms) */
     document.addEventListener("pointerdown", (e) => {
         if (!("vibrate" in navigator)) return;
         const target = e.target.closest("button, .kg-pill, .week-row, .settings-nav-card, .section-accordion-btn, .scribble-svg-chip, .day-status-chip, .widget-mode-pill, .icon-variant-card, .kp-key");

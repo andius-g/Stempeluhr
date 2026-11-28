@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.0
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.1
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f4ecf3">
-    <title>Stempeluhr & Wochenübersicht (v2.0.0)</title>
+    <title>Stempeluhr & Wochenübersicht (v2.0.1)</title>
 
     <link rel="manifest" id="app-manifest-link" href="./manifest.json">
     <link rel="icon" id="fav-32" type="image/png" sizes="32x32" href="./favicon_32.png">
     <link rel="icon" id="fav-192" type="image/png" sizes="192x192" href="./favicon_192.png">
     <link rel="icon" id="fav-base" href="./favicon.png" type="image/png">
     <link rel="apple-touch-icon" id="fav-apple" sizes="180x180" href="./favicon_180.png">
-    <link rel="stylesheet" href="./styles.css?v=200">
+    <link rel="stylesheet" href="./styles.css?v=201">
 
     <script>
-        const APP_VERSION = "2.0.0";
+        const APP_VERSION = "2.0.1";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -77,15 +77,16 @@
     <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="./scribbles.js?v=200" defer></script>
-    <script src="./holidays-nds.js?v=200" defer></script>
-    <script src="./pdf-export.js?v=200" defer></script>
-    <script src="./app.js?v=200" defer></script>
+    <script src="./scribbles.js?v=201" defer></script>
+    <script src="./holidays-nds.js?v=201" defer></script>
+    <script src="./phrases.js?v=201" defer></script>
+    <script src="./pdf-export.js?v=201" defer></script>
+    <script src="./app.js?v=201" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
 
-    <!-- SCREEN 1: START (KOMMEN / GEHEN) -->
+    <!-- SCREEN 1: START (KOMMEN / GEHEN — Wischen von unten nach oben) -->
     <section class="welcome-overlay" id="welcome-overlay" aria-label="Start">
         <div class="welcome-scatter-field" id="welcome-scatter-field"></div>
 
@@ -95,6 +96,12 @@
         </div>
 
         <div class="welcome-actions-stack" id="welcome-actions-stack">
+            <!-- KOMMEN / GEHEN IMMER ZUOBERST IM GOLDENEN SCHNITT -->
+            <button type="button" class="btn-welcome-action" id="btn-welcome-action">
+                <strong id="welcome-action-title">Kommen</strong>
+                <span id="welcome-action-sub">Jetzt einstempeln · lang halten für finales Gehen</span>
+            </button>
+
             <!-- LÖSUNG 3: STATUS-KACHEL MIT ZUSATZINFO -->
             <div class="welcome-status-card is-neutral" id="welcome-status-card" aria-live="polite">
                 <div class="wsc-main-row">
@@ -104,7 +111,7 @@
                 <div class="wsc-sub" id="welcome-status-sub">Heute noch keine Stempelung erfasst</div>
             </div>
 
-            <!-- SOLL-ERREICHT-INFO-PILLE (STARTBILDSCHIRM) -->
+            <!-- SOLL-ERREICHT-INFO-PILLE -->
             <div class="welcome-soll-widget" id="welcome-soll-widget" style="display: none;" aria-live="polite">
                 <div class="wsw-top-row">
                     <span class="wsw-badge" id="wsw-badge">Soll erreicht um</span>
@@ -122,19 +129,6 @@
                 <div class="wpw-countdown" id="wpw-countdown">00:00:00</div>
             </div>
 
-            <!-- FINALER FEIERABEND-SCHALTER (NUR IM GEHEN-MODUS) -->
-            <button type="button" class="welcome-final-toggle" id="btn-welcome-final-toggle" style="display: none;" aria-pressed="false">
-                <span class="wft-icon" aria-hidden="true">✦</span>
-                <span class="wft-label" id="welcome-final-label">Finaler Feierabend</span>
-                <span class="wft-state" id="welcome-final-state">Aus</span>
-            </button>
-
-            <!-- HAUPTAKTION IM GOLDENEN SCHNITT (1.618x) -->
-            <button type="button" class="btn-welcome-action" id="btn-welcome-action">
-                <strong id="welcome-action-title">Kommen</strong>
-                <span id="welcome-action-sub">Jetzt direkt einstempeln</span>
-            </button>
-
             <button type="button" class="btn-welcome-menu" id="btn-welcome-menu">
                 <div class="welcome-big-clock" id="welcome-big-clock">--:--:--</div>
                 <div class="welcome-menu-hint">Zur Uhr →</div>
@@ -142,7 +136,7 @@
 
             <div class="nav-compass-hint" id="welcome-compass-hint">
                 <span>← Woche</span>
-                <span id="welcome-vertical-hint">↕ Kommen / Gehen</span>
+                <span id="welcome-vertical-hint">↓ Menü · ↑ Start</span>
                 <span>Uhr →</span>
             </div>
         </div>
@@ -304,7 +298,7 @@
         </div>
     </div>
 
-    <!-- GLOBALE ZAHLENTASTATUR (4 TASTEN IN REIHE 4: ,  0  .  ↵) -->
+    <!-- GLOBALE ZAHLENTASTATUR -->
     <div class="custom-keypad-sheet" id="custom-keypad-sheet" role="region" aria-label="Zahlentastatur">
         <div class="keypad-topbar">
             <span class="keypad-target-badge" id="keypad-target-badge">Kommen (hh:mm)</span>
@@ -364,7 +358,7 @@
             </div>
             <div class="settings-group">
                 <label for="pdfUserNamePreview">Name auf dem Stundenzettel</label>
-                <input type="text" id="pdfUserNamePreview" class="text-input-full" placeholder="Dein Name">
+                <input type="text" id="pdfUserNamePreview" class="text-input-full" placeholder="Amici">
             </div>
             <div style="background:var(--bg-color); padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.84em; margin-bottom:10px; line-height:1.4;">
                 Erstellt eine druckfertige DIN-A4-PDF-Datei mit allen Tagen des Monats, Kommen/Gehen-Zeiten, Pausen, Status, Gesamtsaldo sowie Unterschriftszeile.
@@ -418,7 +412,7 @@
         </div>
     </div>
 
-    <!-- SCREEN 4: MENÜ (EINSTELLUNGEN + 3 UNTERMENÜS) -->
+    <!-- SCREEN 4: MENÜ -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" id="settings-modal-card">
             <button class="close-btn" id="btn-close-settings">&times;</button>
@@ -427,7 +421,7 @@
                 <h2>Menü</h2>
 
                 <div class="settings-group">
-                    <input type="text" id="userNameInput" class="text-input-full" placeholder="Dein Name" aria-label="Dein Name">
+                    <input type="text" id="userNameInput" class="text-input-full" placeholder="Name (leer = Amici)" aria-label="Name">
                 </div>
 
                 <div class="settings-group">
@@ -445,8 +439,8 @@
                 <div class="settings-group">
                     <button type="button" class="settings-nav-card" id="btn-open-widgets-subpage">
                         <div class="settings-nav-info">
-                            <strong>Widgets & Tastatur</strong>
-                            <span id="nav-widgets-summary">Widgets aktiv · App-Tastatur</span>
+                            <strong>Widgets, Sprüche & Tastatur</strong>
+                            <span id="nav-widgets-summary">Widgets aktiv · Sprüche an</span>
                         </div>
                         <div class="settings-nav-right">
                             <span class="nav-chevron">›</span>
@@ -504,14 +498,14 @@
                 </div>
 
                 <div class="version-update-bar">
-                    <span id="app-version-label" style="font-weight:bold;">Version 2.0.0</span>
+                    <span id="app-version-label" style="font-weight:bold;">Version 2.0.1</span>
                     <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                 </div>
 
                 <button class="settings-save" id="btn-save-settings">Speichern & Schließen</button>
             </div>
 
-            <!-- UNTERMENÜ 1: ARBEITSZEIT & PAUSEN (AKKORDEON) -->
+            <!-- UNTERMENÜ 1: ARBEITSZEIT & PAUSEN -->
             <div id="settings-page-work" style="display: none;">
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-work">← Zurück</button>
@@ -612,11 +606,42 @@
                 <button type="button" class="settings-save" id="btn-done-work">Fertig</button>
             </div>
 
-            <!-- UNTERMENÜ 2: WIDGETS & TASTATUR (AKKORDEON) -->
+            <!-- UNTERMENÜ 2: WIDGETS, SPRÜCHE & TASTATUR -->
             <div id="settings-page-widgets" style="display: none;">
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-widgets">← Zurück</button>
-                    <h2>Widgets & Tastatur</h2>
+                    <h2>Widgets, Sprüche & Tastatur</h2>
+                </div>
+
+                <div class="section-accordion-card" data-acc-group="widgets">
+                    <button type="button" class="section-accordion-btn" aria-expanded="false">
+                        <span class="section-acc-title">💬 Begrüßung & Abschied</span>
+                        <span class="section-acc-right">
+                            <span class="section-acc-meta" id="acc-meta-phrases">An · Uni</span>
+                            <span class="section-acc-chevron">›</span>
+                        </span>
+                    </button>
+                    <div class="section-accordion-body">
+                        <div class="setting-box-row" style="background:var(--white); margin-bottom: 8px;">
+                            <label class="toggle-label-nowrap" for="phrasesEnabledCheck">
+                                <input type="checkbox" id="phrasesEnabledCheck" checked>
+                                <span>Sprüche-Rotation aktiv</span>
+                            </label>
+                        </div>
+
+                        <div id="phrases-options-wrap">
+                            <label style="display:block; font-weight:bold; font-size:0.84em; margin-bottom:6px;">Ansprache-Stil</label>
+                            <div class="widget-mode-pills" id="phrase-profile-pills" role="radiogroup" aria-label="Ansprache-Stil">
+                                <button type="button" class="widget-mode-pill" data-ph-profile="male">Männlich</button>
+                                <button type="button" class="widget-mode-pill" data-ph-profile="female">Weiblich</button>
+                                <button type="button" class="widget-mode-pill" data-ph-profile="uni">Uni (neutral)</button>
+                            </div>
+                        </div>
+
+                        <div style="font-size:0.75em; opacity:0.78; margin-top:8px; line-height:1.35;">
+                            Rotiert ohne direkte Wiederholung durch 50 Sprüche je Richtung. Ohne Namen wird automatisch „Amici“ verwendet.
+                        </div>
+                    </div>
                 </div>
 
                 <div class="section-accordion-card" data-acc-group="widgets">
@@ -703,7 +728,7 @@
                 <button type="button" class="settings-save" id="btn-done-widgets">Fertig</button>
             </div>
 
-            <!-- UNTERMENÜ 3: DARSTELLUNG & DESIGN (AKKORDEON) -->
+            <!-- UNTERMENÜ 3: DARSTELLUNG & DESIGN -->
             <div id="settings-page-design" style="display: none;">
                 <div class="subpage-header">
                     <button type="button" class="btn-subpage-back" id="btn-back-from-design">← Zurück</button>
@@ -815,7 +840,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=200');
+        navigator.serviceWorker.register('./sw.js?v=201');
       }
     </script>
 </body>
