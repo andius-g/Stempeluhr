@@ -331,9 +331,14 @@ window.StempeluhrModules.getRotatedPhrase = function(profile, direction, rawName
     if (!pool.length) return "";
 
     const storageKey = `phraseIdx_${prof}_${dir}`;
-    const lastIdx = parseInt(localStorage.getItem(storageKey), 10);
+    let lastIdx = NaN;
+    try {
+        lastIdx = parseInt(localStorage.getItem(storageKey), 10);
+    } catch (e) {}
     const nextIdx = isNaN(lastIdx) ? 0 : ((lastIdx + 1) % pool.length);
-    localStorage.setItem(storageKey, String(nextIdx));
+    try {
+        localStorage.setItem(storageKey, String(nextIdx));
+    } catch (e) {}
 
     const cleanName = (rawName || "").trim() || "Amici";
     return pool[nextIdx].replace(/\[Name\]/g, cleanName);

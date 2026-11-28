@@ -42,5 +42,6 @@ window.StempeluhrModules.SCRIBBLE_ICONS = [
 ];
 
 window.StempeluhrModules.makeScribbleSvg = function(iconObj) {
+    if (!iconObj || typeof iconObj.inner !== "string") return "";
     return `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>`;
 };

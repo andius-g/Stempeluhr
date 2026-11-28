@@ -1,12 +1,40 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.4)
+   STEMPELUHR & WOCHENÜBERSICHT — ANWENDUNGSLOGIK (VERSION 2.0.5)
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const mods = window.StempeluhrModules || {};
     const SCRIBBLE_ICONS = mods.SCRIBBLE_ICONS || [];
-    const makeScribbleSvg = mods.makeScribbleSvg || ((iconObj) => `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>`);
+    const makeScribbleSvg = mods.makeScribbleSvg || ((iconObj) => (iconObj && iconObj.inner ? `<svg viewBox="0 0 36 36">${iconObj.inner}</svg>` : ""));
     const getHolidayName = mods.getHolidayName || (() => null);
     const getRotatedPhrase = mods.getRotatedPhrase || null;
+
+    const on = (id, ev, fn, opts) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(ev, fn, opts);
+        return el;
+    };
+
+    const storageGet = (k, fallback = null) => {
+        try {
+            const v = localStorage.getItem(k);
+            return v === null ? fallback : v;
+        } catch (e) {
+            return fallback;
+        }
+    };
+
+    const storageSet = (k, v) => {
+        try {
+            localStorage.setItem(k, v);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    const storageRemove = (k) => {
+        try { localStorage.removeItem(k); } catch (e) {}
+    };
 
     const format2 = (val) => String(val).padStart(2, '0');
     const getTodayStr = () => {
@@ -15,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const versionLabelEl = document.getElementById("app-version-label");
-    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.4"}`;
+    if (versionLabelEl) versionLabelEl.textContent = `Version ${typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.5"}`;
 
     const liveTimeEl = document.getElementById("live-clock-time");
     const liveDayEl = document.getElementById("live-clock-day");
@@ -79,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function showAppNotification(title, body, tag) {
         if (!("Notification" in window) || Notification.permission !== "granted") return;
-        const iconFile = localStorage.getItem("appIconTheme") === "rose" ? "./favicon_rose_192.png" : "./favicon_192.png";
+        const iconFile = storageGet("appIconTheme") === "rose" ? "./favicon_rose_192.png" : "./favicon_192.png";
         const options = { body, icon: iconFile, badge: iconFile, tag, renotify: true };
         try {
             if ("serviceWorker" in navigator) {
@@ -94,10 +122,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getDayData(dateStr) {
-        try { return JSON.parse(localStorage.getItem("day_" + dateStr)) || null; }
+        try { return JSON.parse(storageGet("day_" + dateStr)) || null; }
         catch (e) { return null; }
     }
-    const saveDayData = (dateStr, data) => localStorage.setItem("day_" + dateStr, JSON.stringify(data));
+    const saveDayData = (dateStr, data) => storageSet("day_" + dateStr, JSON.stringify(data));
 
     function hasWeekendBooking(saved) {
         if (!saved) return false;
@@ -118,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateBackupStatusBadge() {
         if (!backupStatusPill) return;
-        const lastIso = localStorage.getItem("lastBackupDate");
+        const lastIso = storageGet("lastBackupDate");
         backupStatusPill.classList.remove("is-due");
 
         if (!lastIso) {
@@ -140,16 +168,18 @@ document.addEventListener("DOMContentLoaded", () => {
     function exportBackupJson() {
         const payload = {
             app: "Stempeluhr",
-            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.4",
+            version: typeof APP_VERSION !== "undefined" ? APP_VERSION : "2.0.5",
             exportedAt: new Date().toISOString(),
             storage: {}
         };
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key) payload.storage[key] = localStorage.getItem(key);
-        }
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) payload.storage[key] = localStorage.getItem(key);
+            }
+        } catch (e) {}
         const todayStr = getTodayStr();
-        const safeName = (localStorage.getItem("userName") || "").trim().replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, "_");
+        const safeName = (storageGet("userName") || "").trim().replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, "_");
         const fileName = safeName ? `Stempeluhr_Backup_${todayStr}_${safeName}.json` : `Stempeluhr_Backup_${todayStr}.json`;
 
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -162,98 +192,114 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1500);
 
-        localStorage.setItem("lastBackupDate", new Date().toISOString());
+        storageSet("lastBackupDate", new Date().toISOString());
         updateBackupStatusBadge();
     }
 
-    document.getElementById("btn-export-backup").addEventListener("click", exportBackupJson);
-    document.getElementById("btn-import-backup").addEventListener("click", () => {
+    on("btn-export-backup", "click", exportBackupJson);
+    on("btn-import-backup", "click", () => {
+        if (!backupFileInput) return;
         backupFileInput.value = "";
         backupFileInput.click();
     });
 
-    backupFileInput.addEventListener("change", (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const parsed = JSON.parse(ev.target.result);
-                if (!parsed || parsed.app !== "Stempeluhr" || typeof parsed.storage !== "object" || !parsed.storage) {
-                    alert("Ungültige Datei: Dies ist kein gültiges Stempeluhr-Backup.");
-                    return;
-                }
-                const keys = Object.keys(parsed.storage);
-                const dayCount = keys.filter(k => k.startsWith("day_")).length;
-                const exportInfo = parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleDateString("de-DE") : "unbekannt";
-                if (!confirm(`Backup vom ${exportInfo} (${dayCount} gespeicherte Tage) einspielen?\n\nAktuelle Einträge werden ersetzt.`)) return;
+    if (backupFileInput) {
+        backupFileInput.addEventListener("change", (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    if (!parsed || parsed.app !== "Stempeluhr" || typeof parsed.storage !== "object" || !parsed.storage) {
+                        alert("Ungültige Datei: Dies ist kein gültiges Stempeluhr-Backup.");
+                        return;
+                    }
+                    const keys = Object.keys(parsed.storage);
+                    const dayCount = keys.filter(k => k.startsWith("day_")).length;
+                    const exportInfo = parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleDateString("de-DE") : "unbekannt";
+                    if (!confirm(`Backup vom ${exportInfo} (${dayCount} gespeicherte Tage) einspielen?\n\nAktuelle Einträge werden ersetzt.`)) return;
 
-                localStorage.clear();
-                keys.forEach((k) => { if (typeof parsed.storage[k] === "string") localStorage.setItem(k, parsed.storage[k]); });
-                alert("Backup erfolgreich wiederhergestellt! Die App wird neu geladen.");
-                window.location.reload();
-            } catch (err) { alert("Fehler beim Lesen der Backup-Datei."); }
-        };
-        reader.readAsText(file);
-    });
+                    const snapshot = {};
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k) snapshot[k] = localStorage.getItem(k);
+                    }
+                    try {
+                        localStorage.clear();
+                        keys.forEach((k) => {
+                            if (typeof parsed.storage[k] === "string") localStorage.setItem(k, parsed.storage[k]);
+                        });
+                    } catch (writeErr) {
+                        localStorage.clear();
+                        Object.keys(snapshot).forEach((k) => localStorage.setItem(k, snapshot[k]));
+                        throw writeErr;
+                    }
+                    alert("Backup erfolgreich wiederhergestellt! Die App wird neu geladen.");
+                    window.location.reload();
+                } catch (err) { alert("Fehler beim Lesen oder Speichern der Backup-Datei."); }
+            };
+            reader.readAsText(file);
+        });
+    }
 
-    let userName = localStorage.getItem("userName") || "";
-    let phrasesEnabled = localStorage.getItem("phrasesEnabled") !== "false";
-    let phraseProfile = localStorage.getItem("phraseProfile") || "uni";
+    let userName = storageGet("userName") || "";
+    let phrasesEnabled = storageGet("phrasesEnabled") !== "false";
+    let phraseProfile = storageGet("phraseProfile") || "uni";
     if (!["male", "female", "uni"].includes(phraseProfile)) phraseProfile = "uni";
     let activeWelcomePhrase = "";
 
-    let appStyleMode = localStorage.getItem("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
-    let appAsymIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
+    let appStyleMode = storageGet("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
+    let appAsymIntensity = parseInt(storageGet("appAsymIntensity"), 10);
     if (isNaN(appAsymIntensity)) appAsymIntensity = 55;
 
-    let appHue = parseInt(localStorage.getItem("appHue"), 10);
+    let appHue = parseInt(storageGet("appHue"), 10);
     if (isNaN(appHue)) appHue = 195;
 
-    let appLightness = parseInt(localStorage.getItem("appLightness"), 10);
+    let appLightness = parseInt(storageGet("appLightness"), 10);
     if (isNaN(appLightness)) appLightness = 44;
     appLightness = Math.min(52, Math.max(28, appLightness));
 
-    let sollHours = parseInt(localStorage.getItem("sollHours"), 10);
+    let sollHours = parseInt(storageGet("sollHours"), 10);
     if (isNaN(sollHours)) sollHours = 8;
-    let sollMinutes = parseInt(localStorage.getItem("sollMinutes"), 10);
+    let sollMinutes = parseInt(storageGet("sollMinutes"), 10);
     if (isNaN(sollMinutes)) sollMinutes = 0;
 
-    let weeklyHours = parseFloat(localStorage.getItem("weeklyHours"));
+    let weeklyHours = parseFloat(storageGet("weeklyHours"));
     if (isNaN(weeklyHours) || weeklyHours <= 0) weeklyHours = 40;
-    let glzBaseHours = parseFloat(localStorage.getItem("glzBaseHours"));
+    let glzBaseHours = parseFloat(storageGet("glzBaseHours"));
     if (isNaN(glzBaseHours)) glzBaseHours = 0;
-    let glzBaseDate = localStorage.getItem("glzBaseDate") || "";
+    let glzBaseDate = storageGet("glzBaseDate") || "";
 
-    let pauseNotifyEnabled = localStorage.getItem("pauseNotifyEnabled") === "true";
-    let pauseNotifyLeadMins = parseInt(localStorage.getItem("pauseNotifyLeadMins"), 10);
+    let pauseNotifyEnabled = storageGet("pauseNotifyEnabled") === "true";
+    let pauseNotifyLeadMins = parseInt(storageGet("pauseNotifyLeadMins"), 10);
     if (isNaN(pauseNotifyLeadMins) || pauseNotifyLeadMins < 1) pauseNotifyLeadMins = 10;
 
-    let sollWidgetEnabled = localStorage.getItem("sollWidgetEnabled") !== "false";
-    let sollWidgetMode = localStorage.getItem("sollWidgetMode") || "both";
+    let sollWidgetEnabled = storageGet("sollWidgetEnabled") !== "false";
+    let sollWidgetMode = storageGet("sollWidgetMode") || "both";
     if (!["go", "come", "both"].includes(sollWidgetMode)) sollWidgetMode = "both";
 
-    let pauseWatcherEnabled = localStorage.getItem("pauseWatcherEnabled") !== "false";
-    let pauseWatcherMode = localStorage.getItem("pauseWatcherMode") || "both";
+    let pauseWatcherEnabled = storageGet("pauseWatcherEnabled") !== "false";
+    let pauseWatcherMode = storageGet("pauseWatcherMode") || "both";
     if (!["go", "come", "both"].includes(pauseWatcherMode)) pauseWatcherMode = "both";
 
-    let keyboardMode = localStorage.getItem("keyboardMode") === "system" ? "system" : "app";
+    let keyboardMode = storageGet("keyboardMode") === "system" ? "system" : "app";
 
-    let isSmoker = localStorage.getItem("isSmoker") === "true";
-    let smokeMinutesPerBreak = parseInt(localStorage.getItem("smokeMinutesPerBreak"), 10);
+    let isSmoker = storageGet("isSmoker") === "true";
+    let smokeMinutesPerBreak = parseInt(storageGet("smokeMinutesPerBreak"), 10);
     if (isNaN(smokeMinutesPerBreak) || smokeMinutesPerBreak < 1) smokeMinutesPerBreak = 5;
 
     let selectedScribbles = ["bolt", "loop-arrow"];
     try {
-        const rawArr = JSON.parse(localStorage.getItem("selectedScribbles"));
+        const rawArr = JSON.parse(storageGet("selectedScribbles"));
         if (Array.isArray(rawArr)) selectedScribbles = rawArr.filter(id => SCRIBBLE_ICONS.some(ic => ic.id === id)).slice(0, 5);
     } catch (e) {}
 
-    let scribbleSizePct = parseInt(localStorage.getItem("scribbleSizePct"), 10);
+    let scribbleSizePct = parseInt(storageGet("scribbleSizePct"), 10);
     if (isNaN(scribbleSizePct)) scribbleSizePct = 50;
     scribbleSizePct = Math.min(100, Math.max(15, scribbleSizePct));
 
-    let appIconTheme = localStorage.getItem("appIconTheme") === "rose" ? "rose" : "blue";
+    let appIconTheme = storageGet("appIconTheme") === "rose" ? "rose" : "blue";
 
     const initialTodayData = getDayData(getTodayStr());
     let todaySmokeCount = (initialTodayData && typeof initialTodayData.smokeCount === "number") ? initialTodayData.smokeCount : 0;
@@ -269,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("#icon-variant-grid .icon-variant-card").forEach((card) => {
         card.addEventListener("click", () => {
             appIconTheme = card.getAttribute("data-icon-theme") === "rose" ? "rose" : "blue";
-            localStorage.setItem("appIconTheme", appIconTheme);
+            storageSet("appIconTheme", appIconTheme);
             if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
             syncIconThemePickerUI();
             updateAccordionBadges();
@@ -380,6 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderScribblePicker() {
+        if (!scribbleCountTag || !scribbleSvgGrid) return;
         scribbleCountTag.textContent = `${selectedScribbles.length} / 5`;
         updateAccordionBadges();
         scribbleSvgGrid.innerHTML = "";
@@ -403,11 +450,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    scribbleSizeSlider.addEventListener("input", () => {
-        scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
-        scribbleSizeVal.textContent = scribbleSizePct;
-        updateAccordionBadges();
-    });
+    if (scribbleSizeSlider) {
+        scribbleSizeSlider.addEventListener("input", () => {
+            scribbleSizePct = parseInt(scribbleSizeSlider.value, 10);
+            if (scribbleSizeVal) scribbleSizeVal.textContent = scribbleSizePct;
+            updateAccordionBadges();
+        });
+    }
 
     /* =========================================================
        SCREEN 1: START + TOP-DOWN-SEQUENZ + ORB
@@ -444,9 +493,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let ambientAnimTimer = null;
     let bootSeqTimers = [];
 
-    const PHI_THRESHOLD_PX = Math.round(48 * 1.618); // ~78px über die goldene Ratio
+    const PHI_THRESHOLD_PX = Math.round(48 * 1.618);
     let orbModeActive = false;
-    let orbArmedDecision = null; // "finalize" | "cancel" | null
+    let orbArmedDecision = null;
     let orbStartX = 0, orbStartY = 0;
     let longPressGoTimer = null;
     let suppressNextActionClick = false;
@@ -464,7 +513,6 @@ document.addEventListener("DOMContentLoaded", () => {
         welcomeOverlay.querySelectorAll(".seq-item").forEach(el => el.classList.remove("is-shown"));
     }
 
-    // Top-Down-Sequenz (~1000 ms gesamt): Datum -> Begrüßung -> Favicon -> Kommen -> Rest
     function runTopDownBootSequence() {
         clearBootSequence();
         const items = Array.from(welcomeOverlay.querySelectorAll(".seq-item"));
@@ -916,7 +964,7 @@ document.addEventListener("DOMContentLoaded", () => {
         welcomeOverlay.classList.remove("active", "welcome-mode-switch");
         if (welcomeSollWidget) welcomeSollWidget.style.display = "none";
         if (welcomePauseWidget) welcomePauseWidget.style.display = "none";
-        localStorage.setItem("welcomeDismissedDate", getTodayStr());
+        storageSet("welcomeDismissedDate", getTodayStr());
         applyThemeColors(appHue, appLightness);
     }
 
@@ -957,10 +1005,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function switchToClockView() { setActiveMainView("clock"); }
     function switchToWeekView() { weekOffset = 0; setActiveMainView("week"); }
 
-    toggleViewBtn.addEventListener("click", () => {
-        if (viewWeek.classList.contains("active")) switchToClockView();
-        else switchToWeekView();
-    });
+    if (toggleViewBtn) {
+        toggleViewBtn.addEventListener("click", () => {
+            if (viewWeek.classList.contains("active")) switchToClockView();
+            else switchToWeekView();
+        });
+    }
 
     function changeWeek(delta) { weekOffset += delta; buildWeekView(); }
     function jumpToCurrentWeek() { if (weekOffset !== 0) { weekOffset = 0; buildWeekView(); } }
@@ -976,27 +1026,29 @@ document.addEventListener("DOMContentLoaded", () => {
         buildWeekView();
     }
 
-    document.getElementById("btn-prev-week").addEventListener("click", (e) => { e.stopPropagation(); changeWeek(-1); });
-    document.getElementById("btn-next-week").addEventListener("click", (e) => { e.stopPropagation(); changeWeek(1); });
-    document.getElementById("week-kw-badge").addEventListener("click", (e) => { e.stopPropagation(); jumpToCurrentWeek(); });
-    weekDatePicker.addEventListener("change", () => jumpToDateStr(weekDatePicker.value));
+    on("btn-prev-week", "click", (e) => { e.stopPropagation(); changeWeek(-1); });
+    on("btn-next-week", "click", (e) => { e.stopPropagation(); changeWeek(1); });
+    on("week-kw-badge", "click", (e) => { e.stopPropagation(); jumpToCurrentWeek(); });
+    if (weekDatePicker) weekDatePicker.addEventListener("change", () => jumpToDateStr(weekDatePicker.value));
 
     const kwMergedSwipebar = document.getElementById("kw-merged-swipebar");
     let kwBarStartX = 0, kwBarDidSwipe = false;
-    kwMergedSwipebar.addEventListener("touchstart", (e) => {
-        if (e.touches.length === 1) { kwBarStartX = e.touches[0].clientX; kwBarDidSwipe = false; }
-    }, { passive: true });
-    kwMergedSwipebar.addEventListener("touchmove", (e) => {
-        if (e.touches.length === 1 && Math.abs(e.touches[0].clientX - kwBarStartX) > 22) kwBarDidSwipe = true;
-    }, { passive: true });
-    kwMergedSwipebar.addEventListener("touchend", (e) => {
-        if (e.changedTouches.length !== 1) return;
-        const dx = e.changedTouches[0].clientX - kwBarStartX;
-        if (Math.abs(dx) > 36) { e.preventDefault(); e.stopPropagation(); changeWeek(dx < 0 ? 1 : -1); }
-    });
-    kwMergedSwipebar.addEventListener("click", (e) => {
-        if (kwBarDidSwipe) { e.preventDefault(); e.stopPropagation(); kwBarDidSwipe = false; }
-    }, true);
+    if (kwMergedSwipebar) {
+        kwMergedSwipebar.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 1) { kwBarStartX = e.touches[0].clientX; kwBarDidSwipe = false; }
+        }, { passive: true });
+        kwMergedSwipebar.addEventListener("touchmove", (e) => {
+            if (e.touches.length === 1 && Math.abs(e.touches[0].clientX - kwBarStartX) > 22) kwBarDidSwipe = true;
+        }, { passive: true });
+        kwMergedSwipebar.addEventListener("touchend", (e) => {
+            if (e.changedTouches.length !== 1) return;
+            const dx = e.changedTouches[0].clientX - kwBarStartX;
+            if (Math.abs(dx) > 36) { e.preventDefault(); e.stopPropagation(); changeWeek(dx < 0 ? 1 : -1); }
+        });
+        kwMergedSwipebar.addEventListener("click", (e) => {
+            if (kwBarDidSwipe) { e.preventDefault(); e.stopPropagation(); kwBarDidSwipe = false; }
+        }, true);
+    }
 
     /* =========================================================
        MENÜ-EINSTELLUNGEN
@@ -1038,78 +1090,78 @@ document.addEventListener("DOMContentLoaded", () => {
     const lightnessSlider = document.getElementById("lightnessSlider");
     const lightnessVal = document.getElementById("lightnessVal");
 
-    userNameInput.value = userName;
-    phrasesEnabledCheck.checked = phrasesEnabled;
-    sollHoursInput.value = sollHours;
-    sollMinutesInput.value = sollMinutes;
-    weeklyHoursInput.value = String(weeklyHours).replace(".", ",");
-    glzBaseInput.value = String(glzBaseHours).replace(".", ",");
-    glzBaseDateInput.value = glzBaseDate;
-    pauseNotifyCheck.checked = pauseNotifyEnabled;
-    pauseNotifyLeadInput.value = pauseNotifyLeadMins;
-    sollWidgetEnabledCheck.checked = sollWidgetEnabled;
-    pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
-    styleModeSelect.value = appStyleMode;
-    asymIntensitySlider.value = appAsymIntensity;
-    asymIntensityVal.textContent = appAsymIntensity;
-    isSmokerCheck.checked = isSmoker;
-    smokeMinutesInput.value = smokeMinutesPerBreak;
-    lightnessSlider.value = appLightness;
-    lightnessVal.textContent = appLightness;
-    scribbleSizeSlider.value = scribbleSizePct;
-    scribbleSizeVal.textContent = scribbleSizePct;
+    if (userNameInput) userNameInput.value = userName;
+    if (phrasesEnabledCheck) phrasesEnabledCheck.checked = phrasesEnabled;
+    if (sollHoursInput) sollHoursInput.value = sollHours;
+    if (sollMinutesInput) sollMinutesInput.value = sollMinutes;
+    if (weeklyHoursInput) weeklyHoursInput.value = String(weeklyHours).replace(".", ",");
+    if (glzBaseInput) glzBaseInput.value = String(glzBaseHours).replace(".", ",");
+    if (glzBaseDateInput) glzBaseDateInput.value = glzBaseDate;
+    if (pauseNotifyCheck) pauseNotifyCheck.checked = pauseNotifyEnabled;
+    if (pauseNotifyLeadInput) pauseNotifyLeadInput.value = pauseNotifyLeadMins;
+    if (sollWidgetEnabledCheck) sollWidgetEnabledCheck.checked = sollWidgetEnabled;
+    if (pauseWatcherEnabledCheck) pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
+    if (styleModeSelect) styleModeSelect.value = appStyleMode;
+    if (asymIntensitySlider) asymIntensitySlider.value = appAsymIntensity;
+    if (asymIntensityVal) asymIntensityVal.textContent = appAsymIntensity;
+    if (isSmokerCheck) isSmokerCheck.checked = isSmoker;
+    if (smokeMinutesInput) smokeMinutesInput.value = smokeMinutesPerBreak;
+    if (lightnessSlider) lightnessSlider.value = appLightness;
+    if (lightnessVal) lightnessVal.textContent = appLightness;
+    if (scribbleSizeSlider) scribbleSizeSlider.value = scribbleSizePct;
+    if (scribbleSizeVal) scribbleSizeVal.textContent = scribbleSizePct;
 
     function persistAllSettings() {
-        userName = userNameInput.value.trim();
-        phrasesEnabled = phrasesEnabledCheck.checked;
-        sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput.value, 10) || 0));
-        sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput.value, 10) || 0));
+        userName = userNameInput ? userNameInput.value.trim() : userName;
+        phrasesEnabled = phrasesEnabledCheck ? phrasesEnabledCheck.checked : phrasesEnabled;
+        sollHours = Math.min(24, Math.max(0, parseInt(sollHoursInput ? sollHoursInput.value : sollHours, 10) || 0));
+        sollMinutes = Math.min(59, Math.max(0, parseInt(sollMinutesInput ? sollMinutesInput.value : sollMinutes, 10) || 0));
 
-        const parsedWeekly = parseFloat(String(weeklyHoursInput.value).replace(',', '.'));
+        const parsedWeekly = parseFloat(String(weeklyHoursInput ? weeklyHoursInput.value : weeklyHours).replace(',', '.'));
         weeklyHours = (!isNaN(parsedWeekly) && parsedWeekly > 0 && parsedWeekly <= 48) ? parsedWeekly : 40;
 
-        const parsedGlzBase = parseFloat(String(glzBaseInput.value).replace(',', '.'));
+        const parsedGlzBase = parseFloat(String(glzBaseInput ? glzBaseInput.value : glzBaseHours).replace(',', '.'));
         glzBaseHours = !isNaN(parsedGlzBase) ? parsedGlzBase : 0;
 
-        glzBaseDate = glzBaseDateInput.value || "";
+        glzBaseDate = glzBaseDateInput ? (glzBaseDateInput.value || "") : glzBaseDate;
 
-        pauseNotifyEnabled = pauseNotifyCheck.checked && ("Notification" in window) && Notification.permission === "granted";
-        pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput.value, 10) || 10));
+        pauseNotifyEnabled = !!(pauseNotifyCheck && pauseNotifyCheck.checked && ("Notification" in window) && Notification.permission === "granted");
+        pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput ? pauseNotifyLeadInput.value : pauseNotifyLeadMins, 10) || 10));
 
-        sollWidgetEnabled = sollWidgetEnabledCheck.checked;
-        pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
+        sollWidgetEnabled = sollWidgetEnabledCheck ? sollWidgetEnabledCheck.checked : sollWidgetEnabled;
+        pauseWatcherEnabled = pauseWatcherEnabledCheck ? pauseWatcherEnabledCheck.checked : pauseWatcherEnabled;
 
-        appStyleMode = styleModeSelect.value;
-        appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
+        appStyleMode = styleModeSelect ? styleModeSelect.value : appStyleMode;
+        appAsymIntensity = applyAsymIntensity(asymIntensitySlider ? asymIntensitySlider.value : appAsymIntensity);
         document.documentElement.setAttribute("data-style", appStyleMode);
 
-        isSmoker = isSmokerCheck.checked;
-        smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput.value, 10) || 5));
+        isSmoker = isSmokerCheck ? isSmokerCheck.checked : isSmoker;
+        smokeMinutesPerBreak = Math.min(60, Math.max(1, parseInt(smokeMinutesInput ? smokeMinutesInput.value : smokeMinutesPerBreak, 10) || 5));
 
-        localStorage.setItem("userName", userName);
-        localStorage.setItem("phrasesEnabled", phrasesEnabled);
-        localStorage.setItem("phraseProfile", phraseProfile);
-        localStorage.setItem("selectedScribbles", JSON.stringify(selectedScribbles));
-        localStorage.setItem("scribbleSizePct", scribbleSizePct);
-        localStorage.setItem("appStyleMode", appStyleMode);
-        localStorage.setItem("appAsymIntensity", appAsymIntensity);
-        localStorage.setItem("appIconTheme", appIconTheme);
-        localStorage.setItem("sollHours", sollHours);
-        localStorage.setItem("sollMinutes", sollMinutes);
-        localStorage.setItem("weeklyHours", weeklyHours);
-        localStorage.setItem("glzBaseHours", glzBaseHours);
-        localStorage.setItem("glzBaseDate", glzBaseDate);
-        localStorage.setItem("pauseNotifyEnabled", pauseNotifyEnabled);
-        localStorage.setItem("pauseNotifyLeadMins", pauseNotifyLeadMins);
-        localStorage.setItem("sollWidgetEnabled", sollWidgetEnabled);
-        localStorage.setItem("sollWidgetMode", sollWidgetMode);
-        localStorage.setItem("pauseWatcherEnabled", pauseWatcherEnabled);
-        localStorage.setItem("pauseWatcherMode", pauseWatcherMode);
-        localStorage.setItem("keyboardMode", keyboardMode);
-        localStorage.setItem("isSmoker", isSmoker);
-        localStorage.setItem("smokeMinutesPerBreak", smokeMinutesPerBreak);
-        localStorage.setItem("appHue", appHue);
-        localStorage.setItem("appLightness", appLightness);
+        storageSet("userName", userName);
+        storageSet("phrasesEnabled", phrasesEnabled);
+        storageSet("phraseProfile", phraseProfile);
+        storageSet("selectedScribbles", JSON.stringify(selectedScribbles));
+        storageSet("scribbleSizePct", scribbleSizePct);
+        storageSet("appStyleMode", appStyleMode);
+        storageSet("appAsymIntensity", appAsymIntensity);
+        storageSet("appIconTheme", appIconTheme);
+        storageSet("sollHours", sollHours);
+        storageSet("sollMinutes", sollMinutes);
+        storageSet("weeklyHours", weeklyHours);
+        storageSet("glzBaseHours", glzBaseHours);
+        storageSet("glzBaseDate", glzBaseDate);
+        storageSet("pauseNotifyEnabled", pauseNotifyEnabled);
+        storageSet("pauseNotifyLeadMins", pauseNotifyLeadMins);
+        storageSet("sollWidgetEnabled", sollWidgetEnabled);
+        storageSet("sollWidgetMode", sollWidgetMode);
+        storageSet("pauseWatcherEnabled", pauseWatcherEnabled);
+        storageSet("pauseWatcherMode", pauseWatcherMode);
+        storageSet("keyboardMode", keyboardMode);
+        storageSet("isSmoker", isSmoker);
+        storageSet("smokeMinutesPerBreak", smokeMinutesPerBreak);
+        storageSet("appHue", appHue);
+        storageSet("appLightness", appLightness);
 
         if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
         if (window.applyAppIconTheme) window.applyAppIconTheme(appIconTheme);
@@ -1127,63 +1179,81 @@ document.addEventListener("DOMContentLoaded", () => {
         else updateAmpelPill();
     }
 
-    userNameInput.addEventListener("input", persistAllSettings);
-    glzBaseDateInput.addEventListener("change", persistAllSettings);
+    if (userNameInput) userNameInput.addEventListener("input", persistAllSettings);
+    if (glzBaseDateInput) glzBaseDateInput.addEventListener("change", persistAllSettings);
 
     function syncPhrasesSettingsUI() {
-        phrasesOptionsWrap.style.opacity = phrasesEnabled ? "1" : "0.45";
-        phrasesOptionsWrap.style.pointerEvents = phrasesEnabled ? "auto" : "none";
-        phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-            const isSel = pill.getAttribute("data-ph-profile") === phraseProfile;
-            pill.classList.toggle("selected", isSel);
-            pill.setAttribute("aria-checked", isSel ? "true" : "false");
+        if (phrasesOptionsWrap) {
+            phrasesOptionsWrap.style.opacity = phrasesEnabled ? "1" : "0.45";
+            phrasesOptionsWrap.style.pointerEvents = phrasesEnabled ? "auto" : "none";
+        }
+        if (phraseProfilePills) {
+            phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+                const isSel = pill.getAttribute("data-ph-profile") === phraseProfile;
+                pill.classList.toggle("selected", isSel);
+                pill.setAttribute("aria-checked", isSel ? "true" : "false");
+            });
+        }
+    }
+
+    if (phrasesEnabledCheck) {
+        phrasesEnabledCheck.addEventListener("change", () => {
+            phrasesEnabled = phrasesEnabledCheck.checked;
+            if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
+            syncPhrasesSettingsUI();
+            persistAllSettings();
         });
     }
 
-    phrasesEnabledCheck.addEventListener("change", () => {
-        phrasesEnabled = phrasesEnabledCheck.checked;
-        if (!phrasesEnabled) activeWelcomePhrase = getDefaultGreetingText();
-        syncPhrasesSettingsUI();
-        persistAllSettings();
-    });
-
-    phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-        pill.addEventListener("click", () => {
-            const nextProf = pill.getAttribute("data-ph-profile");
-            if (["male", "female", "uni"].includes(nextProf)) {
-                phraseProfile = nextProf;
-                syncPhrasesSettingsUI();
-                persistAllSettings();
-            }
+    if (phraseProfilePills) {
+        phraseProfilePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            pill.addEventListener("click", () => {
+                const nextProf = pill.getAttribute("data-ph-profile");
+                if (["male", "female", "uni"].includes(nextProf)) {
+                    phraseProfile = nextProf;
+                    syncPhrasesSettingsUI();
+                    persistAllSettings();
+                }
+            });
         });
-    });
+    }
 
     function syncSollWidgetSettingsUI() {
-        sollWidgetOptionsWrap.style.opacity = sollWidgetEnabled ? "1" : "0.45";
-        sollWidgetOptionsWrap.style.pointerEvents = sollWidgetEnabled ? "auto" : "none";
-        sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-            const isSel = pill.getAttribute("data-sw-mode") === sollWidgetMode;
-            pill.classList.toggle("selected", isSel);
-            pill.setAttribute("aria-checked", isSel ? "true" : "false");
-        });
+        if (sollWidgetOptionsWrap) {
+            sollWidgetOptionsWrap.style.opacity = sollWidgetEnabled ? "1" : "0.45";
+            sollWidgetOptionsWrap.style.pointerEvents = sollWidgetEnabled ? "auto" : "none";
+        }
+        if (sollWidgetModePills) {
+            sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+                const isSel = pill.getAttribute("data-sw-mode") === sollWidgetMode;
+                pill.classList.toggle("selected", isSel);
+                pill.setAttribute("aria-checked", isSel ? "true" : "false");
+            });
+        }
     }
 
     function syncPauseWatcherSettingsUI() {
-        pauseWatcherOptionsWrap.style.opacity = pauseWatcherEnabled ? "1" : "0.45";
-        pauseWatcherOptionsWrap.style.pointerEvents = pauseWatcherEnabled ? "auto" : "none";
-        pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-            const isSel = pill.getAttribute("data-pw-mode") === pauseWatcherMode;
-            pill.classList.toggle("selected", isSel);
-            pill.setAttribute("aria-checked", isSel ? "true" : "false");
-        });
+        if (pauseWatcherOptionsWrap) {
+            pauseWatcherOptionsWrap.style.opacity = pauseWatcherEnabled ? "1" : "0.45";
+            pauseWatcherOptionsWrap.style.pointerEvents = pauseWatcherEnabled ? "auto" : "none";
+        }
+        if (pauseWatcherModePills) {
+            pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+                const isSel = pill.getAttribute("data-pw-mode") === pauseWatcherMode;
+                pill.classList.toggle("selected", isSel);
+                pill.setAttribute("aria-checked", isSel ? "true" : "false");
+            });
+        }
     }
 
     function syncKeyboardModeUI() {
-        keyboardModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-            const isSel = pill.getAttribute("data-kb-mode") === keyboardMode;
-            pill.classList.toggle("selected", isSel);
-            pill.setAttribute("aria-checked", isSel ? "true" : "false");
-        });
+        if (keyboardModePills) {
+            keyboardModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+                const isSel = pill.getAttribute("data-kb-mode") === keyboardMode;
+                pill.classList.toggle("selected", isSel);
+                pill.setAttribute("aria-checked", isSel ? "true" : "false");
+            });
+        }
     }
 
     syncPhrasesSettingsUI();
@@ -1191,103 +1261,126 @@ document.addEventListener("DOMContentLoaded", () => {
     syncPauseWatcherSettingsUI();
     syncKeyboardModeUI();
 
-    sollWidgetEnabledCheck.addEventListener("change", () => {
-        sollWidgetEnabled = sollWidgetEnabledCheck.checked;
-        syncSollWidgetSettingsUI();
-        persistAllSettings();
-    });
-
-    sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-        pill.addEventListener("click", () => {
-            sollWidgetMode = pill.getAttribute("data-sw-mode") || "both";
+    if (sollWidgetEnabledCheck) {
+        sollWidgetEnabledCheck.addEventListener("change", () => {
+            sollWidgetEnabled = sollWidgetEnabledCheck.checked;
             syncSollWidgetSettingsUI();
             persistAllSettings();
         });
-    });
+    }
 
-    pauseWatcherEnabledCheck.addEventListener("change", () => {
-        pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
-        syncPauseWatcherSettingsUI();
-        persistAllSettings();
-    });
+    if (sollWidgetModePills) {
+        sollWidgetModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            pill.addEventListener("click", () => {
+                sollWidgetMode = pill.getAttribute("data-sw-mode") || "both";
+                syncSollWidgetSettingsUI();
+                persistAllSettings();
+            });
+        });
+    }
 
-    pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-        pill.addEventListener("click", () => {
-            pauseWatcherMode = pill.getAttribute("data-pw-mode") || "both";
+    if (pauseWatcherEnabledCheck) {
+        pauseWatcherEnabledCheck.addEventListener("change", () => {
+            pauseWatcherEnabled = pauseWatcherEnabledCheck.checked;
             syncPauseWatcherSettingsUI();
             persistAllSettings();
         });
-    });
+    }
 
-    keyboardModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
-        pill.addEventListener("click", () => {
-            keyboardMode = pill.getAttribute("data-kb-mode") === "system" ? "system" : "app";
-            syncKeyboardModeUI();
-            persistAllSettings();
+    if (pauseWatcherModePills) {
+        pauseWatcherModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            pill.addEventListener("click", () => {
+                pauseWatcherMode = pill.getAttribute("data-pw-mode") || "both";
+                syncPauseWatcherSettingsUI();
+                persistAllSettings();
+            });
         });
-    });
+    }
 
-    function syncStyleControlsUI() { asymSliderWrap.style.display = styleModeSelect.value === "asymmetric" ? "block" : "none"; }
+    if (keyboardModePills) {
+        keyboardModePills.querySelectorAll(".widget-mode-pill").forEach((pill) => {
+            pill.addEventListener("click", () => {
+                keyboardMode = pill.getAttribute("data-kb-mode") === "system" ? "system" : "app";
+                syncKeyboardModeUI();
+                persistAllSettings();
+            });
+        });
+    }
+
+    function syncStyleControlsUI() {
+        if (asymSliderWrap && styleModeSelect) {
+            asymSliderWrap.style.display = styleModeSelect.value === "asymmetric" ? "block" : "none";
+        }
+    }
     syncStyleControlsUI();
 
-    styleModeSelect.addEventListener("change", () => {
-        appStyleMode = styleModeSelect.value;
-        document.documentElement.setAttribute("data-style", appStyleMode);
-        syncStyleControlsUI();
-        persistAllSettings();
-    });
+    if (styleModeSelect) {
+        styleModeSelect.addEventListener("change", () => {
+            appStyleMode = styleModeSelect.value;
+            document.documentElement.setAttribute("data-style", appStyleMode);
+            syncStyleControlsUI();
+            persistAllSettings();
+        });
+    }
 
-    asymIntensitySlider.addEventListener("input", () => {
-        appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
-        asymIntensityVal.textContent = appAsymIntensity;
-        persistAllSettings();
-    });
+    if (asymIntensitySlider) {
+        asymIntensitySlider.addEventListener("input", () => {
+            appAsymIntensity = applyAsymIntensity(asymIntensitySlider.value);
+            if (asymIntensityVal) asymIntensityVal.textContent = appAsymIntensity;
+            persistAllSettings();
+        });
+    }
 
     function updatePauseNotifyUI() {
-        pauseNotifyMinsWrap.style.opacity = pauseNotifyCheck.checked ? "1" : "0.45";
-        pauseNotifyLeadInput.disabled = !pauseNotifyCheck.checked;
+        if (!pauseNotifyCheck) return;
+        if (pauseNotifyMinsWrap) pauseNotifyMinsWrap.style.opacity = pauseNotifyCheck.checked ? "1" : "0.45";
+        if (pauseNotifyLeadInput) pauseNotifyLeadInput.disabled = !pauseNotifyCheck.checked;
     }
     updatePauseNotifyUI();
 
-    pauseNotifyCheck.addEventListener("change", async () => {
-        if (pauseNotifyCheck.checked) {
-            if (!("Notification" in window)) {
-                alert("Dieser Browser unterstützt leider keine System-Benachrichtigungen.");
-                pauseNotifyCheck.checked = false;
-                updatePauseNotifyUI();
-                persistAllSettings();
-                return;
-            }
-            let perm = Notification.permission;
-            if (perm === "default") perm = await Notification.requestPermission();
-            if (perm !== "granted") {
-                alert("Benachrichtigungen wurden im Browser blockiert. Bitte erlaube sie in den Website-Einstellungen.");
-                pauseNotifyCheck.checked = false;
-            } else {
-                pauseNotifyEnabled = true;
-                pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput.value, 10) || 10));
-                showAppNotification(
-                    "Stempeluhr: Vorwarnung aktiv",
-                    `Du wirst ${pauseNotifyLeadMins} Min vor der 30-Min- und 45-Min-Pausengrenze erinnert.`,
-                    "pause-test"
-                );
-            }
-        } else pauseNotifyEnabled = false;
-        updatePauseNotifyUI();
-        persistAllSettings();
-    });
+    if (pauseNotifyCheck) {
+        pauseNotifyCheck.addEventListener("change", async () => {
+            if (pauseNotifyCheck.checked) {
+                if (!("Notification" in window)) {
+                    alert("Dieser Browser unterstützt leider keine System-Benachrichtigungen.");
+                    pauseNotifyCheck.checked = false;
+                    updatePauseNotifyUI();
+                    persistAllSettings();
+                    return;
+                }
+                let perm = Notification.permission;
+                if (perm === "default") perm = await Notification.requestPermission();
+                if (perm !== "granted") {
+                    alert("Benachrichtigungen wurden im Browser blockiert. Bitte erlaube sie in den Website-Einstellungen.");
+                    pauseNotifyCheck.checked = false;
+                } else {
+                    pauseNotifyEnabled = true;
+                    pauseNotifyLeadMins = Math.min(60, Math.max(1, parseInt(pauseNotifyLeadInput ? pauseNotifyLeadInput.value : 10, 10) || 10));
+                    showAppNotification(
+                        "Stempeluhr: Vorwarnung aktiv",
+                        `Du wirst ${pauseNotifyLeadMins} Min vor der 30-Min- und 45-Min-Pausengrenze erinnert.`,
+                        "pause-test"
+                    );
+                }
+            } else pauseNotifyEnabled = false;
+            updatePauseNotifyUI();
+            persistAllSettings();
+        });
+    }
 
     function updateSmokerUI() {
-        smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
-        smokeMinutesInput.disabled = !isSmokerCheck.checked;
-        smokeBar.style.display = isSmoker ? "grid" : "none";
-        smokeCountDisplay.textContent = `${todaySmokeCount}× (-${todaySmokeCount * smokeMinutesPerBreak}m)`;
+        if (smokerMinsWrap && isSmokerCheck) smokerMinsWrap.style.opacity = isSmokerCheck.checked ? "1" : "0.45";
+        if (smokeMinutesInput && isSmokerCheck) smokeMinutesInput.disabled = !isSmokerCheck.checked;
+        if (smokeBar) smokeBar.style.display = isSmoker ? "grid" : "none";
+        if (smokeCountDisplay) smokeCountDisplay.textContent = `${todaySmokeCount}× (-${todaySmokeCount * smokeMinutesPerBreak}m)`;
     }
-    isSmokerCheck.addEventListener("change", () => {
-        isSmoker = isSmokerCheck.checked;
-        updateSmokerUI();
-        persistAllSettings();
-    });
+    if (isSmokerCheck) {
+        isSmokerCheck.addEventListener("change", () => {
+            isSmoker = isSmokerCheck.checked;
+            updateSmokerUI();
+            persistAllSettings();
+        });
+    }
 
     function saveTodaySmokeData() {
         const todayStr = getTodayStr();
@@ -1298,14 +1391,14 @@ document.addEventListener("DOMContentLoaded", () => {
         saveDayData(todayStr, currentDay);
     }
 
-    document.getElementById("btn-add-smoke").addEventListener("click", () => {
+    on("btn-add-smoke", "click", () => {
         pushUndoSnapshot();
         todaySmokeCount++;
         updateSmokerUI();
         saveTodaySmokeData();
         calculateAllTimes();
     });
-    document.getElementById("btn-sub-smoke").addEventListener("click", () => {
+    on("btn-sub-smoke", "click", () => {
         if (todaySmokeCount > 0) {
             pushUndoSnapshot();
             todaySmokeCount--;
@@ -1321,10 +1414,11 @@ document.addEventListener("DOMContentLoaded", () => {
     updateBackupStatusBadge();
 
     const canvas = document.getElementById("colorWheel");
-    const ctx = canvas.getContext("2d");
-    const radius = canvas.width / 2;
+    const ctx = canvas ? canvas.getContext("2d") : null;
+    const radius = canvas ? canvas.width / 2 : 0;
 
     function drawWheelDot(hueAngle, dotRadius) {
+        if (!ctx) return;
         const rad = hueAngle * Math.PI / 180;
         const dotX = radius + Math.cos(rad) * (radius * 0.7);
         const dotY = radius + Math.sin(rad) * (radius * 0.7);
@@ -1338,6 +1432,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function drawColorWheel() {
+        if (!ctx) return;
         for (let angle = 0; angle < 360; angle++) {
             ctx.beginPath();
             ctx.moveTo(radius, radius);
@@ -1351,15 +1446,18 @@ document.addEventListener("DOMContentLoaded", () => {
         drawWheelDot(appHue, 8);
     }
 
-    lightnessSlider.addEventListener("input", () => {
-        appLightness = Math.min(52, Math.max(28, parseInt(lightnessSlider.value, 10)));
-        lightnessVal.textContent = appLightness;
-        applyThemeColors(appHue, appLightness);
-        drawColorWheel();
-        persistAllSettings();
-    });
+    if (lightnessSlider) {
+        lightnessSlider.addEventListener("input", () => {
+            appLightness = Math.min(52, Math.max(28, parseInt(lightnessSlider.value, 10)));
+            if (lightnessVal) lightnessVal.textContent = appLightness;
+            applyThemeColors(appHue, appLightness);
+            drawColorWheel();
+            persistAllSettings();
+        });
+    }
 
     function handleColorPick(e) {
+        if (!canvas) return;
         if (e.cancelable) e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const pt = (e.touches && e.touches.length > 0) ? e.touches[0] : e;
@@ -1370,13 +1468,15 @@ document.addEventListener("DOMContentLoaded", () => {
         appHue = Math.round(angle);
         applyThemeColors(appHue, appLightness);
         drawColorWheel();
-        localStorage.setItem("appHue", appHue);
+        storageSet("appHue", appHue);
     }
 
-    canvas.addEventListener("mousedown", (e) => { handleColorPick(e); canvas.addEventListener("mousemove", handleColorPick); });
-    window.addEventListener("mouseup", () => canvas.removeEventListener("mousemove", handleColorPick));
-    canvas.addEventListener("touchstart", (e) => { handleColorPick(e); canvas.addEventListener("touchmove", handleColorPick, { passive: false }); }, { passive: false });
-    window.addEventListener("touchend", () => canvas.removeEventListener("touchmove", handleColorPick));
+    if (canvas) {
+        canvas.addEventListener("mousedown", (e) => { handleColorPick(e); canvas.addEventListener("mousemove", handleColorPick); });
+        window.addEventListener("mouseup", () => canvas.removeEventListener("mousemove", handleColorPick));
+        canvas.addEventListener("touchstart", (e) => { handleColorPick(e); canvas.addEventListener("touchmove", handleColorPick, { passive: false }); }, { passive: false });
+        window.addEventListener("touchend", () => canvas.removeEventListener("touchmove", handleColorPick));
+    }
 
     const settingsPageMain = document.getElementById("settings-page-main");
     const settingsPageWork = document.getElementById("settings-page-work");
@@ -1385,26 +1485,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showSettingsSubpage(pageName) {
         closeCustomKeypad();
-        settingsPageMain.style.display = pageName === "main" ? "block" : "none";
-        settingsPageWork.style.display = pageName === "work" ? "block" : "none";
-        settingsPageWidgets.style.display = pageName === "widgets" ? "block" : "none";
-        settingsPageDesign.style.display = pageName === "design" ? "block" : "none";
+        if (settingsPageMain) settingsPageMain.style.display = pageName === "main" ? "block" : "none";
+        if (settingsPageWork) settingsPageWork.style.display = pageName === "work" ? "block" : "none";
+        if (settingsPageWidgets) settingsPageWidgets.style.display = pageName === "widgets" ? "block" : "none";
+        if (settingsPageDesign) settingsPageDesign.style.display = pageName === "design" ? "block" : "none";
 
         if (pageName === "work") {
             collapseAccordionsInGroup("work", null);
             updateAccordionBadges();
         } else if (pageName === "widgets") {
             collapseAccordionsInGroup("widgets", null);
-            phrasesEnabledCheck.checked = phrasesEnabled;
-            sollWidgetEnabledCheck.checked = sollWidgetEnabled;
-            pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
+            if (phrasesEnabledCheck) phrasesEnabledCheck.checked = phrasesEnabled;
+            if (sollWidgetEnabledCheck) sollWidgetEnabledCheck.checked = sollWidgetEnabled;
+            if (pauseWatcherEnabledCheck) pauseWatcherEnabledCheck.checked = pauseWatcherEnabled;
             syncPhrasesSettingsUI();
             syncSollWidgetSettingsUI();
             syncPauseWatcherSettingsUI();
             syncKeyboardModeUI();
             updateAccordionBadges();
         } else if (pageName === "design") {
-            // Farbrad direkt offen, andere Design-Akkordeons minimiert
             const wheelCard = document.getElementById("color-wheel-accordion-card");
             collapseAccordionsInGroup("design", wheelCard);
             if (wheelCard) {
@@ -1429,19 +1528,21 @@ document.addEventListener("DOMContentLoaded", () => {
         setActiveMainView("menu");
     }
 
-    document.getElementById("btn-settings").addEventListener("click", openSettingsMenu);
-    document.getElementById("btn-open-work-subpage").addEventListener("click", () => showSettingsSubpage("work"));
-    document.getElementById("btn-open-widgets-subpage").addEventListener("click", () => showSettingsSubpage("widgets"));
-    document.getElementById("btn-open-design-subpage").addEventListener("click", () => showSettingsSubpage("design"));
-    document.getElementById("btn-back-from-work").addEventListener("click", () => { persistAllSettings(); showSettingsSubpage("main"); });
-    document.getElementById("btn-back-from-widgets").addEventListener("click", () => { persistAllSettings(); showSettingsSubpage("main"); });
-    document.getElementById("btn-back-from-design").addEventListener("click", () => { persistAllSettings(); showSettingsSubpage("main"); });
-    document.getElementById("btn-close-settings").addEventListener("click", () => { persistAllSettings(); switchToClockView(); });
+    on("btn-settings", "click", openSettingsMenu);
+    on("btn-open-work-subpage", "click", () => showSettingsSubpage("work"));
+    on("btn-open-widgets-subpage", "click", () => showSettingsSubpage("widgets"));
+    on("btn-open-design-subpage", "click", () => showSettingsSubpage("design"));
+    on("btn-back-from-work", "click", () => { persistAllSettings(); showSettingsSubpage("main"); });
+    on("btn-back-from-widgets", "click", () => { persistAllSettings(); showSettingsSubpage("main"); });
+    on("btn-back-from-design", "click", () => { persistAllSettings(); showSettingsSubpage("main"); });
+    on("btn-close-settings", "click", () => { persistAllSettings(); switchToClockView(); });
 
-    document.getElementById("btn-force-update").addEventListener("click", async () => {
+    on("btn-force-update", "click", async () => {
         const btn = document.getElementById("btn-force-update");
-        btn.textContent = "Suche...";
-        btn.disabled = true;
+        if (btn) {
+            btn.textContent = "Suche...";
+            btn.disabled = true;
+        }
         await forceAppReload();
     });
 
@@ -1520,17 +1621,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return { h: hh, m: mm };
     }
 
-    function getParsedStart() { return startTimePill.value.trim() !== "" ? parseHhMmString(startTimePill.value) : null; }
-    function getParsedEnd() { return endTimePill.value.trim() !== "" ? parseHhMmString(endTimePill.value) : null; }
+    function getParsedStart() { return (startTimePill && startTimePill.value.trim() !== "") ? parseHhMmString(startTimePill.value) : null; }
+    function getParsedEnd() { return (endTimePill && endTimePill.value.trim() !== "") ? parseHhMmString(endTimePill.value) : null; }
 
     function clearAllKeypadHighlights() {
-        pillStartWrap.classList.remove("is-active");
-        pillEndWrap.classList.remove("is-active");
+        if (pillStartWrap) pillStartWrap.classList.remove("is-active");
+        if (pillEndWrap) pillEndWrap.classList.remove("is-active");
         document.querySelectorAll(".keypad-bound-input.kp-focused").forEach(el => el.classList.remove("kp-focused"));
     }
 
     function openGlobalKeypad(config) {
-        if (keyboardMode === "system") return;
+        if (keyboardMode === "system" || !keypadSheet) return;
         if (kpState && kpState.onCommit) kpState.onCommit(kpState.el, true);
         clearAllKeypadHighlights();
 
@@ -1555,9 +1656,9 @@ document.addEventListener("DOMContentLoaded", () => {
             kpState.buffer = parsed ? `${parsed.h}${parsed.m}` : "";
         } else kpState.buffer = (kpState.el.value || "").trim();
 
-        keypadTargetBadge.textContent = kpState.label;
-        if (kpState.el === startTimePill) pillStartWrap.classList.add("is-active");
-        else if (kpState.el === endTimePill) pillEndWrap.classList.add("is-active");
+        if (keypadTargetBadge) keypadTargetBadge.textContent = kpState.label;
+        if (kpState.el === startTimePill && pillStartWrap) pillStartWrap.classList.add("is-active");
+        else if (kpState.el === endTimePill && pillEndWrap) pillEndWrap.classList.add("is-active");
         else kpState.el.classList.add("kp-focused");
 
         keypadSheet.classList.add("active");
@@ -1571,11 +1672,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             kpState = null;
             clearAllKeypadHighlights();
-            keypadSheet.classList.remove("active");
+            if (keypadSheet) keypadSheet.classList.remove("active");
             if (closingState.onCommit) closingState.onCommit(closingState.el, true);
         } else {
             clearAllKeypadHighlights();
-            keypadSheet.classList.remove("active");
+            if (keypadSheet) keypadSheet.classList.remove("active");
         }
     }
 
@@ -1636,7 +1737,7 @@ document.addEventListener("DOMContentLoaded", () => {
     registerKeypadInput(glzBaseInput, { mode: "number", label: "GLZ-Startsaldo (h)", min: -200, max: 300, step: 0.5, allowDecimal: true, allowNegative: true, onCommit: () => persistAllSettings() });
     registerKeypadInput(weeklyHoursInput, { mode: "number", label: "Wochenstunden (1–48)", min: 1, max: 48, step: 0.5, allowDecimal: true, onCommit: () => persistAllSettings() });
 
-    document.getElementById("keypad-close-btn").addEventListener("click", (e) => {
+    on("keypad-close-btn", "click", (e) => {
         e.stopPropagation();
         closeCustomKeypad();
     });
@@ -1722,21 +1823,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    keypadSheet.querySelectorAll(".kp-key").forEach((keyBtn) => {
-        keyBtn.addEventListener("pointerdown", (e) => {
-            e.stopPropagation();
-            const now = Date.now();
-            if (now - lastKeypadKeyTime < 75) return;
-            lastKeypadKeyTime = now;
-            const action = keyBtn.getAttribute("data-kp");
-            if (action) handleKeypadPress(action);
+    if (keypadSheet) {
+        keypadSheet.querySelectorAll(".kp-key").forEach((keyBtn) => {
+            keyBtn.addEventListener("pointerdown", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            keyBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const now = Date.now();
+                if (now - lastKeypadKeyTime < 60) return;
+                lastKeypadKeyTime = now;
+                const action = keyBtn.getAttribute("data-kp");
+                if (action) handleKeypadPress(action);
+            });
         });
-        keyBtn.addEventListener("click", (e) => { e.stopPropagation(); });
-    });
+    }
 
     document.addEventListener("pointerdown", (e) => {
-        if (!keypadSheet.classList.contains("active")) return;
-        if (Date.now() - lastKeypadOpenTime < 220) return;
+        if (!keypadSheet || !keypadSheet.classList.contains("active")) return;
+        if (Date.now() - lastKeypadOpenTime < 300) return;
         if (!e.target.closest("#custom-keypad-sheet") && !e.target.closest(".keypad-bound-input") && !e.target.closest("#pill-start") && !e.target.closest("#pill-end")) {
             closeCustomKeypad();
         }
@@ -1752,26 +1859,28 @@ document.addEventListener("DOMContentLoaded", () => {
     let todaySessions = [];
     let undoStack = [];
 
-    const updateUndoButtonState = () => { btnUndo.disabled = undoStack.length === 0; };
+    const updateUndoButtonState = () => { if (btnUndo) btnUndo.disabled = undoStack.length === 0; };
     function pushUndoSnapshot() {
         undoStack.push({ sessions: JSON.parse(JSON.stringify(todaySessions)), smokeCount: todaySmokeCount, dayFinalized: todayFinalized });
         if (undoStack.length > 20) undoStack.shift();
         updateUndoButtonState();
     }
 
-    btnUndo.addEventListener("click", () => {
-        if (undoStack.length === 0) return;
-        const prev = undoStack.pop();
-        todaySessions = prev.sessions || [];
-        todaySmokeCount = typeof prev.smokeCount === "number" ? prev.smokeCount : 0;
-        todayFinalized = !!prev.dayFinalized;
-        updateUndoButtonState();
-        updateSmokerUI();
-        saveTodaySmokeData();
-        syncInputsFromSessions();
-        saveSessionsAndDay();
-        calculateAllTimes();
-    });
+    if (btnUndo) {
+        btnUndo.addEventListener("click", () => {
+            if (undoStack.length === 0) return;
+            const prev = undoStack.pop();
+            todaySessions = prev.sessions || [];
+            todaySmokeCount = typeof prev.smokeCount === "number" ? prev.smokeCount : 0;
+            todayFinalized = !!prev.dayFinalized;
+            updateUndoButtonState();
+            updateSmokerUI();
+            saveTodaySmokeData();
+            syncInputsFromSessions();
+            saveSessionsAndDay();
+            calculateAllTimes();
+        });
+    }
 
     function timeObjToSecs(t) {
         if (!t || t.h === "" || isNaN(parseInt(t.h, 10))) return null;
@@ -1839,8 +1948,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const limit30Secs = 23400;
         if (totalPresSecs >= (limit30Secs - leadSecs) && totalPresSecs < (limit30Secs + 180)) {
             const key30 = `notified_p30_${todayStr}`;
-            if (!localStorage.getItem(key30)) {
-                localStorage.setItem(key30, "1");
+            if (!storageGet(key30)) {
+                storageSet(key30, "1");
                 const remMins = Math.max(0, Math.ceil((limit30Secs - totalPresSecs) / 60));
                 showAppNotification("Achtung: 30-Min-Pause droht!", remMins > 0 ? `In ca. ${remMins} Min (ab ${limit30Time}) greift der automatische 30-Min-Pausenabzug.` : `Die 6:30-Std-Grenze (${limit30Time}) ist erreicht – 30 Min Pause werden jetzt abgezogen.`, "pause-30");
             }
@@ -1849,8 +1958,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const limit45Secs = 35100;
         if (totalPresSecs >= (limit45Secs - leadSecs) && totalPresSecs < (limit45Secs + 180)) {
             const key45 = `notified_p45_${todayStr}`;
-            if (!localStorage.getItem(key45)) {
-                localStorage.setItem(key45, "1");
+            if (!storageGet(key45)) {
+                storageSet(key45, "1");
                 const remMins = Math.max(0, Math.ceil((limit45Secs - totalPresSecs) / 60));
                 showAppNotification("Achtung: 45-Min-Pause droht!", remMins > 0 ? `In ca. ${remMins} Min (ab ${limit45Time}) greift der automatische 45-Min-Pausenabzug.` : `Die 9:45-Std-Grenze (${limit45Time}) ist erreicht – 45 Min Pause werden jetzt abgezogen.`, "pause-45");
             }
@@ -1858,13 +1967,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderSessionsBox() {
+        if (!sessionsBox || !sessionsList) return;
         if (todaySessions.length <= 1) { sessionsBox.style.display = "none"; return; }
         sessionsBox.style.display = "block";
         sessionsList.innerHTML = "";
 
         const hasOpenLast = !todaySessions[todaySessions.length - 1].end;
         const { totalPresSecs, totalGapSecs } = getSessionMetrics(hasOpenLast ? getNowSecsOfDay() : null);
-        sessionsPresSum.textContent = `Anwesenheit: ${format2(Math.floor(totalPresSecs / 3600))}:${format2(Math.floor((totalPresSecs % 3600) / 60))} h`;
+        if (sessionsPresSum) sessionsPresSum.textContent = `Anwesenheit: ${format2(Math.floor(totalPresSecs / 3600))}:${format2(Math.floor((totalPresSecs % 3600) / 60))} h`;
 
         todaySessions.forEach((sess, idx) => {
             const row = document.createElement("div");
@@ -1884,13 +1994,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        if (totalGapSecs > 0) {
-            sessionsBreakInfo.style.display = "flex";
-            sessionsGapSum.textContent = `${Math.round(totalGapSecs / 60)} min`;
-        } else sessionsBreakInfo.style.display = "none";
+        if (sessionsBreakInfo && sessionsGapSum) {
+            if (totalGapSecs > 0) {
+                sessionsBreakInfo.style.display = "flex";
+                sessionsGapSum.textContent = `${Math.round(totalGapSecs / 60)} min`;
+            } else sessionsBreakInfo.style.display = "none";
+        }
     }
 
     function syncInputsFromSessions() {
+        if (!startTimePill || !endTimePill) return;
         if (todaySessions.length === 0) { startTimePill.value = ""; endTimePill.value = ""; return; }
         startTimePill.value = `${todaySessions[0].start.h}:${todaySessions[0].start.m || "00"}`;
         const last = todaySessions[todaySessions.length - 1];
@@ -1901,12 +2014,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const todayStr = getTodayStr();
         renderSessionsBox();
 
-        if (todaySessions.length > 0) localStorage.setItem("savedTodaySessions", JSON.stringify({ date: todayStr, sessions: todaySessions }));
-        else localStorage.removeItem("savedTodaySessions");
+        if (todaySessions.length > 0) storageSet("savedTodaySessions", JSON.stringify({ date: todayStr, sessions: todaySessions }));
+        else storageRemove("savedTodaySessions");
 
         const dow = new Date().getDay();
         if (todaySessions.length === 0 && todaySmokeCount === 0 && !todayFinalized && (dow === 0 || dow === 6)) {
-            localStorage.removeItem("day_" + todayStr);
+            storageRemove("day_" + todayStr);
             return;
         }
 
@@ -1969,8 +2082,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (!glzBaseDate) {
             glzBaseDate = getTodayStr();
-            glzBaseDateInput.value = glzBaseDate;
-            localStorage.setItem("glzBaseDate", glzBaseDate);
+            if (glzBaseDateInput) glzBaseDateInput.value = glzBaseDate;
+            storageSet("glzBaseDate", glzBaseDate);
         }
         syncInputsFromSessions();
         saveSessionsAndDay();
@@ -1997,16 +2110,24 @@ document.addEventListener("DOMContentLoaded", () => {
         updateWelcomeWidgets();
     }
 
-    btnWelcomeAction.addEventListener("pointerdown", (e) => {
-        if (welcomeActionMode !== "go") return;
-        orbGestureLock = true;
-        orbStartX = e.clientX;
-        orbStartY = e.clientY;
-        clearTimeout(longPressGoTimer);
-        longPressGoTimer = setTimeout(() => {
-            activateOrbMode(orbStartX, orbStartY);
-        }, 460);
-    });
+    if (btnWelcomeAction) {
+        btnWelcomeAction.addEventListener("pointerdown", (e) => {
+            if (welcomeActionMode !== "go") return;
+            orbGestureLock = true;
+            orbStartX = e.clientX;
+            orbStartY = e.clientY;
+            clearTimeout(longPressGoTimer);
+            longPressGoTimer = setTimeout(() => {
+                activateOrbMode(orbStartX, orbStartY);
+            }, 460);
+        });
+
+        btnWelcomeAction.addEventListener("click", () => {
+            if (suppressNextActionClick) { suppressNextActionClick = false; return; }
+            if (welcomeActionMode === "go") triggerStampGoNow();
+            else triggerStampComeNow();
+        });
+    }
 
     window.addEventListener("pointermove", (e) => {
         if (longPressGoTimer && !orbModeActive && Math.hypot(e.clientX - orbStartX, e.clientY - orbStartY) > 12) {
@@ -2031,16 +2152,9 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (orbGestureLock) { orbGestureLock = false; orbReleaseCooldownUntil = Date.now() + 150; }
     });
 
-    document.getElementById("btn-now-start").addEventListener("click", triggerStampComeNow);
-    document.getElementById("btn-now-end").addEventListener("click", triggerStampGoNow);
-
-    btnWelcomeAction.addEventListener("click", () => {
-        if (suppressNextActionClick) { suppressNextActionClick = false; return; }
-        if (welcomeActionMode === "go") triggerStampGoNow();
-        else triggerStampComeNow();
-    });
-
-    btnWelcomeMenu.addEventListener("click", closeWelcomeScreen);
+    on("btn-now-start", "click", triggerStampComeNow);
+    on("btn-now-end", "click", triggerStampGoNow);
+    if (btnWelcomeMenu) btnWelcomeMenu.addEventListener("click", closeWelcomeScreen);
 
     const getTodaySmokeSecs = () => isSmoker ? todaySmokeCount * smokeMinutesPerBreak * 60 : 0;
 
@@ -2066,13 +2180,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const labelOver = document.getElementById("label-overtime");
         const decOutputEl = document.getElementById("output-decimal-time");
         const pauseHintEl = document.getElementById("output-pause-hint");
+        const overOutputEl = document.getElementById("output-overtime");
+
+        if (!labelDec || !labelOver || !decOutputEl || !pauseHintEl || !overOutputEl) return;
 
         if (!pS) {
             labelDec.textContent = "Dezimal (h)";
             labelOver.textContent = "+/-";
             decOutputEl.textContent = "-";
             pauseHintEl.style.display = "none";
-            document.getElementById("output-overtime").textContent = "-";
+            overOutputEl.textContent = "-";
             return;
         }
 
@@ -2105,7 +2222,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (endSecs < startSecs) {
             decOutputEl.textContent = isLiveRunning ? "00:00 h" : "Ungültig";
             pauseHintEl.style.display = "none";
-            document.getElementById("output-overtime").textContent = "-";
+            overOutputEl.textContent = "-";
             return;
         }
 
@@ -2120,7 +2237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const sign = overSecs < 0 ? "-" : "+";
         const aSecs = Math.abs(overSecs);
-        document.getElementById("output-overtime").textContent = `${sign}${format2(Math.floor(aSecs / 3600))}:${format2(Math.floor((aSecs % 3600) / 60))}:${format2(aSecs % 60)}`;
+        overOutputEl.textContent = `${sign}${format2(Math.floor(aSecs / 3600))}:${format2(Math.floor((aSecs % 3600) / 60))}:${format2(aSecs % 60)}`;
 
         if (isLiveRunning) {
             decOutputEl.textContent = `${format2(Math.floor(netSecs / 3600))}:${format2(Math.floor((netSecs % 3600) / 60))} h`;
@@ -2139,6 +2256,7 @@ document.addEventListener("DOMContentLoaded", () => {
        ========================================================= */
     function getMonday(d) {
         d = new Date(d);
+        d.setHours(12, 0, 0, 0);
         const day = d.getDay();
         return new Date(d.setDate(d.getDate() - day + (day === 0 ? -6 : 1)));
     }
@@ -2153,6 +2271,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (hasOpenLast && allowLive) {
                 isLive = true;
                 totalPresSecs = getSessionMetricsFromList(saved.sessions, liveEndSecs).totalPresSecs;
+            } else if (hasOpenLast && !allowLive) {
+                totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
             } else if (saved.customPresSecs && saved.customPresSecs > 0) totalPresSecs = saved.customPresSecs;
             else totalPresSecs = getSessionMetricsFromList(saved.sessions, null).totalPresSecs;
         } else if (saved.customPresSecs && saved.customPresSecs > 0) totalPresSecs = saved.customPresSecs;
@@ -2182,8 +2302,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
         let deltaSecs = 0;
 
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
+        let len = 0;
+        try { len = localStorage.length; } catch (e) { len = 0; }
+
+        for (let i = 0; i < len; i++) {
+            let key = null;
+            try { key = localStorage.key(i); } catch (e) {}
             if (!key || !key.startsWith("day_")) continue;
             const dateStr = key.slice(4);
             if (glzBaseDate && dateStr < glzBaseDate) continue;
@@ -2262,37 +2386,41 @@ document.addEventListener("DOMContentLoaded", () => {
         const parts = dateStr.split("-").map(Number);
         const dt = new Date(parts[0], parts[1] - 1, parts[2]);
         const dowIdx = (dt.getDay() + 6) % 7;
-        openDayEditor(dateStr, `${dayFullNames[dowIdx]}, ${format2(dt.getDate())}.${format2(dt.getMonth() + 1)}.${dt.getFullYear()}`, "work");
+        const fallbackStatus = getHolidayName(dateStr) ? "holiday" : "work";
+        openDayEditor(dateStr, `${dayFullNames[dowIdx]}, ${format2(dt.getDate())}.${format2(dt.getMonth() + 1)}.${dt.getFullYear()}`, fallbackStatus);
     }
 
     const backfillModal = document.getElementById("backfill-modal");
     const backfillDateInput = document.getElementById("backfillDateInput");
     let currentWeekSatStr = "", currentWeekSunStr = "";
 
-    document.getElementById("btn-open-backfill-modal").addEventListener("click", () => {
+    on("btn-open-backfill-modal", "click", () => {
         const refDate = new Date();
+        refDate.setHours(12, 0, 0, 0);
         refDate.setDate(refDate.getDate() + (weekOffset * 7));
         const monday = getMonday(refDate);
 
         const satDate = new Date(monday); satDate.setDate(monday.getDate() + 5);
         currentWeekSatStr = `${satDate.getFullYear()}-${format2(satDate.getMonth() + 1)}-${format2(satDate.getDate())}`;
-        document.getElementById("quick-sat-date").textContent = `${format2(satDate.getDate())}.${format2(satDate.getMonth() + 1)}.${satDate.getFullYear()}`;
+        const quickSatEl = document.getElementById("quick-sat-date");
+        if (quickSatEl) quickSatEl.textContent = `${format2(satDate.getDate())}.${format2(satDate.getMonth() + 1)}.${satDate.getFullYear()}`;
 
         const sunDate = new Date(monday); sunDate.setDate(monday.getDate() + 6);
         currentWeekSunStr = `${sunDate.getFullYear()}-${format2(sunDate.getMonth() + 1)}-${format2(sunDate.getDate())}`;
-        document.getElementById("quick-sun-date").textContent = `${format2(sunDate.getDate())}.${format2(sunDate.getMonth() + 1)}.${sunDate.getFullYear()}`;
+        const quickSunEl = document.getElementById("quick-sun-date");
+        if (quickSunEl) quickSunEl.textContent = `${format2(sunDate.getDate())}.${format2(sunDate.getMonth() + 1)}.${sunDate.getFullYear()}`;
 
-        backfillDateInput.value = currentWeekSatStr;
-        backfillModal.classList.add("active");
+        if (backfillDateInput) backfillDateInput.value = currentWeekSatStr;
+        if (backfillModal) backfillModal.classList.add("active");
     });
 
-    document.getElementById("btn-close-backfill-modal").addEventListener("click", () => backfillModal.classList.remove("active"));
-    document.getElementById("btn-quick-sat").addEventListener("click", () => { backfillModal.classList.remove("active"); openEditorForAnyDate(currentWeekSatStr); });
-    document.getElementById("btn-quick-sun").addEventListener("click", () => { backfillModal.classList.remove("active"); openEditorForAnyDate(currentWeekSunStr); });
-    document.getElementById("btn-confirm-backfill").addEventListener("click", () => {
-        if (!backfillDateInput.value) return;
+    on("btn-close-backfill-modal", "click", () => { if (backfillModal) backfillModal.classList.remove("active"); });
+    on("btn-quick-sat", "click", () => { if (backfillModal) backfillModal.classList.remove("active"); openEditorForAnyDate(currentWeekSatStr); });
+    on("btn-quick-sun", "click", () => { if (backfillModal) backfillModal.classList.remove("active"); openEditorForAnyDate(currentWeekSunStr); });
+    on("btn-confirm-backfill", "click", () => {
+        if (!backfillDateInput || !backfillDateInput.value) return;
         const chosen = backfillDateInput.value;
-        backfillModal.classList.remove("active");
+        if (backfillModal) backfillModal.classList.remove("active");
         openEditorForAnyDate(chosen);
     });
 
@@ -2307,7 +2435,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function openDayEditor(dateStr, titleText, defaultStatus) {
         closeCustomKeypad();
         editingDateStr = dateStr;
-        dayEditorTitle.textContent = titleText;
+        if (dayEditorTitle) dayEditorTitle.textContent = titleText;
         const existing = getDayData(dateStr);
         if (existing) {
             editingDraft = JSON.parse(JSON.stringify(existing));
@@ -2326,12 +2454,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof editingDraft.smokeCount !== 'number') editingDraft.smokeCount = 0;
 
         renderDayEditor();
-        dayEditorModal.classList.add("active");
+        if (dayEditorModal) dayEditorModal.classList.add("active");
     }
 
     function closeDayEditor() {
         closeCustomKeypad();
-        dayEditorModal.classList.remove("active");
+        if (dayEditorModal) dayEditorModal.classList.remove("active");
         editingDateStr = null;
         editingDraft = null;
     }
@@ -2343,14 +2471,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (editingDraft.status !== "work") {
-            dayEditorWorkArea.style.display = "none";
-            dayEditorNonWorkNote.style.display = "block";
+            if (dayEditorWorkArea) dayEditorWorkArea.style.display = "none";
+            if (dayEditorNonWorkNote) dayEditorNonWorkNote.style.display = "block";
             return;
         }
 
-        dayEditorWorkArea.style.display = "block";
-        dayEditorNonWorkNote.style.display = "none";
-        editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
+        if (dayEditorWorkArea) dayEditorWorkArea.style.display = "block";
+        if (dayEditorNonWorkNote) dayEditorNonWorkNote.style.display = "none";
+        if (editorSmokeVal) editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
+        if (!dayEditorBlocksList) return;
         dayEditorBlocksList.innerHTML = "";
 
         if (editingDraft.sessions.length === 0) {
@@ -2431,26 +2560,26 @@ document.addEventListener("DOMContentLoaded", () => {
             renderDayEditor();
         });
     });
-    document.getElementById("btn-editor-add-block").addEventListener("click", () => {
+    on("btn-editor-add-block", "click", () => {
         if (!editingDraft) return;
         closeCustomKeypad();
         editingDraft.sessions.push({ start: { h: "12", m: "30", s: "00" }, end: { h: "16", m: "00", s: "00" } });
         renderDayEditor();
     });
-    document.getElementById("btn-editor-smoke-plus").addEventListener("click", () => {
+    on("btn-editor-smoke-plus", "click", () => {
         if (!editingDraft) return;
         editingDraft.smokeCount = (editingDraft.smokeCount || 0) + 1;
-        editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
+        if (editorSmokeVal) editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
     });
-    document.getElementById("btn-editor-smoke-minus").addEventListener("click", () => {
+    on("btn-editor-smoke-minus", "click", () => {
         if (!editingDraft || (editingDraft.smokeCount || 0) <= 0) return;
         editingDraft.smokeCount--;
-        editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
+        if (editorSmokeVal) editorSmokeVal.textContent = `${editingDraft.smokeCount}×`;
     });
-    document.getElementById("btn-reset-day-editor").addEventListener("click", () => {
+    on("btn-reset-day-editor", "click", () => {
         if (!editingDateStr) return;
         const targetDate = editingDateStr;
-        localStorage.removeItem("day_" + targetDate);
+        storageRemove("day_" + targetDate);
         if (targetDate === getTodayStr()) {
             pushUndoSnapshot();
             todaySessions = [];
@@ -2459,15 +2588,15 @@ document.addEventListener("DOMContentLoaded", () => {
             updateSmokerUI();
             syncInputsFromSessions();
             renderSessionsBox();
-            localStorage.removeItem("savedTodaySessions");
+            storageRemove("savedTodaySessions");
             calculateAllTimes();
         }
         closeDayEditor();
         buildWeekView();
     });
-    document.getElementById("btn-close-day-editor").addEventListener("click", closeDayEditor);
+    on("btn-close-day-editor", "click", closeDayEditor);
 
-    document.getElementById("btn-save-day-editor").addEventListener("click", () => {
+    on("btn-save-day-editor", "click", () => {
         closeCustomKeypad();
         if (!editingDateStr || !editingDraft) return;
         const validSessions = (editingDraft.sessions || []).filter(b => b.start && b.start.h !== "");
@@ -2490,7 +2619,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const parts = editingDateStr.split("-").map(Number);
         const dow = new Date(parts[0], parts[1] - 1, parts[2]).getDay();
-        if ((dow === 0 || dow === 6) && !hasWeekendBooking(editingDraft)) localStorage.removeItem("day_" + editingDateStr);
+        if ((dow === 0 || dow === 6) && !hasWeekendBooking(editingDraft)) storageRemove("day_" + editingDateStr);
         else saveDayData(editingDateStr, editingDraft);
 
         if (editingDateStr === getTodayStr()) {
@@ -2501,8 +2630,8 @@ document.addEventListener("DOMContentLoaded", () => {
             updateSmokerUI();
             syncInputsFromSessions();
             renderSessionsBox();
-            if (todaySessions.length > 0) localStorage.setItem("savedTodaySessions", JSON.stringify({ date: editingDateStr, sessions: todaySessions }));
-            else localStorage.removeItem("savedTodaySessions");
+            if (todaySessions.length > 0) storageSet("savedTodaySessions", JSON.stringify({ date: editingDateStr, sessions: todaySessions }));
+            else storageRemove("savedTodaySessions");
             calculateAllTimes();
         }
         closeDayEditor();
@@ -2537,17 +2666,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const lblWorked = document.getElementById("label-week-worked");
         const lblTotal = document.getElementById("label-week-total");
+        const outWorked = document.getElementById("output-week-worked");
+        const outTotal = document.getElementById("output-week-total");
 
-        if (isLiveNow) {
-            lblWorked.innerHTML = `<span class="live-dot"></span>Geleistet (Live)`;
-            lblTotal.innerHTML = `<span class="live-dot"></span>Wochen-Saldo`;
-            document.getElementById("output-week-worked").textContent = fmtHMS(totalCreditedSecs);
-            document.getElementById("output-week-total").textContent = `${sign}${fmtHMS(absDiffSecs)}`;
-        } else {
-            lblWorked.textContent = "Geleistet (Ist)";
-            lblTotal.textContent = "Wochen-Saldo";
-            document.getElementById("output-week-worked").textContent = fmtHM(totalCreditedSecs);
-            document.getElementById("output-week-total").textContent = `${sign}${fmtHM(absDiffSecs)}`;
+        if (lblWorked && lblTotal && outWorked && outTotal) {
+            if (isLiveNow) {
+                lblWorked.innerHTML = `<span class="live-dot"></span>Geleistet (Live)`;
+                lblTotal.innerHTML = `<span class="live-dot"></span>Wochen-Saldo`;
+                outWorked.textContent = fmtHMS(totalCreditedSecs);
+                outTotal.textContent = `${sign}${fmtHMS(absDiffSecs)}`;
+            } else {
+                lblWorked.textContent = "Geleistet (Ist)";
+                lblTotal.textContent = "Wochen-Saldo";
+                outWorked.textContent = fmtHM(totalCreditedSecs);
+                outTotal.textContent = `${sign}${fmtHM(absDiffSecs)}`;
+            }
         }
 
         updateAmpelPill();
@@ -2555,15 +2688,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function buildWeekView() {
         const container = document.getElementById("week-days-container");
+        if (!container) return;
         container.innerHTML = "";
 
         const todayStr = getTodayStr();
         const refDate = new Date();
+        refDate.setHours(12, 0, 0, 0);
         refDate.setDate(refDate.getDate() + (weekOffset * 7));
-        weekDatePicker.value = `${refDate.getFullYear()}-${format2(refDate.getMonth() + 1)}-${format2(refDate.getDate())}`;
+        if (weekDatePicker) weekDatePicker.value = `${refDate.getFullYear()}-${format2(refDate.getMonth() + 1)}-${format2(refDate.getDate())}`;
 
         const kwNum = getCalendarWeek(refDate);
-        document.getElementById("week-kw-main").textContent = `KW ${kwNum} · ${refDate.getFullYear()}`;
+        const kwMainEl = document.getElementById("week-kw-main");
+        if (kwMainEl) kwMainEl.textContent = `KW ${kwNum} · ${refDate.getFullYear()}`;
 
         const monday = getMonday(refDate);
         const sollSecsPerDay = (sollHours * 3600) + (sollMinutes * 60);
@@ -2581,9 +2717,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const isSunday = (i === 6);
             const isSaturday = (i === 5);
 
-            const rawSaved = localStorage.getItem("day_" + dateStr);
+            const rawSaved = storageGet("day_" + dateStr);
             const defaultStatus = holidayName ? 'holiday' : ((isSaturday || isSunday) ? 'free' : 'work');
-            let saved = getDayData(dateStr) || { status: defaultStatus, startH: '', startM: '', endH: '', endM: '' };
+            const baseSaved = getDayData(dateStr);
+            const saved = baseSaved
+                ? { ...baseSaved }
+                : { status: defaultStatus, startH: '', startM: '', endH: '', endM: '' };
             if (holidayName && !rawSaved) saved.status = 'holiday';
 
             if (isSunday && !hasWeekendBooking(saved)) continue;
@@ -2600,7 +2739,9 @@ document.addEventListener("DOMContentLoaded", () => {
             let middleHtml = "";
             if (saved.status === 'work') {
                 if (hasStart || hasEnd) {
-                    middleHtml = `<div class="day-time-display">${hasStart ? `${saved.startH}:${saved.startM || '00'}` : '--:--'} – ${hasEnd ? `${saved.endH}:${saved.endM || '00'}` : (saved.dayFinalized ? 'schluss' : 'läuft...')}</div>`;
+                    const sFmt = hasStart ? `${format2(Number(saved.startH))}:${format2(Number(saved.startM || 0))}` : '--:--';
+                    const eFmt = hasEnd ? `${format2(Number(saved.endH))}:${format2(Number(saved.endM || 0))}` : (saved.dayFinalized ? 'schluss' : 'läuft...');
+                    middleHtml = `<div class="day-time-display">${sFmt} – ${eFmt}</div>`;
                 } else middleHtml = `<div class="day-time-display empty">--:-- – --:--</div>`;
             } else if (saved.status === 'holiday') {
                 middleHtml = `<div class="day-status-note">🎉 ${holidayName || 'Feiertag'}</div>`;
@@ -2646,9 +2787,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let touchStartX = 0, touchStartY = 0, touchBlocked = false, stageScrollAtStart = 0;
 
     document.addEventListener("touchstart", (e) => {
-        const anyModalOpen = dayEditorModal.classList.contains("active")
+        const anyModalOpen = (dayEditorModal && dayEditorModal.classList.contains("active"))
             || (pdfExportModal && pdfExportModal.classList.contains("active"))
-            || backfillModal.classList.contains("active");
+            || (backfillModal && backfillModal.classList.contains("active"));
 
         if (anyModalOpen
             || isOrbGestureProtected()
@@ -2660,7 +2801,7 @@ document.addEventListener("DOMContentLoaded", () => {
         touchBlocked = false;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        stageScrollAtStart = viewsStage.scrollTop;
+        stageScrollAtStart = viewsStage ? viewsStage.scrollTop : 0;
     }, { passive: true });
 
     document.addEventListener("touchend", (e) => {
@@ -2671,16 +2812,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const threshold = 55;
 
         if (absX > threshold && absX > absY * 1.3) {
-            if (welcomeOverlay.classList.contains("active")) {
+            if (welcomeOverlay && welcomeOverlay.classList.contains("active")) {
                 if (dx < 0) switchToWeekView();
                 else closeWelcomeScreen();
-            } else if (viewClock.classList.contains("active")) {
+            } else if (viewClock && viewClock.classList.contains("active")) {
                 if (dx < 0) switchToWeekView();
                 else openSettingsMenu();
-            } else if (viewWeek.classList.contains("active")) {
+            } else if (viewWeek && viewWeek.classList.contains("active")) {
                 if (dx > 0) switchToClockView();
                 else openSettingsMenu();
-            } else if (viewMenu.classList.contains("active")) {
+            } else if (viewMenu && viewMenu.classList.contains("active")) {
                 if (dx > 0) switchToWeekView();
                 else switchToClockView();
             }
@@ -2688,17 +2829,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (absY > threshold && absY > absX * 1.3) {
-            const scrolledDuringSwipe = Math.abs(viewsStage.scrollTop - stageScrollAtStart) > 12;
-            const maxScroll = Math.max(0, viewsStage.scrollHeight - viewsStage.clientHeight);
+            const currentScroll = viewsStage ? viewsStage.scrollTop : 0;
+            const scrolledDuringSwipe = Math.abs(currentScroll - stageScrollAtStart) > 12;
+            const maxScroll = viewsStage ? Math.max(0, viewsStage.scrollHeight - viewsStage.clientHeight) : 0;
 
             if (dy < 0) {
-                if (!welcomeOverlay.classList.contains("active")) {
+                if (welcomeOverlay && !welcomeOverlay.classList.contains("active")) {
                     if (!scrolledDuringSwipe && ((maxScroll - stageScrollAtStart) <= 10 || maxScroll <= 4)) {
                         openWelcomeScreen();
                     }
                 }
             } else {
-                if (!scrolledDuringSwipe && (welcomeOverlay.classList.contains("active") || stageScrollAtStart <= 2)) {
+                if (!scrolledDuringSwipe && ((welcomeOverlay && welcomeOverlay.classList.contains("active")) || stageScrollAtStart <= 2)) {
                     openSettingsMenu();
                 }
             }
@@ -2708,7 +2850,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* INITIALISIERUNG HEUTIGER SITZUNG */
     try {
         const todayStr = getTodayStr();
-        const savedSessionsRaw = localStorage.getItem("savedTodaySessions");
+        const savedSessionsRaw = storageGet("savedTodaySessions");
         if (savedSessionsRaw) {
             const parsed = JSON.parse(savedSessionsRaw);
             if (parsed.date === todayStr && Array.isArray(parsed.sessions)) {
@@ -2716,9 +2858,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 syncInputsFromSessions();
                 renderSessionsBox();
                 calculateAllTimes();
-            } else localStorage.removeItem("savedTodaySessions");
+            } else storageRemove("savedTodaySessions");
         }
-    } catch (e) { localStorage.removeItem("savedTodaySessions"); }
+    } catch (e) { storageRemove("savedTodaySessions"); }
 
     welcomeActionMode = getLogicalNextMode();
     syncActionButtonVisuals();
@@ -2726,7 +2868,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAmpelPill();
 
     const todayAtInit = getTodayStr();
-    const dismissedToday = localStorage.getItem("welcomeDismissedDate") === todayAtInit;
+    const dismissedToday = storageGet("welcomeDismissedDate") === todayAtInit;
     const todayRecordAtInit = getDayData(todayAtInit);
     const hasTimesToday = todaySessions.length > 0
         || (todayRecordAtInit && (
@@ -2741,31 +2883,39 @@ document.addEventListener("DOMContentLoaded", () => {
         const now = new Date();
         const hh = format2(now.getHours());
         const timeStr = `${hh}:${format2(now.getMinutes())}:${format2(now.getSeconds())}`;
-        liveTimeEl.textContent = timeStr;
+        if (liveTimeEl) liveTimeEl.textContent = timeStr;
         if (welcomeBigClockEl) welcomeBigClockEl.textContent = timeStr;
         if (bgHourWatermark) bgHourWatermark.textContent = hh;
 
-        liveDayEl.textContent = `${weekdaysFull[now.getDay()]}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
-        if (welcomeOverlay.classList.contains("active")) updateWelcomeGreetingText();
+        if (liveDayEl) liveDayEl.textContent = `${weekdaysFull[now.getDay()]}, ${format2(now.getDate())}.${format2(now.getMonth() + 1)}.${now.getFullYear()}`;
+        if (welcomeOverlay && welcomeOverlay.classList.contains("active")) updateWelcomeGreetingText();
 
         const pS = getParsedStart();
         const pE = getParsedEnd();
         if (pS && !pE && !todayFinalized) {
             checkPauseNotifications();
             updateWelcomeWidgets();
-            if (viewClock.classList.contains("active")) {
+            if (viewClock && viewClock.classList.contains("active")) {
                 calculateWorkingTime();
-                if (todaySessions.length > 1) {
+                if (todaySessions.length > 1 && sessionsPresSum) {
                     const { totalPresSecs } = getSessionMetrics(getNowSecsOfDay());
                     sessionsPresSum.textContent = `Anwesenheit: ${format2(Math.floor(totalPresSecs / 3600))}:${format2(Math.floor((totalPresSecs % 3600) / 60))} h`;
                 }
             }
         } else updateWelcomeWidgets();
 
-        if (viewWeek.classList.contains("active") && weekHasLiveToday) renderWeekSummaryLive();
+        if (viewWeek && viewWeek.classList.contains("active") && weekHasLiveToday) renderWeekSummaryLive();
     }
 
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) tickLiveEngine(); });
+    let liveTimerId = setInterval(tickLiveEngine, 1000);
+    document.addEventListener("visibilitychange", () => {
+        clearInterval(liveTimerId);
+        liveTimerId = null;
+        if (!document.hidden) {
+            tickLiveEngine();
+            liveTimerId = setInterval(tickLiveEngine, 1000);
+        }
+    });
 
     document.addEventListener("pointerdown", (e) => {
         if (!("vibrate" in navigator)) return;
@@ -2776,5 +2926,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
 
     tickLiveEngine();
-    setInterval(tickLiveEngine, 1000);
 });

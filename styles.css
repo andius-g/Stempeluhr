@@ -1,22 +1,23 @@
 /* =========================================================
-   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.4)
+   STEMPELUHR & WOCHENÜBERSICHT — DESIGN & LAYOUT (VERSION 2.0.5)
    ========================================================= */
 :root {
     --hue: 195;
+    --hue-deg: calc(var(--hue) * 1deg);
     --lightness: 44%;
     --asym-intensity: 0;
 
-    --text-color: hsl(calc(var(--hue) - 125), 55%, 24%);
-    --bg-color: hsl(calc(var(--hue) + 120), 42%, 95%);
-    --card-bg: hsl(calc(var(--hue) + 120), 34%, 91%);
-    --subcard-bg: hsl(calc(var(--hue) + 120), 36%, 96%);
-    --border-color: hsl(var(--hue), 20%, 82%);
+    --text-color: hsl(calc(var(--hue-deg) - 125deg), 55%, 24%);
+    --bg-color: hsl(calc(var(--hue-deg) + 120deg), 42%, 95%);
+    --card-bg: hsl(calc(var(--hue-deg) + 120deg), 34%, 91%);
+    --subcard-bg: hsl(calc(var(--hue-deg) + 120deg), 36%, 96%);
+    --border-color: hsl(var(--hue-deg), 20%, 82%);
 
-    --primary-color: hsl(var(--hue), 72%, var(--lightness));
-    --primary-hover: hsl(var(--hue), 76%, calc(var(--lightness) - 6%));
+    --primary-color: hsl(var(--hue-deg), 72%, var(--lightness));
+    --primary-hover: hsl(var(--hue-deg), 76%, calc(var(--lightness) - 6%));
 
-    --secondary-color: hsl(calc(var(--hue) + 150), 72%, var(--lightness));
-    --secondary-hover: hsl(calc(var(--hue) + 150), 76%, calc(var(--lightness) - 6%));
+    --secondary-color: hsl(calc(var(--hue-deg) + 150deg), 72%, var(--lightness));
+    --secondary-hover: hsl(calc(var(--hue-deg) + 150deg), 76%, calc(var(--lightness) - 6%));
 
     --white: #ffffff;
     --border-radius: 14px;
@@ -111,9 +112,9 @@ body {
     align-items: center;
     padding: calc(env(safe-area-inset-top, 16px) + 18px) 22px calc(env(safe-area-inset-bottom, 20px) + 14px);
     background:
-        radial-gradient(circle at 18% 16%, hsla(var(--hue), 72%, 44%, 0.42) 0%, transparent 56%),
-        radial-gradient(circle at 86% 84%, hsla(calc(var(--hue) + 150), 68%, 42%, 0.34) 0%, transparent 58%),
-        linear-gradient(155deg, hsl(var(--hue), 44%, 22%) 0%, hsl(var(--hue), 48%, 12%) 100%);
+        radial-gradient(circle at 18% 16%, hsla(var(--hue-deg), 72%, 44%, 0.42) 0%, transparent 56%),
+        radial-gradient(circle at 86% 84%, hsla(calc(var(--hue-deg) + 150deg), 68%, 42%, 0.34) 0%, transparent 58%),
+        linear-gradient(155deg, hsl(var(--hue-deg), 44%, 22%) 0%, hsl(var(--hue-deg), 48%, 12%) 100%);
     color: #ffffff;
     text-align: center;
     overflow: hidden;
@@ -674,11 +675,11 @@ body {
 .kg-pill.is-active {
     border-color: var(--primary-color);
     background-color: var(--white);
-    box-shadow: 0 0 0 3px hsla(var(--hue), 72%, var(--lightness), 0.18);
+    box-shadow: 0 0 0 3px hsla(var(--hue-deg), 72%, var(--lightness), 0.18);
 }
 #pill-end.is-active {
     border-color: var(--secondary-color);
-    box-shadow: 0 0 0 3px hsla(calc(var(--hue) + 150), 72%, var(--lightness), 0.18);
+    box-shadow: 0 0 0 3px hsla(calc(var(--hue-deg) + 150deg), 72%, var(--lightness), 0.18);
 }
 .kg-pill-tag {
     width: 32px;
@@ -716,7 +717,7 @@ body {
 .keypad-bound-input.kp-focused {
     border-color: var(--primary-color) !important;
     background-color: var(--white) !important;
-    box-shadow: 0 0 0 3px hsla(var(--hue), 72%, var(--lightness), 0.22) !important;
+    box-shadow: 0 0 0 3px hsla(var(--hue-deg), 72%, var(--lightness), 0.22) !important;
 }
 
 /* SAFARI-STABILES TASTATUR-SHEET + GRÖSSERER FERTIG-BUTTON */
@@ -735,6 +736,10 @@ body {
     margin: 0 auto;
     display: none;
     touch-action: manipulation;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout style;
 }
 .custom-keypad-sheet.active { display: block; }
 .keypad-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 0 2px; gap: 8px; }
@@ -753,6 +758,7 @@ body {
 }
 .keypad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 .kp-key {
+    position: relative;
     height: 46px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -1286,7 +1292,7 @@ body {
     display: flex;
     align-items: center;
     gap: 3px;
-    background: hsl(var(--hue), 44%, 22%);
+    background: hsl(var(--hue-deg), 44%, 22%);
     padding: 3px 6px;
     border-radius: 999px;
 }
@@ -1507,7 +1513,7 @@ canvas#colorWheel { border-radius: 50%; cursor: crosshair; box-shadow: 0 3px 10p
     font-weight: bold;
     font-size: 0.84em;
 }
-.icon-variant-card.selected { border-color: var(--primary-color); background-color: var(--bg-color); box-shadow: 0 0 0 3px hsla(var(--hue), 72%, var(--lightness), 0.18); }
+.icon-variant-card.selected { border-color: var(--primary-color); background-color: var(--bg-color); box-shadow: 0 0 0 3px hsla(var(--hue-deg), 72%, var(--lightness), 0.18); }
 .icon-variant-card img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16); }
 .icon-install-hint { font-size: 0.74em; opacity: 0.78; margin-top: 7px; line-height: 1.35; }
 

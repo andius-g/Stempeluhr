@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <!-- =========================================================
-     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.4
+     STEMPELUHR & WOCHENÜBERSICHT — VERSION 2.0.5
      ========================================================= -->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" id="meta-theme-color" content="#f4ecf3">
-    <title>Stempeluhr & Wochenübersicht (v2.0.4)</title>
+    <title>Stempeluhr & Wochenübersicht (v2.0.5)</title>
 
     <link rel="manifest" id="app-manifest-link" href="./manifest.json">
     <link rel="icon" id="fav-32" type="image/png" sizes="32x32" href="./favicon_32.png">
     <link rel="icon" id="fav-192" type="image/png" sizes="192x192" href="./favicon_192.png">
     <link rel="icon" id="fav-base" href="./favicon.png" type="image/png">
     <link rel="apple-touch-icon" id="fav-apple" sizes="180x180" href="./favicon_180.png">
-    <link rel="stylesheet" href="./styles.css?v=204">
+    <link rel="stylesheet" href="./styles.css?v=205">
 
     <script>
-        const APP_VERSION = "2.0.4";
+        const APP_VERSION = "2.0.5";
         window.hslToHex = function(h, s, l) {
             h = ((h % 360) + 360) % 360;
             s /= 100; l /= 100;
@@ -48,19 +48,25 @@
         };
 
         (function() {
-            const h = parseInt(localStorage.getItem("appHue"), 10);
-            const l = parseInt(localStorage.getItem("appLightness"), 10);
-            const hue = isNaN(h) ? 195 : h;
-            const light = isNaN(l) ? 44 : Math.min(52, Math.max(28, l));
-            const bgHex = window.hslToHex(hue + 120, 42, 95);
+            let h = 195, l = 44, styleMode = "classic", rawIntensity = 55, savedIconTheme = "blue";
+            try {
+                const ph = parseInt(localStorage.getItem("appHue"), 10);
+                if (!isNaN(ph)) h = ph;
+                const pl = parseInt(localStorage.getItem("appLightness"), 10);
+                if (!isNaN(pl)) l = pl;
+                if (localStorage.getItem("appStyleMode") === "asymmetric") styleMode = "asymmetric";
+                const pi = parseInt(localStorage.getItem("appAsymIntensity"), 10);
+                if (!isNaN(pi)) rawIntensity = pi;
+                if (localStorage.getItem("appIconTheme") === "rose") savedIconTheme = "rose";
+            } catch (e) {}
 
-            const styleMode = localStorage.getItem("appStyleMode") === "asymmetric" ? "asymmetric" : "classic";
-            const rawIntensity = parseInt(localStorage.getItem("appAsymIntensity"), 10);
-            const intensity = isNaN(rawIntensity) ? 55 : Math.min(100, Math.max(0, rawIntensity));
+            const light = Math.min(52, Math.max(28, l));
+            const bgHex = window.hslToHex(h + 120, 42, 95);
+            const intensity = Math.min(100, Math.max(0, rawIntensity));
 
             const root = document.documentElement;
             root.setAttribute("data-style", styleMode);
-            root.style.setProperty('--hue', hue);
+            root.style.setProperty('--hue', h);
             root.style.setProperty('--lightness', light + '%');
             root.style.setProperty('--asym-intensity', (intensity / 100).toFixed(3));
             root.style.backgroundColor = bgHex;
@@ -68,8 +74,10 @@
             const meta = document.getElementById("meta-theme-color");
             if (meta) meta.setAttribute("content", bgHex);
 
-            const savedIconTheme = localStorage.getItem("appIconTheme") === "rose" ? "rose" : "blue";
             window.applyAppIconTheme(savedIconTheme);
+            document.addEventListener("DOMContentLoaded", () => {
+                window.applyAppIconTheme(savedIconTheme);
+            });
         })();
     </script>
 
@@ -78,12 +86,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Stempeluhr">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="./scribbles.js?v=204" defer></script>
-    <script src="./holidays-nds.js?v=204" defer></script>
-    <script src="./phrases.js?v=204" defer></script>
-    <script src="./pdf-export.js?v=204" defer></script>
-    <script src="./app.js?v=204" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" defer></script>
+    <script src="./scribbles.js?v=205" defer></script>
+    <script src="./holidays-nds.js?v=205" defer></script>
+    <script src="./phrases.js?v=205" defer></script>
+    <script src="./pdf-export.js?v=205" defer></script>
+    <script src="./app.js?v=205" defer></script>
 </head>
 <body>
     <div class="edge-bg-layer" id="edge-bg-layer"></div>
@@ -382,7 +390,7 @@
                         </div>
 
                         <div class="version-update-bar">
-                            <span id="app-version-label" style="font-weight:bold;">Version 2.0.4</span>
+                            <span id="app-version-label" style="font-weight:bold;">Version 2.0.5</span>
                             <button type="button" class="btn-force-update" id="btn-force-update">↻ Update erzwingen</button>
                         </div>
                     </div>
@@ -832,7 +840,7 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=204');
+        navigator.serviceWorker.register('./sw.js?v=205');
       }
     </script>
 </body>
