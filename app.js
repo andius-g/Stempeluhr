@@ -2817,10 +2817,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 else closeWelcomeScreen();
             } else if (viewClock && viewClock.classList.contains("active")) {
                 if (dx < 0) switchToWeekView();
-                else openSettingsMenu();
+                else if (welcomeOverlay) openWelcomeScreen();
             } else if (viewWeek && viewWeek.classList.contains("active")) {
                 if (dx > 0) switchToClockView();
-                else openSettingsMenu();
+                else if (welcomeOverlay) openWelcomeScreen();
             } else if (viewMenu && viewMenu.classList.contains("active")) {
                 if (dx > 0) switchToWeekView();
                 else switchToClockView();
